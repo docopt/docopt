@@ -36,20 +36,6 @@ So instead of writing shit like this:
                           help="skip errors and warnings (e.g. E4,W)")
         parser.add_option('--show-source', action='store_true',
                           help="show source code for each error")
-        parser.add_option('--show-pep8', action='store_true',
-                          help="show text of PEP 8 for each error")
-        parser.add_option('--statistics', action='store_true',
-                          help="count errors and warnings")
-        parser.add_option('--count', action='store_true',
-                          help="print total number of errors and warnings "
-                            "to standard error and set exit code to 1 if "
-                            "total is not null")
-        parser.add_option('--benchmark', action='store_true',
-                          help="measure processing speed")
-        parser.add_option('--testsuite', metavar='dir',
-                          help="run regression tests from dir")
-        parser.add_option('--doctest', action='store_true',
-                          help="run doctest on myself")
         options, arguments = parser.parse_args()
         return options, arguments
 
@@ -80,13 +66,6 @@ You write an awesome, readable, clean, pythonic code like *that*:
       --select=errors      select errors and warnings (e.g. E,W6)
       --ignore=errors      skip errors and warnings (e.g. E4,W)
       --show-source        show source code for each error
-      --show-pep8          show text of PEP 8 for each error
-      --statistics         count errors and warnings
-      --count              print total number of errors and warnings to standard
-                           error and set exit code to 1 if total is not null
-      --benchmark          measure processing speed
-      --testsuite=dir      run regression tests from dir
-      --doctest            run doctest on myself
 
     """
     from docopt import docopt
