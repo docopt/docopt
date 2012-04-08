@@ -7,6 +7,7 @@ import re
 class Option(object):
 
     def __init__(self, short=None, long=None, value=False, parse=None):
+        self.is_flag = True
         if parse:
             split = parse.strip().split('  ')
             options = split[0].replace(',', ' ').replace('=', ' ')
@@ -14,15 +15,14 @@ class Option(object):
             matched = re.findall('\[default: (.*)\]', description)
             if matched:
                 value = argument_eval(matched[0])
-            has_argument = False
             for s in options.split():
                 if s.startswith('--'):
                     long = s.lstrip('-')
                 elif s.startswith('-'):
                     short = s.lstrip('-')
                 else:
-                    has_argument = True
-            if has_argument:
+                    self.is_flag = False
+            if not self.is_flag:
                 short = short + ':' if short else None
                 long = long + '=' if long else None
         self.short = short
@@ -44,13 +44,6 @@ class Option(object):
             yield '-' + self.short.rstrip(':')
         if self.long:
             yield '--' + self.long.rstrip('=')
-
-    @property
-    def is_flag(self):
-        if self.short:
-            return not self.short.endswith(':')
-        if self.long:
-            return not self.long.endswith('=')
 
     def __repr__(self):
         return 'Option(%s, %s, %s)' % (repr(self.short),
