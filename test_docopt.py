@@ -47,4 +47,4 @@ def test_parse_doc():
                               Option(None, 'verbose')]
 
 def test_docopt():
-    assert docopt('\n-h  Show help.', ['-h']) == (Options(h=True), [])
+    assert docopt('\n-v  Be verbose.', ['-v']) == (Options(v=True), [])
