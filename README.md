@@ -207,6 +207,10 @@ string, e.g.:
         --directory=DIR  Some directory [default: ./]        # will be str "./"
         """
 
+Note, that `docopt` also tries to interprete passed arguments of options as
+Python literals, or else as strings, so in most cases you don't need to
+convert types.
+
 Something missing?
 ===============================================================================
 
