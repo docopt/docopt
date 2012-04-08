@@ -81,7 +81,7 @@ def parse_doc(doc):
     return [Option(parse='-' + s) for s in re.split('\n *-', doc)[1:]]
 
 
-def docopt(doc, args=sys.argv[1:], help=True):
+def docopt(doc, args=sys.argv[1:], help=True, version=None):
     docopts = parse_doc(doc)
     getopts, args = getopt(args,
                            ''.join([d.short for d in docopts if d.short]),
@@ -92,5 +92,8 @@ def docopt(doc, args=sys.argv[1:], help=True):
                 o.value = True if o.is_flag else v
             if help and k in ('-h', '--help'):
                 print doc,
+                exit()
+            if version is not None and k == '--version':
+                print version
                 exit()
     return Options(**dict([(o.name, o.value) for o in docopts])), args

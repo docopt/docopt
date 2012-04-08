@@ -2,6 +2,7 @@
 
 Options:
   -h --help            show this help message and exit
+  --version            show version and exit
   -v --verbose         print status messages
   -q --quiet           report only file names
   -r --repeat          show all occurrences of the same error
@@ -30,5 +31,5 @@ def main(options, arguments):
 
 if __name__ == '__main__':
     # parse options based on docstring above
-    options, arguments = docopt(__doc__)
+    options, arguments = docopt(__doc__, version='1.0.0rc2')
     main(options, arguments)
