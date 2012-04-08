@@ -1,7 +1,7 @@
 import re
 import sys
 from ast import literal_eval
-from getopt import gnu_getopt as getopt
+from getopt import gnu_getopt, GetoptError
 
 
 class Option(object):
@@ -83,9 +83,13 @@ def parse_doc(doc):
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     docopts = parse_doc(doc)
-    getopts, args = getopt(args,
-                           ''.join([d.short for d in docopts if d.short]),
-                           [d.long for d in docopts if d.long])
+    try:
+        getopts, args = gnu_getopt(args,
+                ''.join([d.short for d in docopts if d.short]),
+                [d.long for d in docopts if d.long])
+    except GetoptError as e:
+        print e.msg
+        exit()
     for k, v in getopts:
         for o in docopts:
             if k in o.forms:
