@@ -1,7 +1,7 @@
-import re
-import sys
-from ast import literal_eval
 from getopt import gnu_getopt, GetoptError
+from ast import literal_eval
+import sys
+import re
 
 
 class Option(object):
@@ -13,10 +13,7 @@ class Option(object):
             description = ''.join(split[1:])
             matched = re.findall('\[default: (.*)\]', description)
             if matched:
-                try:
-                    value = literal_eval(matched[0])
-                except (ValueError, SyntaxError):
-                    value = matched[0]
+                value = argument_eval(matched[0])
             has_argument = False
             for s in options.split():
                 if s.startswith('--'):
@@ -77,6 +74,13 @@ class Options(object):
                                         for kw, a in self.__dict__.items()])
 
 
+def argument_eval(s):
+    try:
+        return literal_eval(s)
+    except (ValueError, SyntaxError):
+        return s
+
+
 def parse_doc(doc):
     return [Option(parse='-' + s) for s in re.split('\n *-', doc)[1:]]
 
@@ -85,15 +89,15 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     docopts = parse_doc(doc)
     try:
         getopts, args = gnu_getopt(args,
-                ''.join([d.short for d in docopts if d.short]),
-                [d.long for d in docopts if d.long])
+                            ''.join([d.short for d in docopts if d.short]),
+                            [d.long for d in docopts if d.long])
     except GetoptError as e:
         print e.msg
         exit()
     for k, v in getopts:
         for o in docopts:
             if k in o.forms:
-                o.value = True if o.is_flag else v
+                o.value = True if o.is_flag else argument_eval(v)
             if help and k in ('-h', '--help'):
                 print doc,
                 exit()
