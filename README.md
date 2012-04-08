@@ -2,11 +2,11 @@
 `docopt` - pythonic option parser, that will make you happy
 ===============================================================================
 
-Isn't it awesome how `optparse` and `argparse` generate help and usage messages
+Isn't it awesome how `optparse` and `argparse` generate help and usage-messages
 based on your code?!
 
 Hell no!  You know what's awesome?  It's when the option parser *is* generated
-based on the help and usage message that you write in a docstring!  This way
+based on the help and usage-message that you write in a docstring!  This way
 you don't need to write this stupid repeatable parser-code, and instead can
 write a beautiful usage-message (the way you want it!), which adds readability
 to your code.
@@ -108,33 +108,33 @@ API
 `docopt` takes 1 required and 3 optional arguments:
 
 - `doc` should be a module docstring (`__doc__`) or some other string that
-describes **options** in human-readable format, that will be parsed to create
-the option parser.  The (simple) rules of how to write such docstring (in order
-to generate option parser from it successfully) are given in the next section.
-A quick example of such string:
+describes **options** in a human-readable format, that will be parsed to create
+the option parser.  The simple rules of how to write such a docstring
+(in order to generate option parser from it successfully) are given in the next
+section. Here is a quick example of such a string:
 
         """Usage: your_program.py [options]
 
         -h --help     Show this.
         -v --verbose  Print more text.
         --quiet       Print less text.
-        -o FILE       Specify output file [default: ./test.txt]"""
+        -o FILE       Specify output file [default: ./test.txt]."""
 
 - `args` is an optional argument; by default it is supplied with options and
 arguments passed to your program (`sys.argv[1:]`). In case you want to supply
-something else, it should be in similar format as `sys.argv`, i.e. a list of
-strings, such as `['--verbose', '-o', 'hai.txt']`.
+something else, it should be in the format similar to `sys.argv`, i.e. a list
+of strings, such as `['--verbose', '-o', 'hai.txt']`.
 
 - `help`, by default `True`, specifies whether the parser should automatically
-print the usage message (supplied as `doc`) in case `-h` or `--help` options
-are encountered. After showing the usage message, the program will terminate.
+print the usage-message (supplied as `doc`) in case `-h` or `--help` options
+are encountered. After showing the usage-message, the program will terminate.
 If you want to handle `-h` or `--help` options manually (as all other options),
 set `help=False`.
 
 - `version`, by default `None`, is an optional argument that specifies the
 version of your program. If supplied, then, if the parser encounters
-`--version` option it will print the supplied version and terminate.
-`version` could be any printable object, but most likely to be a string,
+`--version` option, it will print the supplied version and terminate.
+`version` could be any printable object, but most likely a string,
 e.g. `"2.1.0rc1"`.
 
 Note, when `docopt` is set to automatically handle `-h`, `--help` and
@@ -145,11 +145,11 @@ The **return** value is a tuple `options, arguments`, where:
 
 - `options` is an object with instance variables corresponding to each option.
 It can be pretty-printed for debugging (try `example.py`). Names of
-instance variables will be formed based option names, so that characters
-that are not allowed in instance variable names (such as dash `-`) will be
+instance variables will be based on option names, so that characters
+that are not allowed in an instance variable name (such as dash `-`) will be
 substituted with underscore `_`. E.g. option `--print-out` will be
 presented as `options.print_out`, and option `-v, --verbose` will be
-presented as `options.verbose`, giving precedence to longer variant.
+presented as `options.verbose`, giving precedence to a longer variant.
 
 - `arguments` is a list of non-option arguments.
 
@@ -163,7 +163,7 @@ Here are the simple rules (that you probably already follow) for your
 usage-message to be parsable:
 
 - Every line that starts with `-` or `--` (not counting spaces) is treated
-as option description, e.g.:
+as an option description, e.g.:
 
         """
         Options:
@@ -172,9 +172,9 @@ as option description, e.g.:
         Other: --bad  # BAD, line does not start with dash "-"
         """
 
-- To specify that option has an argument, put a word describing that argument
-after space (or equals `=` sign) as seen below.
-You can use comma if you want to separate options. In example below both
+- To specify that an option has an argument, put a word describing that
+argument after space (or equals `=` sign) as shown below.
+You can use comma if you want to separate options. In the example below both
 lines are valid, however you are recommended to stick to a single style.
 
         """
@@ -192,12 +192,13 @@ lines are valid, however you are recommended to stick to a single style.
         --stdout  Use stdout.  # GOOD, 2 spaces
         """
 
-- If you want to set a default value for an option with argument, put it into
-option description in form `[default: <your-default-value>]`. To be precise,
-it should match the following regular expression: `"\[default: (.*)\]"`.
+- If you want to set a default value for an option with an argument, put it
+into the option description, in form `[default: <your-default-value>]`.
+To be precise, it should match the following regular expression:
+`"\[default: (.*)\]"`.
 The parser will try to interprete the default value as Python literal
-(using `ast.literal_eval`), and if it can't it will be interpreted as a string,
-e.g.:
+(using `ast.literal_eval`), and if it can't, it will be interpreted as a
+string, e.g.:
 
         """
         -i INSTANCE      Instance of something [default: 1]  # will be int
