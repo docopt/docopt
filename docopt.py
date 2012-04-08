@@ -73,7 +73,7 @@ class Options(object):
         return repr(self) == repr(other)
 
     def __repr__(self):
-        return 'Options(%s)' % ', '.join(["%s=%s" % (kw, repr(a))
+        return 'Options(%s)' % ', \n    '.join(["%s=%s" % (kw, repr(a))
                                         for kw, a in self.__dict__.items()])
 
 
@@ -91,5 +91,3 @@ def docopt(doc, args=sys.argv[1:]):
             if k in o.forms:
                 o.value = True if o.is_flag else v
     return Options(**dict([(o.name, o.value) for o in docopts])), args
-
-

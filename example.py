@@ -1,4 +1,4 @@
-"""Usage: pep8.py [options] input ...
+"""Usage: example.py [options] arguments
 
 Options:
   -h --help            show this help message and exit
@@ -12,7 +12,6 @@ Options:
   --select=errors      select errors and warnings (e.g. E,W6)
   --ignore=errors      skip errors and warnings (e.g. E4,W)
   --show-source        show source code for each error
-  --show-pep8          show text of PEP 8 for each error
   --statistics         count errors and warnings
   --count              print total number of errors and warnings to standard
                        error and set exit code to 1 if total is not null
@@ -25,7 +24,7 @@ from docopt import docopt
 
 
 def main(options, arguments):
-    print 'Options:', options
+    print options
     print 'Arguments:', arguments
 
 
