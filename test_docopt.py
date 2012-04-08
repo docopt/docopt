@@ -1,4 +1,4 @@
-from docopt import Option, Options, parse_doc, docopt
+from docopt import Option, Options, docopt
 
 
 def test_option():
@@ -36,15 +36,6 @@ def test_option_name():
     assert Option('h', 'help-me').name == 'help_me'
     assert Option('2', '2-times').name == '__times'
 
-
-def test_parse_doc():
-    doc = """Usage program.py [options] arguments
-    -h, --help  Print help message.
-    -o FILE     Output file.
-    --verbose   Verbose mode."""
-    assert parse_doc(doc) == [Option('h', 'help'),
-                              Option('o:'),
-                              Option(None, 'verbose')]
 
 def test_docopt():
     assert docopt('\n-v  Be verbose.', ['-v']) == (Options(v=True), [])
