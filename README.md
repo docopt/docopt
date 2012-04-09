@@ -13,92 +13,93 @@ to your code.
 
 So instead of writing shit like this (typical example):
 
-    from optparse import OptionParser
+```python
+from optparse import OptionParser
 
 
-    def process_options():
-        parser = OptionParser(usage="program.py [options] arguments")
-        parser.add_option('-v', '--verbose', action='store_true',
-                          help="print status messages")
-        parser.add_option('-q', '--quiet', action='store_true',
-                          help="report only file names")
-        parser.add_option('-r', '--repeat', action='store_true',
-                          help="show all occurrences of the same error")
-        parser.add_option('--exclude', metavar='patterns',
-                          default='.svn,CVS,.bzr,.hg,.git',
-                          help="exclude files or directories which match these "
-                            "comma separated patterns [default: %s]" %
-                            '.svn,CVS,.bzr,.hg,.git')
-        parser.add_option('--filename', metavar='patterns', default='*.py',
-                          help="when parsing directories, only check filenames "
-                            "matching these comma separated patterns "
-                            "[default: *.py]")
-        parser.add_option('--select', metavar='errors',
-                          help="select errors and warnings (e.g. E,W6)")
-        parser.add_option('--ignore', metavar='errors',
-                          help="skip errors and warnings (e.g. E4,W)")
-        parser.add_option('--show-source', action='store_true',
-                          help="show source code for each error")
-        options, arguments = parser.parse_args()
-        return options, arguments
+def process_options():
+    parser = OptionParser(usage="program.py [options] arguments")
+    parser.add_option('-v', '--verbose', action='store_true',
+                      help="print status messages")
+    parser.add_option('-q', '--quiet', action='store_true',
+                      help="report only file names")
+    parser.add_option('-r', '--repeat', action='store_true',
+                      help="show all occurrences of the same error")
+    parser.add_option('--exclude', metavar='patterns',
+                      default='.svn,CVS,.bzr,.hg,.git',
+                      help="exclude files or directories which match these "
+                        "comma separated patterns [default: %s]" %
+                        '.svn,CVS,.bzr,.hg,.git')
+    parser.add_option('--filename', metavar='patterns', default='*.py',
+                      help="when parsing directories, only check filenames "
+                        "matching these comma separated patterns "
+                        "[default: *.py]")
+    parser.add_option('--select', metavar='errors',
+                      help="select errors and warnings (e.g. E,W6)")
+    parser.add_option('--ignore', metavar='errors',
+                      help="skip errors and warnings (e.g. E4,W)")
+    parser.add_option('--show-source', action='store_true',
+                      help="show source code for each error")
+    options, arguments = parser.parse_args()
+    return options, arguments
 
 
-    def main(options, arguments):
-        pass  # ...
+def main(options, arguments):
+    pass  # ...
 
 
-    if __name__ == '__main__':
-        options, arguments = process_options()
-        main(options, arguments)
-
+if __name__ == '__main__':
+    options, arguments = process_options()
+    main(options, arguments)
+```
 
 You can write an awesome, readable, clean, pythonic code like *that*:
 
+```python
+"""Usage: program.py [options] arguments
 
-    """Usage: program.py [options] arguments
+Options:
+  -h --help            show this help message and exit
+  -v --verbose         print status messages
+  -q --quiet           report only file names
+  -r --repeat          show all occurrences of the same error
+  --exclude=patterns   exclude files or directories which match these comma
+                       separated patterns [default: .svn,CVS,.bzr,.hg,.git]
+  --filename=patterns  when parsing directories, only check filenames matching
+                       these comma separated patterns [default: *.py]
+  --select=errors      select errors and warnings (e.g. E,W6)
+  --ignore=errors      skip errors and warnings (e.g. E4,W)
+  --show-source        show source code for each error
 
-    Options:
-      -h --help            show this help message and exit
-      -v --verbose         print status messages
-      -q --quiet           report only file names
-      -r --repeat          show all occurrences of the same error
-      --exclude=patterns   exclude files or directories which match these comma
-                           separated patterns [default: .svn,CVS,.bzr,.hg,.git]
-      --filename=patterns  when parsing directories, only check filenames matching
-                           these comma separated patterns [default: *.py]
-      --select=errors      select errors and warnings (e.g. E,W6)
-      --ignore=errors      skip errors and warnings (e.g. E4,W)
-      --show-source        show source code for each error
-
-    """
-    from docopt import docopt
-
-
-    def main(options, arguments):
-        pass  # ...
+"""
+from docopt import docopt
 
 
-    if __name__ == '__main__':
-        # parse options based on docstring above
-        options, arguments = docopt(__doc__)
-        main(options, arguments)
+def main(options, arguments):
+    pass  # ...
 
+
+if __name__ == '__main__':
+    # parse options based on docstring above
+    options, arguments = docopt(__doc__)
+    main(options, arguments)
+```
 
 Fuck yeah!
 
 Also, the practice of putting usage-message in module's docstring
 is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
 
-    The docstring of a script (a stand-alone program) should be usable as its
-    "usage" message, printed when the script is invoked with incorrect or
-    missing arguments (or perhaps with a "-h" option, for "help"). Such a
-    docstring should document the script's function and command line syntax,
-    environment variables, and files. Usage messages can be fairly elaborate
-    (several screens full) and should be sufficient for a new user to use the
-    command properly, as well as a complete quick reference to all options and
-    arguments for the sophisticated user.
+> The docstring of a script (a stand-alone program) should be usable as its
+> "usage" message, printed when the script is invoked with incorrect or
+> missing arguments (or perhaps with a "-h" option, for "help"). Such a
+> docstring should document the script's function and command line syntax,
+> environment variables, and files. Usage messages can be fairly elaborate
+> (several screens full) and should be sufficient for a new user to use the
+> command properly, as well as a complete quick reference to all options and
+> arguments for the sophisticated user.
 
-`docopt` is tested with Python 2.6, 2.7 and 3.2.
+By the way, `docopt` is tested with Python 2.6, 2.7 and 3.2.
 
 API
 ===============================================================================
