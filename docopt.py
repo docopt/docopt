@@ -75,7 +75,7 @@ def argument_eval(s):
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    docopts = [Option(parse='-' + s) for s in re.split('\n *-', doc)[1:]]
+    docopts = [Option(parse='-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
     try:
         getopts, args = gnu_getopt(args,
                             ''.join([d.short for d in docopts if d.short]),

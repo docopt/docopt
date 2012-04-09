@@ -39,3 +39,4 @@ def test_option_name():
 
 def test_docopt():
     assert docopt('\n-v  Be verbose.', ['-v']) == (Options(v=True), [])
+    assert docopt('-v  Be verbose.', ['-v']) == (Options(v=True), [])
