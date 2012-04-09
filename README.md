@@ -98,6 +98,8 @@ is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
     command properly, as well as a complete quick reference to all options and
     arguments for the sophisticated user.
 
+`docopt` is tested with Python 2.6, 2.7 and 3.2.
+
 API
 ===============================================================================
 

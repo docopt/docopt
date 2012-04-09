@@ -63,8 +63,8 @@ class Options(object):
         return repr(self) == repr(other)
 
     def __repr__(self):
-        return 'Options(%s)' % ', \n    '.join(["%s=%s" % (kw, repr(a))
-                                        for kw, a in self.__dict__.items()])
+        return 'Options(%s)' % ',\n    '.join(["%s=%s" % (kw, repr(a))
+                                           for kw, a in self.__dict__.items()])
 
 
 def argument_eval(s):
@@ -81,16 +81,16 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
                             ''.join([d.short for d in docopts if d.short]),
                             [d.long for d in docopts if d.long])
     except GetoptError as e:
-        print e.msg
+        print(e.msg)
         exit()
     for k, v in getopts:
         for o in docopts:
             if k in o.forms:
                 o.value = True if o.is_flag else argument_eval(v)
             if help and k in ('-h', '--help'):
-                print doc,
+                print(doc.strip())
                 exit()
             if version is not None and k == '--version':
-                print version
+                print(version)
                 exit()
     return Options(**dict([(o.name, o.value) for o in docopts])), args

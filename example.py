@@ -25,8 +25,8 @@ from docopt import docopt
 
 
 def main(options, arguments):
-    print options
-    print 'Arguments:', arguments
+    print(options)
+    print('Arguments: %s' % arguments)
 
 
 if __name__ == '__main__':
