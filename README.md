@@ -1,5 +1,5 @@
 
-`docopt` - pythonic option parser, that will make you happy
+`docopt` – pythonic option parser, that will make you happy
 ===============================================================================
 
 Isn't it awesome how `optparse` and `argparse` generate help and usage-messages
@@ -85,7 +85,8 @@ if __name__ == '__main__':
     main(options, arguments)
 ```
 
-Fuck yeah!
+Fuck yeah! The option parser is generated based on docstring above, that you
+pass to the `docopt` funciton.
 
 Also, the practice of putting usage-message in module's docstring
 is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
@@ -101,10 +102,8 @@ is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
 
 By the way, `docopt` is tested with Python 2.6, 2.7 and 3.2.
 
-API
+API `from docopt import docopt`
 ===============================================================================
-
-`from docopt import docopt`
 
 ###`options, arguments = docopt(doc[, args=sys.argv[1:], help=True, version=None])`
 
