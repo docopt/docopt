@@ -12,9 +12,6 @@ class Option(object):
             split = parse.strip().split('  ')
             options = split[0].replace(',', ' ').replace('=', ' ')
             description = ''.join(split[1:])
-            matched = re.findall('\[default: (.*)\]', description)
-            if matched:
-                value = argument_eval(matched[0])
             for s in options.split():
                 if s.startswith('--'):
                     long = s.lstrip('-')
@@ -23,6 +20,8 @@ class Option(object):
                 else:
                     self.is_flag = False
             if not self.is_flag:
+                matched = re.findall('\[default: (.*)\]', description)
+                value = argument_eval(matched[0]) if matched else False
                 short = short + ':' if short else None
                 long = long + '=' if long else None
         self.short = short
