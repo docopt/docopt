@@ -185,7 +185,7 @@ lines are valid, however you are recommended to stick to a single style.
         -i <file>, --input <file>   # with comma, wihtout "=" sing
         """
 
-- Use two sapaces to separate options with their informal description.
+- Use two spaces to separate options with their informal description.
 
         """
         --verbose More text.   # BAD, will be treated as if verbose option had
