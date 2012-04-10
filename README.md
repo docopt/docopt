@@ -1,6 +1,7 @@
-
 `docopt` – pythonic option parser, that will make you smile
 ===============================================================================
+
+    pip install docopt
 
 Isn't it awesome how `optparse` and `argparse` generate help and usage-messages
 based on your code?!
