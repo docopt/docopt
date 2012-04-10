@@ -1,5 +1,5 @@
 
-`docopt` – pythonic option parser, that will make you happy
+`docopt` – pythonic option parser, that will make you smile
 ===============================================================================
 
 Isn't it awesome how `optparse` and `argparse` generate help and usage-messages
