@@ -87,7 +87,7 @@ if __name__ == '__main__':
 ```
 
 Fuck yeah! The option parser is generated based on docstring above, that you
-pass to the `docopt` funciton.
+pass to the `docopt` function.
 
 Also, the practice of putting usage-message in module's docstring
 is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
