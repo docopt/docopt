@@ -112,6 +112,58 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     return Options(**dict([(o.name, o.value) for o in docopts])), args
 
 
+class Token(object):
+
+    def __init__(self, token):
+        self.token = token
+
+    def __repr__(self):
+        return 'Token(%r)' % self.token
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+
+def do_longs(parsed, raw, options, parse):
+    try:
+        i = raw.index('=')
+        raw, value = raw[:i], raw[i+1:]
+    except ValueError:
+        value = None
+    option = [o for o in options if o.long and o.long.startswith(raw)]
+    assert len(option) == 1
+    option = option[0]
+    if not option.is_flag:
+        if value is None:
+            if not parse:
+                raise GetoptError('option --%s requires argument' % option)
+            value, parse = parse[0], parse[1:]
+    elif value is not None:
+        raise GetoptError('option --%s must not have an argument' % option)
+    option.value = value or True
+    parsed += [option]
+    return parsed, parse
+
+
+def do_shorts(parsed, raw, options, parse):
+    while raw != '':
+        option = [o for o in options if o.short and o.short.startswith(raw[0])]
+        assert len(option) == 1
+        option = option[0]
+        raw = raw[1:]
+        if option.is_flag:
+            value = True
+        else:
+            if raw == '':
+                if not parse:
+                    raise GetoptError('option -%s requires argument' % option)
+                raw, parse = parse[0], parse[1:]
+            value, raw = raw, ''
+        option.value = value
+        parsed += [option]
+    return parsed, parse
+
+
 class Pattern(object):
 
     def __init__(self, *arg, **kw):
@@ -120,19 +172,22 @@ class Pattern(object):
         arguments = kw['arguments'] if 'arguments' in kw else []
         if parse:
             parse = parse.split() if type(parse) == str else parse
-            gopts, gargs = gnu_getopt(parse,
-                                ''.join([o.short for o in options if o.short]),
-                                [o.long for o in options if o.long])
-            arg = []
-            for k, v in gopts:
-                for o in options:
-                    if k in o.forms:
-                        o.value = True if o.is_flag else argument_eval(v)
-                        arg.append(o)
-            for ga, a in zip(gargs, arguments):
-                a.value = ga
-                arg.append(a)
-
+            parsed = []
+            while parse:
+                if parse[0] == '--':
+                    parsed += [Argument(None, v) for v in parsed[1:]]
+                    break
+                elif parse[0] in list('[](){}|'):
+                    parsed += [Token(parse[0])]
+                    parse = parse[1:]
+                elif parse[0][:2] == '--':
+                    parsed, parse = do_longs(parsed, parse[0][2:], options, parse[1:])
+                elif parse[0][:1] == '-' and parse[0] != '-':
+                    parsed, parse = do_shorts(parsed, parse[0][1:], options, parse[1:])
+                else:
+                    parsed += [Argument(None, parse[0])]
+                    parse = parse[1:]
+            arg = parsed
         self.arg = arg
 
 

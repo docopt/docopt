@@ -1,4 +1,4 @@
-from docopt import Option, Options, docopt, Pattern, Argument
+from docopt import Option, Options, docopt, Pattern, Argument, Token
 
 
 def test_option():
@@ -59,10 +59,12 @@ def test_pattern():
                Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'))
     assert Pattern(parse='-h --file f.txt arg', options=o, arguments=a) == \
                Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
-                       Argument('A', 'arg'))
+                       Argument(None, 'arg'))
     assert Pattern(parse='-h --file f.txt arg arg2', options=o, arguments=a) == \
                Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
-                       Argument('A', 'arg'), Argument('A2', 'arg2'))
+                       Argument(None, 'arg'), Argument(None, 'arg2'))
 
     assert Pattern(parse='[ -h ]', options=o) == \
-               Pattern([Option('h', None, True)])
+               Pattern(Token('['), Option('h', None, True), Token(']'))
+#   assert Pattern(parse='[ -h ]', options=o) == \
+#              Pattern([Option('h', None, True)])
