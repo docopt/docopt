@@ -1,6 +1,7 @@
-
 `docopt` – pythonic option parser, that will make you smile
 ===============================================================================
+
+    pip install docopt
 
 Isn't it awesome how `optparse` and `argparse` generate help and usage-messages
 based on your code?!
@@ -86,7 +87,7 @@ if __name__ == '__main__':
 ```
 
 Fuck yeah! The option parser is generated based on docstring above, that you
-pass to the `docopt` funciton.
+pass to the `docopt` function.
 
 Also, the practice of putting usage-message in module's docstring
 is endorsed by [pep257](http://www.python.org/dev/peps/pep-0257/):
@@ -184,7 +185,7 @@ lines are valid, however you are recommended to stick to a single style.
         -i <file>, --input <file>   # with comma, wihtout "=" sing
         """
 
-- Use two sapaces to separate options with their informal description.
+- Use two spaces to separate options with their informal description.
 
         """
         --verbose More text.   # BAD, will be treated as if verbose option had
