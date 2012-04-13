@@ -112,18 +112,6 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     return Options(**dict([(o.name, o.value) for o in docopts])), args
 
 
-class Token(object):
-
-    def __init__(self, token):
-        self.token = token
-
-    def __repr__(self):
-        return 'Token(%r)' % self.token
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
-
-
 def do_longs(parsed, raw, options, parse):
     try:
         i = raw.index('=')
@@ -164,9 +152,13 @@ def do_shorts(parsed, raw, options, parse):
     return parsed, parse
 
 
+class VerticalBar(object):
+    pass
+
+
 class Pattern(object):
 
-    def __init__(self, *arg, **kw):
+    def __init__(self, *parsed, **kw):
         parse = kw['parse'] if 'parse' in kw else None
         options = kw['options'] if 'options' in kw else []
         arguments = kw['arguments'] if 'arguments' in kw else []
@@ -177,22 +169,36 @@ class Pattern(object):
                 if parse[0] == '--':
                     parsed += [Argument(None, v) for v in parsed[1:]]
                     break
-                elif parse[0] in list('[](){}|'):
-                    parsed += [Token(parse[0])]
+                elif parse[0] == '...':
+                    parsed += [Ellipsis]
                     parse = parse[1:]
+                elif parse[0] == '|':
+                    parsed += [VerticalBar]
+                    parse = parse[1:]
+                elif parse[0] == '[':
+                    matching = [i for i, e in enumerate(parse)
+                                if e == ']'][parse.count('[') - 1]
+                    sub_parse = parse[1:matching]
+                    parsed += [Pattern(parse=sub_parse,
+                                       options=options,
+                                       arguments=arguments).parsed]
+                    parse = parse[matching + 1:]
+                #elif parse[0] in list('[](){}|'):
+                #    parsed += [Token(parse[0])]
+                #    parse = parse[1:]
                 elif parse[0][:2] == '--':
-                    parsed, parse = do_longs(parsed, parse[0][2:], options, parse[1:])
+                    parsed, parse = do_longs(parsed, parse[0][2:],
+                                             options, parse[1:])
                 elif parse[0][:1] == '-' and parse[0] != '-':
-                    parsed, parse = do_shorts(parsed, parse[0][1:], options, parse[1:])
+                    parsed, parse = do_shorts(parsed, parse[0][1:],
+                                              options, parse[1:])
                 else:
                     parsed += [Argument(None, parse[0])]
                     parse = parse[1:]
-            arg = parsed
-        self.arg = arg
-
+        self.parsed = parsed
 
     def __repr__(self):
-        return 'Pattern(%s)' % ', '.join([repr(a) for a in self.arg])
+        return 'Pattern(%s)' % ', '.join([repr(a) for a in self.parsed])
 
     def __eq__(self, other):
         return repr(self) == repr(other)

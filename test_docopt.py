@@ -1,4 +1,4 @@
-from docopt import Option, Options, docopt, Pattern, Argument, Token
+from docopt import (Option, Options, docopt, Pattern, Argument, VerticalBar)
 
 
 def test_option():
@@ -60,11 +60,14 @@ def test_pattern():
     assert Pattern(parse='-h --file f.txt arg', options=o, arguments=a) == \
                Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
                        Argument(None, 'arg'))
-    assert Pattern(parse='-h --file f.txt arg arg2', options=o, arguments=a) == \
-               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
+    assert Pattern(parse='-h --file f.txt arg arg2', options=o, arguments=a) \
+            == Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
                        Argument(None, 'arg'), Argument(None, 'arg2'))
 
     assert Pattern(parse='[ -h ]', options=o) == \
-               Pattern(Token('['), Option('h', None, True), Token(']'))
-#   assert Pattern(parse='[ -h ]', options=o) == \
-#              Pattern([Option('h', None, True)])
+               Pattern([Option('h', None, True)])
+    assert Pattern(parse='[ arg ... ]', options=o) == \
+               Pattern([Argument(None, 'arg'), Ellipsis])
+    assert Pattern(parse='[ -h | -v ]', options=o) == \
+               Pattern([Option('h', None, True), VerticalBar,
+                        Option('v', 'verbose', True)])
