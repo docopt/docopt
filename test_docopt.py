@@ -1,4 +1,4 @@
-from docopt import Option, Options, docopt
+from docopt import Option, Options, docopt, Pattern, Argument
 
 
 def test_option():
@@ -40,3 +40,29 @@ def test_option_name():
 def test_docopt():
     assert docopt('\n-v  Be verbose.', ['-v']) == (Options(v=True), [])
     assert docopt('-v  Be verbose.', ['-v']) == (Options(v=True), [])
+
+
+def test_pattern():
+
+    o = [Option('h'),
+         Option('v', 'verbose'),
+         Option('f:', 'file=')]
+    a = [Argument('A'),
+         Argument('A2')]
+
+    assert Pattern(parse='') == Pattern()
+    assert Pattern(parse='-h', options=o) == \
+               Pattern(Option('h', None, True))
+    assert Pattern(parse='-h --verbose', options=o) == \
+               Pattern(Option('h', None, True), Option('v', 'verbose', True))
+    assert Pattern(parse='-h --file f.txt', options=o) == \
+               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'))
+    assert Pattern(parse='-h --file f.txt arg', options=o, arguments=a) == \
+               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
+                       Argument('A', 'arg'))
+    assert Pattern(parse='-h --file f.txt arg arg2', options=o, arguments=a) == \
+               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
+                       Argument('A', 'arg'), Argument('A2', 'arg2'))
+
+    assert Pattern(parse='[ -h ]', options=o) == \
+               Pattern([Option('h', None, True)])

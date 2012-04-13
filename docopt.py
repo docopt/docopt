@@ -4,10 +4,23 @@ import sys
 import re
 
 
+class Argument(object):
+
+    def __init__(self, name, value=None):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return 'Argument(%r, %r)' % (self.name, self.value)
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+
 class Option(object):
 
     def __init__(self, short=None, long=None, value=False, parse=None):
-        self.is_flag = True
+        is_flag = True
         if parse:
             split = parse.strip().split('  ')
             options = split[0].replace(',', ' ').replace('=', ' ')
@@ -18,8 +31,8 @@ class Option(object):
                 elif s.startswith('-'):
                     short = s.lstrip('-')
                 else:
-                    self.is_flag = False
-            if not self.is_flag:
+                    is_flag = False
+            if not is_flag:
                 matched = re.findall('\[default: (.*)\]', description)
                 value = argument_eval(matched[0]) if matched else False
                 short = short + ':' if short else None
@@ -27,6 +40,13 @@ class Option(object):
         self.short = short
         self.long = long
         self.value = value
+
+    @property
+    def is_flag(self):
+        if self.short:
+            return not self.short.endswith(':')
+        if self.long:
+            return not self.long.endswith('=')
 
     @property
     def name(self):
@@ -90,3 +110,34 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
             if version is not None and k == '--version':
                 exit(version)
     return Options(**dict([(o.name, o.value) for o in docopts])), args
+
+
+class Pattern(object):
+
+    def __init__(self, *arg, **kw):
+        parse = kw['parse'] if 'parse' in kw else None
+        options = kw['options'] if 'options' in kw else []
+        arguments = kw['arguments'] if 'arguments' in kw else []
+        if parse:
+            parse = parse.split() if type(parse) == str else parse
+            gopts, gargs = gnu_getopt(parse,
+                                ''.join([o.short for o in options if o.short]),
+                                [o.long for o in options if o.long])
+            arg = []
+            for k, v in gopts:
+                for o in options:
+                    if k in o.forms:
+                        o.value = True if o.is_flag else argument_eval(v)
+                        arg.append(o)
+            for ga, a in zip(gargs, arguments):
+                a.value = ga
+                arg.append(a)
+
+        self.arg = arg
+
+
+    def __repr__(self):
+        return 'Pattern(%s)' % ', '.join([repr(a) for a in self.arg])
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
