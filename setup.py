@@ -1,4 +1,4 @@
-""" `docopt` lives on `GitHub <http://github.com/halst/docopt/>`_"""
+"""`docopt` lives on `GitHub <http://github.com/halst/docopt/>`_."""
 from setuptools import setup
 
 
