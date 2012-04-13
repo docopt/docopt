@@ -2,6 +2,7 @@ from getopt import gnu_getopt, GetoptError
 from ast import literal_eval
 import sys
 import re
+import inspect
 
 
 class Option(object):
@@ -73,7 +74,19 @@ def argument_eval(s):
         return s
 
 
-def docopt(doc, args=sys.argv[1:], help=True, version=None):
+def find_docstring():
+    docs = filter(lambda x: x is not None,
+                  (frame[0].f_locals.get('__doc__')
+                   for frame in inspect.stack()[1:]))
+    if len(docs):
+        return docs[0]
+    else:
+        raise ValueError('Could not find module docstring.')
+
+
+def docopt(doc=None, args=sys.argv[1:], help=True, version=None):
+    if doc is None:
+        doc = find_docstring()
     docopts = [Option(parse='-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
     try:
         getopts, args = gnu_getopt(args,

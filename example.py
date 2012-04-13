@@ -31,5 +31,5 @@ def main(options, arguments):
 
 if __name__ == '__main__':
     # parse options based on docstring above
-    options, arguments = docopt(__doc__, version='1.0.0rc2')
+    options, arguments = docopt(version='1.0.0rc2')
     main(options, arguments)
