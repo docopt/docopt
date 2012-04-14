@@ -67,8 +67,8 @@ def test_parse():
 
     assert pattern('[ -h ]', options=o) == \
                [Brackets(Option('h', None, True))]
-    assert pattern('[ arg ... ]', options=o) == \
-               [Brackets(OneOrMore(Argument(None, 'arg')))]
+    assert pattern('[ ARG ... ]', options=o) == \
+               [Brackets(OneOrMore(Argument('ARG')))]
     assert pattern('[ -h | -v ]', options=o) == \
                [Brackets(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True))]
@@ -81,7 +81,7 @@ def test_parse():
                        VerticalBar,
                        Option('v', 'verbose', True),
                        Brackets(Option('f:', 'file=', 'f.txt')),
-                       OneOrMore(Argument(None, 'N')))]
+                       OneOrMore(Argument('N')))]
 
 
 def test_option_match():

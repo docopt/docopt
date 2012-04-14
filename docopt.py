@@ -275,6 +275,8 @@ def parse(source, options=None, is_pattern=False):
             parsed, source = do_shorts(parsed, source[0][1:],
                                        options, source[1:])
         else:
-            parsed += [Argument(None, source[0])]
+            argument = (Argument(source[0]) if is_pattern
+                        else Argument(None, source[0]))
+            parsed += [argument]
             source = source[1:]
     return parsed
