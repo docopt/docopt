@@ -17,6 +17,13 @@ class Argument(object):
     def __eq__(self, other):
         return repr(self) == repr(other)
 
+    def match(self, left):
+        left_ = []
+        for l in left:
+            if not (type(l) == Argument):
+                left_.append(l)
+        return (left != left_), left_
+
 
 class Option(object):
 
@@ -43,10 +50,12 @@ class Option(object):
         self.value = value
 
     def match(self, left):
-        if len(left) and type(left[0]) == Option:
-            if (self.short, self.long) == (left[0].short, left[0].long):
-                return [Option(self.short, self.long, left[0].value)], left[1:]
-        return False, left
+        left_ = []
+        for l in left:
+            if not (type(l) == Option and
+                    (self.short, self.long) == (l.short, l.long)):
+                left_.append(l)
+        return (left != left_), left_
 
     @property
     def is_flag(self):
@@ -161,74 +170,39 @@ class VerticalBar(object):
     pass
 
 
-class Required(object):
+class Parens(object):
 
     def __init__(self, *state):
         self.state = state
 
     def __repr__(self):
-        return 'Required(%s)' % ', '.join([repr(a) for a in self.state])
+        return 'Parens(%s)' % ', '.join([repr(a) for a in self.state])
 
-    def match__(self, left):
-        matched_ = []
-        left_ = []
+    def match(self, left):
+        left = deepcopy(left)
+        matched = True
         for p in self.state:
-            for n in range(len(left)):
-                m_, l_ = p.match(left[n:])
-                if m_ is not False:
-                    matched_ += m_
-                    left_ += l_
+            m, left = p.match(left)
+            if not m:
+                matched = False
+        return matched, left
+        #return all([pattern.match(other) for pattern in self.state])
 
-    def match________(self, left):
-        matched_ = []
-        left_ = deepcopy(left)
-        while left_:
-            for p in self.state:
-                m_, l_ = p.match(left_)
-                if m_ is not False:
-                    matched_ += m_
-                    left_ = l_
-        return matched_, left_
 
-    def match(self, left):
-        matched_ = []
-        left_ = []
-        times_matched = 0
-        for l in left:
-            for p in self.state:
-                m_, l_ = p.match([l])
-                if m_ is not False:
-                    times_matched += 1
-                    print m_, p
-                    #print times_matched, m_, len(self.state)
-                    matched_ += m_
-                    break
-            left_ += l_
-        print times_matched
-        if times_matched >= len(self.state):
-            return matched_, left_
-        else:
-            return False, left
-
-class NotRequired(object):
+class Brackets(object):
 
     def __init__(self, *state):
         self.state = state
 
     def __repr__(self):
-        return 'NotRequired(%s)' % ', '.join([repr(a) for a in self.state])
+        return 'Brackets(%s)' % ', '.join([repr(a) for a in self.state])
 
     def match(self, left):
-        matched_ = []
-        left_ = []
-        for l in left:
-            for p in self.state:
-                m_, l_ = p.match([l])
-                if m_ is not False:
-                    matched_ += m_
-                    break
-            left_ += l_
-        return matched_, left_
+        left = deepcopy(left)
+        for p in self.state:
+            m, left = p.match(left)
+        return True, left
+
 
 
 class Pattern(object):
@@ -254,7 +228,7 @@ class Pattern(object):
                     matching = [i for i, e in enumerate(parse)
                                 if e == ']'][parse.count('[') - 1]
                     sub_parse = parse[1:matching]
-                    parsed += [NotRequired(
+                    parsed += [Brackets(
                                   *Pattern(parse=sub_parse,
                                            options=self.options,
                                            arguments=self.arguments).parsed)]
@@ -263,7 +237,7 @@ class Pattern(object):
                     matching = [i for i, e in enumerate(parse)
                                 if e == ')'][parse.count('(') - 1]
                     sub_parse = parse[1:matching]
-                    parsed += [Required(
+                    parsed += [Parens(
                                   *Pattern(parse=sub_parse,
                                            options=self.options,
                                            arguments=self.arguments).parsed)]

@@ -1,5 +1,5 @@
 from docopt import (Option, Options, docopt, Pattern, Argument, VerticalBar,
-        Required, NotRequired)
+                    Parens, Brackets)
 
 
 def test_option():
@@ -66,111 +66,66 @@ def test_pattern():
                        Argument(None, 'arg'), Argument(None, 'arg2'))
 
     assert Pattern(parse='[ -h ]', options=o) == \
-               Pattern(NotRequired(Option('h', None, True)))
+               Pattern(Brackets(Option('h', None, True)))
     assert Pattern(parse='[ arg ... ]', options=o) == \
-               Pattern(NotRequired(Argument(None, 'arg'), Ellipsis))
+               Pattern(Brackets(Argument(None, 'arg'), Ellipsis))
     assert Pattern(parse='[ -h | -v ]', options=o) == \
-               Pattern(NotRequired(Option('h', None, True), VerticalBar,
+               Pattern(Brackets(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True)))
     assert Pattern(parse='( -h | -v [ --file f.txt ] )', options=o) == \
-               Pattern(Required(Option('h', None, True), VerticalBar,
+               Pattern(Parens(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True),
-                        NotRequired(Option('f:', 'file=', 'f.txt'))))
-
-#   assert Pattern(parse='-h', options=o).match('-h')
-#   assert Pattern(parse='( -h )', options=o).match('-h')
-#   assert not Pattern(parse='-h', options=o).match('-v')
+                        Brackets(Option('f:', 'file=', 'f.txt'))))
 
 
 def test_option_match():
-    matched, left = Option('a').match([Option('a')])
-    assert matched == [Option('a')]
-    assert left == []
-
-    matched, left = Option('b').match([Option('a')])
-    assert matched == False
-    assert left == [Option('a')]
-
-    matched, left = Option('b').match([])
-    assert matched == False
-    assert left == []
-
-    matched, left = Option('a').match([Argument('A')])
-    assert matched == False
-    assert left == [Argument('A')]
+    assert Option('a').match([Option('a')]) == (True, [])
+    assert Option('a').match([Option('x')]) == (False, [Option('x')])
+    assert Option('a').match([Argument('N')]) == (False, [Argument('N')])
+    assert Option('a').match([Option('x'), Option('a'), Argument('N')]) == \
+            (True, [Option('x'), Argument('N')])
+    assert Option('a', None, False).match([Option('a', None, False)]) == \
+            (True, [])
 
 
-def test_not_required_match():
-    matched, left = NotRequired(Option('a')).match([])
-    assert matched == []
-    assert left == []
-
-    matched, left = NotRequired(Option('a')).match([Option('a')])
-    assert matched == [Option('a')]
-    assert left == []
-
-    matched, left = NotRequired(Option('b')).match([Option('a')])
-    assert matched == []
-    assert left == [Option('a')]
-
-    matched, left = NotRequired(Option('a'), Option('b')).match([Option('b')])
-    assert matched == [Option('b')]
-    assert left == []
-
-    matched, left = NotRequired(Option('a'), Option('b')).match([Option('c')])
-    assert matched == []
-    assert left == [Option('c')]
-
-    matched, left = NotRequired(Option('a'), Option('b')).match(
-            [Option('b'), Option('a')])
-    assert matched == [Option('b'), Option('a')]
-    assert left == []
-
-    matched, left = NotRequired(Option('a'), Option('b')).match(
-            [Option('b'), Option('c'), Option('a')])
-    assert matched == [Option('b'), Option('a')]
-    assert left == [Option('c')]
+def test_argument_match():
+    assert Argument('N').match([Argument(None, 9)]) == (True, [])
+    assert Argument('N').match([Option('x')]) == (False, [Option('x')])
+    assert Argument('N').match([Option('x'), Option('a'), Argument('N')]) == \
+            (True, [Option('x'), Option('a')])
 
 
-def test_required_match():
-    matched, left = Required(Option('a')).match([])
-    assert matched is False
-    assert left == []
-
-    matched, left = Required(Option('a')).match([Option('a')])
-    assert matched == [Option('a')]
-    assert left == []
-
-    matched, left = Required(Option('b')).match([Option('a')])
-    assert matched is False
-    assert left == [Option('a')]
-
-    matched, left = Required(Option('b'), Option('a')).match(
-            [Option('a'), Option('c'), Option('b')])
-    assert matched == [Option('a'), Option('b')]
-    assert left == [Option('c')]
+def test_brackets_match():
+    assert Brackets(Option('a')).match([Option('a')]) == (True, [])
+    assert Brackets(Option('a')).match([]) == (True, [])
+    assert Brackets(Option('a')).match([Option('x')]) == (True, [Option('x')])
+    assert Brackets(Option('a'), Option('b')).match([Option('a')]) == \
+            (True, [])
+    assert Brackets(Option('a'), Option('b')).match([Option('b')]) == \
+            (True, [])
+    assert Brackets(Option('a'), Option('b')).match([Option('x')]) == \
+            (True, [Option('x')])
 
 
-def test_required_and_not_required_match():
-    matched, left = Required(Option('a'), NotRequired(Option('b'))).match(
-            [Option('a'), Option('b')])
-    assert matched == [Option('a'), Option('b')]
-    assert left == []
-    # (-a [-b])
-    matched, left = Required(Option('a'), NotRequired(Option('b'))).match(
-            [Option('a')])
-    assert matched == [Option('a')]
-    assert left == []
-
-#   matched, left = Required(Option('a'), NotRequired(Option('b'))).match(
-#           [Option('b')])
-#   assert matched is False
-#   assert left == []
+def test_parens_match():
+    assert Parens(Option('a')).match([Option('a')]) == (True, [])
+    assert Parens(Option('a')).match([]) == (False, [])
+    assert Parens(Option('a')).match([Option('x')]) == (False, [Option('x')])
+    assert Parens(Option('a'), Option('b')).match([Option('a')]) == \
+            (False, [])  # [] or [Option('a') ?
+    assert Brackets(Option('a'), Option('b')).match(
+            [Option('b'), Option('x'), Option('a')]) == (True, [Option('x')])
 
 
-#def test_not_required_match():
-#    assert NotRequired(
-#            Option('a', None, False)).match(Option('a', None, True)) == \
-#             Option('a', None, True)
-#def test_not_required():
-#    assert NotRequired(Option('a')).
+def test_basic_pattern_matching():
+    # ( -a N [ -x Z ] )
+    pattern = Parens(Option('a'), Argument('N'),
+                     Brackets(Option('x'), Argument('Z')))
+    # -a N
+    assert pattern.match([Option('a'), Argument(None, 9)]) == (True, [])
+    # -a -x N Z
+    assert pattern.match([Option('a'), Option('x'),
+                          Argument(None, 9), Argument(None, 5)]) == (True, [])
+    # -x N Z  # BZZ!
+    assert pattern.match([Option('x'),
+                          Argument(None, 9), Argument(None, 5)]) == (False, [])
