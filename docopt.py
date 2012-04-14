@@ -52,6 +52,9 @@ class Option(object):
     def __eq__(self, other):
         return repr(self) == repr(other)
 
+    def __ne__(self, other):
+        return not self == other
+
 
 class Options(object):
 
@@ -59,11 +62,15 @@ class Options(object):
         self.__dict__ = kw
 
     def __eq__(self, other):
-        return repr(self) == repr(other)
+        return type(self) is type(other) and \
+            self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
-        return 'Options(%s)' % ',\n    '.join(["%s=%s" % (kw, repr(a))
-                                           for kw, a in self.__dict__.items()])
+        return 'Options(%s)' % ',\n    '.join("%s=%s" % (kw, repr(a))
+                                           for kw, a in self.__dict__.items())
 
 
 def argument_eval(s):
@@ -77,7 +84,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     docopts = [Option(parse='-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
     try:
         getopts, args = gnu_getopt(args,
-                            ''.join([d.short for d in docopts if d.short]),
+                            ''.join(d.short for d in docopts if d.short),
                             [d.long for d in docopts if d.long])
     except GetoptError as e:
         exit(e.msg)
@@ -89,4 +96,4 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
                 exit(doc.strip())
             if version is not None and k == '--version':
                 exit(version)
-    return Options(**dict([(o.name, o.value) for o in docopts])), args
+    return Options(**dict((o.name, o.value) for o in docopts)), args
