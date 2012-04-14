@@ -93,6 +93,8 @@ def test_argument_match():
     assert Argument('N').match([Option('x')]) == (False, [Option('x')])
     assert Argument('N').match([Option('x'), Option('a'), Argument('N')]) == \
             (True, [Option('x'), Option('a')])
+    assert Argument('N').match([Argument(None, 9), Argument(None, 0)]) == \
+            (True, [Argument(None, 0)])
 
 
 def test_brackets_match():

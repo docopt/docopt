@@ -18,11 +18,14 @@ class Argument(object):
         return repr(self) == repr(other)
 
     def match(self, left):
-        left_ = []
-        for l in left:
-            if not (type(l) == Argument):
-                left_.append(l)
-        return (left != left_), left_
+        #left_ = [l for l in left if not (type(l) == Argument)]
+        #return (left != left_), left_
+        #left = deepcopy(left)
+        args = [l for l in left if type(l) == Argument]
+        if not len(args):
+            return False, left
+        left.remove(args[0])
+        return True, left
 
 
 class Option(object):
