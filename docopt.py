@@ -181,6 +181,9 @@ class Parens(object):
     def __repr__(self):
         return 'Parens(%s)' % ', '.join([repr(a) for a in self.state])
 
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
     def match(self, left):
         left = deepcopy(left)
         matched = True
@@ -200,6 +203,9 @@ class Brackets(object):
     def __repr__(self):
         return 'Brackets(%s)' % ', '.join([repr(a) for a in self.state])
 
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
     def match(self, left):
         left = deepcopy(left)
         for p in self.state:
@@ -207,77 +213,49 @@ class Brackets(object):
         return True, left
 
 
+def pattern(source, options=None, arguments=None):
+    return parse(source=source, options=options,
+                 arguments=arguments, is_pattern=True)
 
-class Pattern(object):
 
-    def __init__(self, *parsed, **kw):
-        parse = kw['parse'] if 'parse' in kw else None
-        self.options = deepcopy(kw['options']) if 'options' in kw else []
-        self.arguments = deepcopy(kw['arguments']) if 'arguments' in kw else []
-        if parse:
-            parse = parse.split() if type(parse) == str else parse
-            parsed = []
-            while parse:
-                if parse[0] == '--':
-                    parsed += [Argument(None, v) for v in parsed[1:]]
-                    break
-                elif parse[0] == '...':
-                    parsed += [Ellipsis]
-                    parse = parse[1:]
-                elif parse[0] == '|':
-                    parsed += [VerticalBar]
-                    parse = parse[1:]
-                elif parse[0] == '[':
-                    matching = [i for i, e in enumerate(parse)
-                                if e == ']'][parse.count('[') - 1]
-                    sub_parse = parse[1:matching]
-                    parsed += [Brackets(
-                                  *Pattern(parse=sub_parse,
-                                           options=self.options,
-                                           arguments=self.arguments).parsed)]
-                    parse = parse[matching + 1:]
-                elif parse[0] == '(':
-                    matching = [i for i, e in enumerate(parse)
-                                if e == ')'][parse.count('(') - 1]
-                    sub_parse = parse[1:matching]
-                    parsed += [Parens(
-                                  *Pattern(parse=sub_parse,
-                                           options=self.options,
-                                           arguments=self.arguments).parsed)]
-                    parse = parse[matching + 1:]
-                elif parse[0][:2] == '--':
-                    parsed, parse = do_longs(parsed, parse[0][2:],
-                                             self.options, parse[1:])
-                elif parse[0][:1] == '-' and parse[0] != '-':
-                    parsed, parse = do_shorts(parsed, parse[0][1:],
-                                              self.options, parse[1:])
-                else:
-                    parsed += [Argument(None, parse[0])]
-                    parse = parse[1:]
-        self.parsed = parsed
-
-    def match(self, instance):
-        instance = Pattern(parse=instance,
-                           options=self.options,
-                           arguments=self.arguments,
-                           instance=True).parsed
-        pattern = self.parsed
-        matched = []
-        for p in pattern:
-            instance, matched = p.match(instance, matched)
-
-        return matched if instance == [] else False
-
-        #while pattern:
-        #    match, instance = pattern[0].match(instance)
-        #    if match:
-        #        matched.append(match)
-        #        pattern = pattern[1:]
-        #        instance = instance[1:]
-        #return matched
-
-    def __repr__(self):
-        return 'Pattern(%s)' % ', '.join([repr(a) for a in self.parsed])
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
+def parse(source, options=None, arguments=None, is_pattern=False):
+    options = [] if options is None else options
+    arguments = [] if arguments is None else arguments
+    source = source.split() if type(source) == str else source
+    parsed = []
+    while source:
+        if is_pattern and source[0] == '...':
+            parsed += [Ellipsis]
+            source = source[1:]
+        elif is_pattern and source[0] == '|':
+            parsed += [VerticalBar]
+            source = source[1:]
+        elif is_pattern and source[0] == '[':
+            matching = [i for i, e in enumerate(source)
+                        if e == ']'][source.count('[') - 1]
+            sub_parse = source[1:matching]
+            parsed += [Brackets(*parse(sub_parse, is_pattern=is_pattern,
+                                       options=options,
+                                       arguments=arguments))]
+            source = source[matching + 1:]
+        elif is_pattern and source[0] == '(':
+            matching = [i for i, e in enumerate(source)
+                        if e == ')'][source.count('(') - 1]
+            sub_parse = source[1:matching]
+            parsed += [Parens(*parse(sub_parse, is_pattern=is_pattern,
+                                     options=options,
+                                     arguments=arguments))]
+            source = source[matching + 1:]
+        elif source[0] == '--':
+            parsed += [Argument(None, v) for v in parsed[1:]]
+            break
+        elif source[0][:2] == '--':
+            parsed, source = do_longs(parsed, source[0][2:],
+                                      options, source[1:])
+        elif source[0][:1] == '-' and source[0] != '-':
+            parsed, source = do_shorts(parsed, source[0][1:],
+                                       options, source[1:])
+        else:
+            parsed += [Argument(None, source[0])]
+            source = source[1:]
+    return parsed

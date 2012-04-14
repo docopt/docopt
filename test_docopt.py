@@ -1,5 +1,5 @@
-from docopt import (Option, Namespace, docopt, Pattern, Argument, VerticalBar,
-                    Parens, Brackets)
+from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
+                    Parens, Brackets, pattern)
 
 
 def test_option():
@@ -43,7 +43,7 @@ def test_docopt():
     assert docopt('-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
 
 
-def test_pattern():
+def test_parse():
 
     o = [Option('h'),
          Option('v', 'verbose'),
@@ -51,31 +51,33 @@ def test_pattern():
     a = [Argument('A'),
          Argument('A2')]
 
-    assert Pattern(parse='') == Pattern()
-    assert Pattern(parse='-h', options=o) == \
-               Pattern(Option('h', None, True))
-    assert Pattern(parse='-h --verbose', options=o) == \
-               Pattern(Option('h', None, True), Option('v', 'verbose', True))
-    assert Pattern(parse='-h --file f.txt', options=o) == \
-               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'))
-    assert Pattern(parse='-h --file f.txt arg', options=o, arguments=a) == \
-               Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
-                       Argument(None, 'arg'))
-    assert Pattern(parse='-h --file f.txt arg arg2', options=o, arguments=a) \
-            == Pattern(Option('h', None, True), Option('f:', 'file=', 'f.txt'),
-                       Argument(None, 'arg'), Argument(None, 'arg2'))
+    #assert Pattern(parse='') == Pattern()
+    assert parse('-h', options=o) == [Option('h', None, True)]
+    assert parse('-h --verbose', options=o) == \
+            [Option('h', None, True), Option('v', 'verbose', True)]
+    assert parse('-h --file f.txt', options=o) == \
+            [Option('h', None, True), Option('f:', 'file=', 'f.txt')]
+    assert parse('-h --file f.txt arg', options=o, arguments=a) == \
+            [Option('h', None, True),
+             Option('f:', 'file=', 'f.txt'),
+             Argument(None, 'arg')]
+    assert parse('-h --file f.txt arg arg2', options=o, arguments=a) == \
+            [Option('h', None, True),
+             Option('f:', 'file=', 'f.txt'),
+             Argument(None, 'arg'),
+             Argument(None, 'arg2')]
 
-    assert Pattern(parse='[ -h ]', options=o) == \
-               Pattern(Brackets(Option('h', None, True)))
-    assert Pattern(parse='[ arg ... ]', options=o) == \
-               Pattern(Brackets(Argument(None, 'arg'), Ellipsis))
-    assert Pattern(parse='[ -h | -v ]', options=o) == \
-               Pattern(Brackets(Option('h', None, True), VerticalBar,
-                        Option('v', 'verbose', True)))
-    assert Pattern(parse='( -h | -v [ --file f.txt ] )', options=o) == \
-               Pattern(Parens(Option('h', None, True), VerticalBar,
+    assert pattern('[ -h ]', options=o) == \
+               [Brackets(Option('h', None, True))]
+    assert pattern('[ arg ... ]', options=o) == \
+               [Brackets(Argument(None, 'arg'), Ellipsis)]
+    assert pattern('[ -h | -v ]', options=o) == \
+               [Brackets(Option('h', None, True), VerticalBar,
+                        Option('v', 'verbose', True))]
+    assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
+               [Parens(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True),
-                        Brackets(Option('f:', 'file=', 'f.txt'))))
+                        Brackets(Option('f:', 'file=', 'f.txt')))]
 
 
 def test_option_match():
