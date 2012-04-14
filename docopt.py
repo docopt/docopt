@@ -90,7 +90,7 @@ class Option(object):
         return repr(self) == repr(other)
 
 
-class Options(object):
+class Namespace(object):
 
     def __init__(self, **kw):
         self.__dict__ = kw
@@ -99,7 +99,7 @@ class Options(object):
         return repr(self) == repr(other)
 
     def __repr__(self):
-        return 'Options(%s)' % ',\n    '.join(["%s=%s" % (kw, repr(a))
+        return 'Namespace(%s)' % ',\n    '.join(["%s=%s" % (kw, repr(a))
                                            for kw, a in self.__dict__.items()])
 
 
@@ -126,7 +126,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
                 exit(doc.strip())
             if version is not None and k == '--version':
                 exit(version)
-    return Options(**dict([(o.name, o.value) for o in docopts])), args
+    return Namespace(**dict([(o.name, o.value) for o in docopts])), args
 
 
 def do_longs(parsed, raw, options, parse):

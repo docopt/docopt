@@ -1,4 +1,4 @@
-from docopt import (Option, Options, docopt, Pattern, Argument, VerticalBar,
+from docopt import (Option, Namespace, docopt, Pattern, Argument, VerticalBar,
                     Parens, Brackets)
 
 
@@ -39,8 +39,8 @@ def test_option_name():
 
 
 def test_docopt():
-    assert docopt('\n-v  Be verbose.', ['-v']) == (Options(v=True), [])
-    assert docopt('-v  Be verbose.', ['-v']) == (Options(v=True), [])
+    assert docopt('\n-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
+    assert docopt('-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
 
 
 def test_pattern():
