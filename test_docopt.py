@@ -71,3 +71,7 @@ def test_pattern():
     assert Pattern(parse='[ -h | -v ]', options=o) == \
                Pattern([Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True)])
+    assert Pattern(parse='( -h | -v [ --file f.txt ] )', options=o) == \
+               Pattern((Option('h', None, True), VerticalBar,
+                        Option('v', 'verbose', True),
+                        [Option('f:', 'file=', 'f.txt')]))

@@ -1,5 +1,6 @@
 from getopt import gnu_getopt, GetoptError
 from ast import literal_eval
+from copy import deepcopy
 import sys
 import re
 
@@ -65,9 +66,7 @@ class Option(object):
             yield '--' + self.long.rstrip('=')
 
     def __repr__(self):
-        return 'Option(%s, %s, %s)' % (repr(self.short),
-                                       repr(self.long),
-                                       repr(self.value))
+        return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
     def __eq__(self, other):
         return repr(self) == repr(other)
@@ -160,8 +159,8 @@ class Pattern(object):
 
     def __init__(self, *parsed, **kw):
         parse = kw['parse'] if 'parse' in kw else None
-        options = kw['options'] if 'options' in kw else []
-        arguments = kw['arguments'] if 'arguments' in kw else []
+        options = deepcopy(kw['options']) if 'options' in kw else []
+        arguments = deepcopy(kw['arguments']) if 'arguments' in kw else []
         if parse:
             parse = parse.split() if type(parse) == str else parse
             parsed = []
@@ -183,9 +182,14 @@ class Pattern(object):
                                        options=options,
                                        arguments=arguments).parsed]
                     parse = parse[matching + 1:]
-                #elif parse[0] in list('[](){}|'):
-                #    parsed += [Token(parse[0])]
-                #    parse = parse[1:]
+                elif parse[0] == '(':
+                    matching = [i for i, e in enumerate(parse)
+                                if e == ')'][parse.count('(') - 1]
+                    sub_parse = parse[1:matching]
+                    parsed += [tuple(Pattern(parse=sub_parse,
+                                             options=options,
+                                             arguments=arguments).parsed)]
+                    parse = parse[matching + 1:]
                 elif parse[0][:2] == '--':
                     parsed, parse = do_longs(parsed, parse[0][2:],
                                              options, parse[1:])
