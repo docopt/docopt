@@ -1,5 +1,5 @@
 from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
-                    Parens, Brackets, pattern)
+                    Parens, Brackets, pattern, OneOrMore)
 
 
 def test_option():
@@ -70,7 +70,7 @@ def test_parse():
     assert pattern('[ -h ]', options=o) == \
                [Brackets(Option('h', None, True))]
     assert pattern('[ arg ... ]', options=o) == \
-               [Brackets(Argument(None, 'arg'), Ellipsis)]
+               [Brackets(OneOrMore(Argument(None, 'arg')))]
     assert pattern('[ -h | -v ]', options=o) == \
                [Brackets(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True))]
@@ -84,8 +84,7 @@ def test_parse():
                        VerticalBar,
                        Option('v', 'verbose', True),
                        Brackets(Option('f:', 'file=', 'f.txt')),
-                       Argument(None, 'N'),
-                       Ellipsis)]
+                       OneOrMore(Argument(None, 'N')))]
 
 
 def test_option_match():
@@ -127,6 +126,26 @@ def test_parens_match():
             (False, [])  # [] or [Option('a') ?
     assert Brackets(Option('a'), Option('b')).match(
             [Option('b'), Option('x'), Option('a')]) == (True, [Option('x')])
+
+
+def test_one_or_more_match():
+    assert OneOrMore(Argument('N')).match([Argument(None, 9)]) == (True, [])
+    assert OneOrMore(Argument('N')).match([]) == (False, [])
+    assert OneOrMore(Argument('N')).match([Option('x')]) == \
+            (False, [Option('x')])
+    assert OneOrMore(Argument('N')).match(
+            [Argument(None, 9), Argument(None, 8)]) == (True, [])
+    assert OneOrMore(Argument('N')).match(
+            [Argument(None, 9), Option('x'), Argument(None, 8)]) == \
+                    (True, [Option('x')])
+    assert OneOrMore(Option('a')).match(
+            [Option('a'), Argument(None, 8), Option('a')]) == \
+                    (True, [Argument(None, 8)])
+    assert OneOrMore(Option('a')).match([Argument(None, 8), Option('x')]) == \
+                    (False, [Argument(None, 8), Option('x')])
+    assert OneOrMore(Parens(Option('a'), Argument('N'))).match(
+            [Option('a'), Argument(None, 1), Option('x'),
+             Option('a'), Argument(None, 2)]) == (True, [Option('x')])
 
 
 def test_basic_pattern_matching():

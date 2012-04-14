@@ -213,6 +213,26 @@ class Brackets(object):
         return True, left
 
 
+class OneOrMore(object):
+
+    def __init__(self, what):
+        self.what = what
+
+    def __repr__(self):
+        return 'OneOrMore(%r)' % self.what
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+    def match(self, left):
+        left_ = deepcopy(left)
+        matched = True
+        while matched:
+            matched, left_ = self.what.match(left_)
+        #left_ = [l for l in left if not self.what.match([l])[0]]
+        return (left != left_), left_
+
+
 def pattern(source, options=None, arguments=None):
     return parse(source=source, options=options,
                  arguments=arguments, is_pattern=True)
@@ -228,7 +248,7 @@ def parse(source, options=None, arguments=None, is_pattern=False):
     parsed = []
     while source:
         if is_pattern and source[0] == '...':
-            parsed += [Ellipsis]
+            parsed[-1] = OneOrMore(parsed[-1])
             source = source[1:]
         elif is_pattern and source[0] == '|':
             parsed += [VerticalBar]
