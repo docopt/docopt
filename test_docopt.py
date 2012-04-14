@@ -78,6 +78,14 @@ def test_parse():
                [Parens(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True),
                         Brackets(Option('f:', 'file=', 'f.txt')))]
+    assert pattern('(-h|-v[--file=f.txt]N...)',
+            options=o, arguments=a) == \
+               [Parens(Option('h', None, True),
+                       VerticalBar,
+                       Option('v', 'verbose', True),
+                       Brackets(Option('f:', 'file=', 'f.txt')),
+                       Argument(None, 'N'),
+                       Ellipsis)]
 
 
 def test_option_match():

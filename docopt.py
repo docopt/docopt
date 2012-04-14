@@ -221,6 +221,9 @@ def pattern(source, options=None, arguments=None):
 def parse(source, options=None, arguments=None, is_pattern=False):
     options = [] if options is None else options
     arguments = [] if arguments is None else arguments
+    if type(source) == str and is_pattern:
+        # add space around tokens []()|... for easier parsing
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
     source = source.split() if type(source) == str else source
     parsed = []
     while source:
