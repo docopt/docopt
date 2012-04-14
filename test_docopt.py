@@ -48,20 +48,18 @@ def test_parse():
     o = [Option('h'),
          Option('v', 'verbose'),
          Option('f:', 'file=')]
-    a = [Argument('A'),
-         Argument('A2')]
 
-    #assert Pattern(parse='') == Pattern()
+    assert parse('') == []
     assert parse('-h', options=o) == [Option('h', None, True)]
     assert parse('-h --verbose', options=o) == \
             [Option('h', None, True), Option('v', 'verbose', True)]
     assert parse('-h --file f.txt', options=o) == \
             [Option('h', None, True), Option('f:', 'file=', 'f.txt')]
-    assert parse('-h --file f.txt arg', options=o, arguments=a) == \
+    assert parse('-h --file f.txt arg', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
              Argument(None, 'arg')]
-    assert parse('-h --file f.txt arg arg2', options=o, arguments=a) == \
+    assert parse('-h --file f.txt arg arg2', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
              Argument(None, 'arg'),
@@ -78,8 +76,7 @@ def test_parse():
                [Parens(Option('h', None, True), VerticalBar,
                         Option('v', 'verbose', True),
                         Brackets(Option('f:', 'file=', 'f.txt')))]
-    assert pattern('(-h|-v[--file=f.txt]N...)',
-            options=o, arguments=a) == \
+    assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
                [Parens(Option('h', None, True),
                        VerticalBar,
                        Option('v', 'verbose', True),

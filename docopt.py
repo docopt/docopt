@@ -233,14 +233,12 @@ class OneOrMore(object):
         return (left != left_), left_
 
 
-def pattern(source, options=None, arguments=None):
-    return parse(source=source, options=options,
-                 arguments=arguments, is_pattern=True)
+def pattern(source, options=None):
+    return parse(source=source, options=options, is_pattern=True)
 
 
-def parse(source, options=None, arguments=None, is_pattern=False):
+def parse(source, options=None, is_pattern=False):
     options = [] if options is None else options
-    arguments = [] if arguments is None else arguments
     if type(source) == str and is_pattern:
         # add space around tokens []()|... for easier parsing
         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
@@ -258,16 +256,14 @@ def parse(source, options=None, arguments=None, is_pattern=False):
                         if e == ']'][source.count('[') - 1]
             sub_parse = source[1:matching]
             parsed += [Brackets(*parse(sub_parse, is_pattern=is_pattern,
-                                       options=options,
-                                       arguments=arguments))]
+                                       options=options))]
             source = source[matching + 1:]
         elif is_pattern and source[0] == '(':
             matching = [i for i, e in enumerate(source)
                         if e == ')'][source.count('(') - 1]
             sub_parse = source[1:matching]
             parsed += [Parens(*parse(sub_parse, is_pattern=is_pattern,
-                                     options=options,
-                                     arguments=arguments))]
+                                     options=options))]
             source = source[matching + 1:]
         elif source[0] == '--':
             parsed += [Argument(None, v) for v in parsed[1:]]
