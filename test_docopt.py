@@ -1,5 +1,5 @@
 from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
-                    Parens, Brackets, pattern, OneOrMore)
+                    Parens, Brackets, pattern, OneOrMore, parse_doc_options)
 
 
 def test_option():
@@ -41,6 +41,15 @@ def test_option_name():
 def test_docopt():
     assert docopt('\n-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
     assert docopt('-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
+
+
+def test_parse_doc_options():
+    doc = """-h, --help  Print help message.
+    -o FILE     Output file.
+    --verbose   Verbose mode."""
+    assert parse_doc_options(doc) == [Option('h', 'help'),
+                                      Option('o:'),
+                                      Option(None, 'verbose')]
 
 
 def test_parse():
