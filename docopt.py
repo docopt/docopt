@@ -272,11 +272,21 @@ def parse_doc_usage(doc, options=[]):
     #return [Parens(*pattern(s, options=options)) for s in raw_patterns]
 
 
+def pattern_arguments(pattern, options=[]):
+    pattern = re.sub(r'([\[\]\(\)\|]|\.\.\.)', ' ', pattern)
+    return [a for a in parse(pattern, options=options) if type(a) == Argument]
+
+
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
-    raw_patterns = parse_doc_usage(doc)
-    arg_metavars = [parse(p, options=options) for p in raw_patterns]
-    meta = [a.meta for a in sum(arg_metavars, []) if type(a) == Argument]
+    patterns = []
+    for p in parse_doc_usage(doc):
+        pat = Parens(*pattern(p, options=options))
+        pat.arguments = pattern_arguments(p, options=options)
+        patterns.append(pat)
+    for p in patterns:
+        if p.match(args):
+            matched = p.arguments
     try:
         args = parse(args, options=options)
     except DocoptError as e:
@@ -289,4 +299,4 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
         exit(str(version))
     arguments = [a for a in args if type(a) is Argument]
     return (Options(**dict([(o.name, o.value) for o in options])),
-            Arguments(**dict([(m, a.meta) for m, a in zip(meta, arguments)])))
+            Arguments(**dict([(m.meta, a.meta) for m, a in zip(matched, arguments)])))

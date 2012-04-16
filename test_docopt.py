@@ -1,6 +1,7 @@
-from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
+from docopt import (Option, docopt, parse, Argument, VerticalBar,
                     Parens, Brackets, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option, Options, Arguments)
+                    parse_doc_usage, option, Options, Arguments,
+                    pattern_arguments)
 
 
 def test_option():
@@ -92,6 +93,12 @@ def test_parse_doc_usage():
 
     """
     assert parse_doc_usage(doc) == ['[-hv] ARG', 'N M']
+
+
+def test_pattern_arguments():
+    o = [Option('a'), Option('b')]
+    assert pattern_arguments('[-ab] [ARG1] ARG2', options=o) == \
+            [Argument('ARG1'), Argument('ARG2')]
 
 
 def test_parse():
