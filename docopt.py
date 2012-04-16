@@ -122,8 +122,16 @@ class Namespace(object):
         return repr(self) == repr(other)
 
     def __repr__(self):
-        return 'Namespace(%s)' % ',\n    '.join(["%s=%s" % (kw, repr(a))
-                                           for kw, a in self.__dict__.items()])
+        return '%s(%s)' % (self.__class__.__name__,
+                ',\n    '.join(["%s=%s" % (kw, repr(a))
+                                for kw, a in self.__dict__.items()]))
+
+class Options(Namespace):
+    pass
+
+
+class Arguments(Namespace):
+    pass
 
 
 def option(parse):
@@ -271,5 +279,5 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     if version and any(o for o in options if o.long == 'version' and o.value):
         exit(str(version))
     arguments = [a for a in args if type(a) is Argument]
-    return (Namespace(**dict([(o.name, o.value) for o in options])),
+    return (Options(**dict([(o.name, o.value) for o in options])),
             [a.value for a in arguments])
