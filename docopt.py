@@ -1,8 +1,11 @@
-from getopt import gnu_getopt, GetoptError
 from ast import literal_eval
 from copy import deepcopy
 import sys
 import re
+
+
+class DocoptError(Exception):
+    pass
 
 
 class Pattern(object):
@@ -21,6 +24,8 @@ class Pattern(object):
 class Argument(Pattern):
 
     def __init__(self, name, value=None):
+        self.name = name
+        self.value = value
         self.args = [name, value]
 
     def match(self, left):
@@ -161,22 +166,20 @@ def parse_doc_usage(doc, options=[]):
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    docopts = parse_doc_options(doc)
+    options = parse_doc_options(doc)
     try:
-        getopts, args = gnu_getopt(args,
-                            ''.join([d.short for d in docopts if d.short]),
-                            [d.long for d in docopts if d.long])
-    except GetoptError as e:
-        exit(e.msg)
-    for k, v in getopts:
-        for o in docopts:
-            if k in o.forms:
-                o.value = True if o.is_flag else argument_eval(v)
-            if help and k in ('-h', '--help'):
-                exit(doc.strip())
-            if version is not None and k == '--version':
-                exit(version)
-    return Namespace(**dict([(o.name, o.value) for o in docopts])), args
+        args = parse(args, options=options)
+    except DocoptError as e:
+        exit(e.message)
+    options += [o for o in args if type(o) is Option]
+    if help and any(o for o in options
+            if (o.short == 'h' or o.long == 'help') and o.value):
+        exit(doc.strip())
+    if version and any(o for o in options if o.long == 'version' and o.value):
+        exit(str(version))
+    arguments = [a for a in args if type(a) is Argument]
+    return (Namespace(**dict([(o.name, o.value) for o in options])),
+            [a.value for a in arguments])
 
 
 def do_longs(parsed, raw, options, parse):
@@ -186,15 +189,19 @@ def do_longs(parsed, raw, options, parse):
     except ValueError:
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
-    assert len(opt) == 1
+    if len(opt) < 1:
+        raise DocoptError('--%s is not recognized' % raw)
+    if len(opt) > 1:
+        raise DocoptError('--%s is not a unique prefix: %s?' % (raw,
+                ', '.join('--%s' % o.long for o in opt)))
     opt = opt[0]
     if not opt.is_flag:
         if value is None:
             if not parse:
-                raise GetoptError('opt --%s requires argument' % opt)
+                raise DocoptError('--%s requires argument' % opt)
             value, parse = parse[0], parse[1:]
     elif value is not None:
-        raise GetoptError('opt --%s must not have an argument' % opt)
+        raise DocoptError('--%s must not have an argument' % opt)
     opt.value = value or True
     parsed += [opt]
     return parsed, parse
@@ -211,7 +218,7 @@ def do_shorts(parsed, raw, options, parse):
         else:
             if raw == '':
                 if not parse:
-                    raise GetoptError('opt -%s requires argument' % opt)
+                    raise DocoptError('opt -%s requires argument' % opt)
                 raw, parse = parse[0], parse[1:]
             value, raw = raw, ''
         opt.value = value
