@@ -114,6 +114,13 @@ def parse_doc_options(doc):
     return [Option(parse='-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
 
 
+def parse_doc_usage(doc, options=[]):
+    raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
+    prog = raw_usage.split()[0]
+    raw_patterns = raw_usage.strip(prog).split(prog)
+    return [Parens(*pattern(s, options=options)) for s in raw_patterns]
+
+
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     docopts = parse_doc_options(doc)
     try:

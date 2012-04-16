@@ -1,5 +1,6 @@
 from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
-                    Parens, Brackets, pattern, OneOrMore, parse_doc_options)
+                    Parens, Brackets, pattern, OneOrMore, parse_doc_options,
+                    parse_doc_usage)
 
 
 def test_option():
@@ -50,6 +51,25 @@ def test_parse_doc_options():
     assert parse_doc_options(doc) == [Option('h', 'help'),
                                       Option('o:'),
                                       Option(None, 'verbose')]
+
+
+def test_parse_doc_usage():
+    assert parse_doc_usage('usage: prog ARG') == [Parens(Argument('ARG'))]
+    doc = """
+    Usage: prog [-hv]
+                 ARG
+           prog N M
+
+    prog is a program.
+
+    -h
+    -v
+
+    """
+    assert parse_doc_usage(doc, options=parse_doc_options(doc)) == [
+            Parens(Brackets(Option('h', None, True),
+                            Option('v', None, True)), Argument('ARG')),
+            Parens(Argument('N'), Argument('M'))]
 
 
 def test_parse():
