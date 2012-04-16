@@ -154,34 +154,6 @@ def argument_eval(s):
         return s
 
 
-def parse_doc_options(doc):
-    return [option('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
-
-
-def parse_doc_usage(doc, options=[]):
-    raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
-    prog = raw_usage.split()[0]
-    raw_patterns = raw_usage.strip(prog).split(prog)
-    return [Parens(*pattern(s, options=options)) for s in raw_patterns]
-
-
-def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    options = parse_doc_options(doc)
-    try:
-        args = parse(args, options=options)
-    except DocoptError as e:
-        exit(e.message)
-    options += [o for o in args if type(o) is Option]
-    if help and any(o for o in options
-            if (o.short == 'h' or o.long == 'help') and o.value):
-        exit(doc.strip())
-    if version and any(o for o in options if o.long == 'version' and o.value):
-        exit(str(version))
-    arguments = [a for a in args if type(a) is Argument]
-    return (Namespace(**dict([(o.name, o.value) for o in options])),
-            [a.value for a in arguments])
-
-
 def do_longs(parsed, raw, options, parse):
     try:
         i = raw.index('=')
@@ -273,3 +245,31 @@ def parse(source, options=None, is_pattern=False):
             parsed += [argument]
             source = source[1:]
     return parsed
+
+
+def parse_doc_options(doc):
+    return [option('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
+
+
+def parse_doc_usage(doc, options=[]):
+    raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
+    prog = raw_usage.split()[0]
+    raw_patterns = raw_usage.strip(prog).split(prog)
+    return [Parens(*pattern(s, options=options)) for s in raw_patterns]
+
+
+def docopt(doc, args=sys.argv[1:], help=True, version=None):
+    options = parse_doc_options(doc)
+    try:
+        args = parse(args, options=options)
+    except DocoptError as e:
+        exit(e.message)
+    options += [o for o in args if type(o) is Option]
+    if help and any(o for o in options
+            if (o.short == 'h' or o.long == 'help') and o.value):
+        exit(doc.strip())
+    if version and any(o for o in options if o.long == 'version' and o.value):
+        exit(str(version))
+    arguments = [a for a in args if type(a) is Argument]
+    return (Namespace(**dict([(o.name, o.value) for o in options])),
+            [a.value for a in arguments])
