@@ -23,10 +23,13 @@ class Pattern(object):
 
 class Argument(Pattern):
 
-    def __init__(self, name, value=None):
-        self.name = name
-        self.value = value
-        self.args = [name, value]
+    def __init__(self, meta):
+        self.meta = meta
+        self.args = [meta]
+
+    @property
+    def name(self):
+        return self.args[0].strip('<>').lower()
 
     def match(self, left):
         args = [l for l in left if type(l) == Argument]
@@ -243,7 +246,7 @@ def parse(source, options=None, is_pattern=False):
                                      options=options))]
             source = source[matching + 1:]
         elif source[0] == '--':
-            parsed += [Argument(None, v) for v in parsed[1:]]
+            parsed += [Argument(v) for v in parsed[1:]]
             break
         elif source[0][:2] == '--':
             parsed, source = do_longs(parsed, source[0][2:],
@@ -252,9 +255,7 @@ def parse(source, options=None, is_pattern=False):
             parsed, source = do_shorts(parsed, source[0][1:],
                                        options, source[1:])
         else:
-            argument = (Argument(source[0]) if is_pattern
-                        else Argument(None, source[0]))
-            parsed += [argument]
+            parsed += [Argument(source[0])]
             source = source[1:]
     return parsed
 
@@ -275,7 +276,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
     raw_patterns = parse_doc_usage(doc)
     arg_metavars = [parse(p, options=options) for p in raw_patterns]
-    meta = [a.value for a in sum(arg_metavars, []) if type(a) == Argument]
+    meta = [a.meta for a in sum(arg_metavars, []) if type(a) == Argument]
     try:
         args = parse(args, options=options)
     except DocoptError as e:
@@ -288,4 +289,4 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
         exit(str(version))
     arguments = [a for a in args if type(a) is Argument]
     return (Options(**dict([(o.name, o.value) for o in options])),
-            Arguments(**dict([(m, a.value) for m, a in zip(meta, arguments)])))
+            Arguments(**dict([(m, a.meta) for m, a in zip(meta, arguments)])))

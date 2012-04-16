@@ -109,12 +109,12 @@ def test_parse():
     assert parse('-h --file f.txt arg', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
-             Argument(None, 'arg')]
+             Argument('arg')]
     assert parse('-h --file f.txt arg arg2', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
-             Argument(None, 'arg'),
-             Argument(None, 'arg2')]
+             Argument('arg'),
+             Argument('arg2')]
 
     assert pattern('[ -h ]', options=o) == \
                [Brackets(Option('h', None, True))]
@@ -146,12 +146,12 @@ def test_option_match():
 
 
 def test_argument_match():
-    assert Argument('N').match([Argument(None, 9)]) == (True, [])
+    assert Argument('N').match([Argument(9)]) == (True, [])
     assert Argument('N').match([Option('x')]) == (False, [Option('x')])
     assert Argument('N').match([Option('x'), Option('a'), Argument('N')]) == \
             (True, [Option('x'), Option('a')])
-    assert Argument('N').match([Argument(None, 9), Argument(None, 0)]) == \
-            (True, [Argument(None, 0)])
+    assert Argument('N').match([Argument(9), Argument(0)]) == \
+            (True, [Argument(0)])
 
 
 def test_brackets_match():
@@ -177,23 +177,23 @@ def test_parens_match():
 
 
 def test_one_or_more_match():
-    assert OneOrMore(Argument('N')).match([Argument(None, 9)]) == (True, [])
+    assert OneOrMore(Argument('N')).match([Argument(9)]) == (True, [])
     assert OneOrMore(Argument('N')).match([]) == (False, [])
     assert OneOrMore(Argument('N')).match([Option('x')]) == \
             (False, [Option('x')])
     assert OneOrMore(Argument('N')).match(
-            [Argument(None, 9), Argument(None, 8)]) == (True, [])
+            [Argument(9), Argument(8)]) == (True, [])
     assert OneOrMore(Argument('N')).match(
-            [Argument(None, 9), Option('x'), Argument(None, 8)]) == \
+            [Argument(9), Option('x'), Argument(8)]) == \
                     (True, [Option('x')])
     assert OneOrMore(Option('a')).match(
-            [Option('a'), Argument(None, 8), Option('a')]) == \
-                    (True, [Argument(None, 8)])
-    assert OneOrMore(Option('a')).match([Argument(None, 8), Option('x')]) == \
-                    (False, [Argument(None, 8), Option('x')])
+            [Option('a'), Argument(8), Option('a')]) == \
+                    (True, [Argument(8)])
+    assert OneOrMore(Option('a')).match([Argument(8), Option('x')]) == \
+                    (False, [Argument(8), Option('x')])
     assert OneOrMore(Parens(Option('a'), Argument('N'))).match(
-            [Option('a'), Argument(None, 1), Option('x'),
-             Option('a'), Argument(None, 2)]) == (True, [Option('x')])
+            [Option('a'), Argument(1), Option('x'),
+             Option('a'), Argument(2)]) == (True, [Option('x')])
 
 
 def test_basic_pattern_matching():
@@ -201,10 +201,10 @@ def test_basic_pattern_matching():
     pattern = Parens(Option('a'), Argument('N'),
                      Brackets(Option('x'), Argument('Z')))
     # -a N
-    assert pattern.match([Option('a'), Argument(None, 9)]) == (True, [])
+    assert pattern.match([Option('a'), Argument(9)]) == (True, [])
     # -a -x N Z
     assert pattern.match([Option('a'), Option('x'),
-                          Argument(None, 9), Argument(None, 5)]) == (True, [])
+                          Argument(9), Argument(5)]) == (True, [])
     # -x N Z  # BZZ!
     assert pattern.match([Option('x'),
-                          Argument(None, 9), Argument(None, 5)]) == (False, [])
+                          Argument(9), Argument(5)]) == (False, [])
