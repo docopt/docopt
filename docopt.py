@@ -121,10 +121,14 @@ class Namespace(object):
     def __eq__(self, other):
         return repr(self) == repr(other)
 
+    def __ne__(self, other):
+        return repr(self) != repr(other)
+
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
                 ',\n    '.join(["%s=%s" % (kw, repr(a))
                                 for kw, a in self.__dict__.items()]))
+
 
 class Options(Namespace):
     pass
@@ -165,7 +169,7 @@ def argument_eval(s):
 def do_longs(parsed, raw, options, parse):
     try:
         i = raw.index('=')
-        raw, value = raw[:i], raw[i+1:]
+        raw, value = raw[:i], raw[i + 1:]
     except ValueError:
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
@@ -211,7 +215,7 @@ def pattern(source, options=None):
 
 
 def parse(source, options=None, is_pattern=False):
-    options = [] if options is None else options
+    options = [] if options is None else deepcopy(options)
     if type(source) == str and is_pattern:
         # add space around tokens []()|... for easier parsing
         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
@@ -263,11 +267,15 @@ def parse_doc_usage(doc, options=[]):
     raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
     prog = raw_usage.split()[0]
     raw_patterns = raw_usage.strip(prog).split(prog)
-    return [Parens(*pattern(s, options=options)) for s in raw_patterns]
+    return [p.strip() for p in raw_patterns]
+    #return [Parens(*pattern(s, options=options)) for s in raw_patterns]
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
+    raw_patterns = parse_doc_usage(doc)
+    arg_metavars = [parse(p, options=options) for p in raw_patterns]
+    meta = [a.value for a in sum(arg_metavars, []) if type(a) == Argument]
     try:
         args = parse(args, options=options)
     except DocoptError as e:
@@ -280,4 +288,4 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
         exit(str(version))
     arguments = [a for a in args if type(a) is Argument]
     return (Options(**dict([(o.name, o.value) for o in options])),
-            [a.value for a in arguments])
+            Arguments(**dict([(m, a.value) for m, a in zip(meta, arguments)])))

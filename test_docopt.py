@@ -1,6 +1,6 @@
 from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
                     Parens, Brackets, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option)
+                    parse_doc_usage, option, Options, Arguments)
 
 
 def test_option():
@@ -40,8 +40,15 @@ def test_option_name():
 
 
 def test_docopt():
-    assert docopt('\n-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
-    assert docopt('-v  Be verbose.', ['-v']) == (Namespace(v=True), [])
+#   assert docopt('\n-v  Be verbose.', ['-v']) == (
+#           Options(v=True), Arguments())
+#   assert docopt('-v  Be verbose.', ['-v']) == (
+#           Options(v=True), Arguments())
+    doc = '''Usage: prog -v a
+
+    -v  Be verbose.'''
+    assert docopt(doc, ['arg']) == (
+            Options(v=False), Arguments(a='arg'))
 
 
 def test_parse_doc_options():
@@ -53,11 +60,29 @@ def test_parse_doc_options():
                                       Option(None, 'verbose')]
 
 
+#def test_parse_doc_usage():
+#    assert parse_doc_usage('usage: prog ARG') == [Parens(Argument('ARG'))]
+#    doc = """
+#    Usage: prog [-hv]
+#                 ARG
+#           prog N M
+#
+#    prog is a program.
+#
+#    -h
+#    -v
+#
+#    """
+#    assert parse_doc_usage(doc, options=parse_doc_options(doc)) == [
+#            Parens(Brackets(Option('h', None, True),
+#                            Option('v', None, True)), Argument('ARG')),
+#            Parens(Argument('N'), Argument('M'))]
+
+
 def test_parse_doc_usage():
-    assert parse_doc_usage('usage: prog ARG') == [Parens(Argument('ARG'))]
+    assert parse_doc_usage('usage: prog ARG') == ['ARG']
     doc = """
-    Usage: prog [-hv]
-                 ARG
+    Usage: prog [-hv] ARG
            prog N M
 
     prog is a program.
@@ -66,10 +91,7 @@ def test_parse_doc_usage():
     -v
 
     """
-    assert parse_doc_usage(doc, options=parse_doc_options(doc)) == [
-            Parens(Brackets(Option('h', None, True),
-                            Option('v', None, True)), Argument('ARG')),
-            Parens(Argument('N'), Argument('M'))]
+    assert parse_doc_usage(doc) == ['[-hv] ARG', 'N M']
 
 
 def test_parse():
