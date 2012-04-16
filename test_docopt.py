@@ -1,33 +1,33 @@
 from docopt import (Option, Namespace, docopt, parse, Argument, VerticalBar,
                     Parens, Brackets, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage)
+                    parse_doc_usage, option)
 
 
 def test_option():
-    assert Option(parse='-h') == Option('h', None)
-    assert Option(parse='--help') == Option(None, 'help')
-    assert Option(parse='-h --help') == Option('h', 'help')
-    assert Option(parse='-h, --help') == Option('h', 'help')
+    assert option('-h') == Option('h', None)
+    assert option('--help') == Option(None, 'help')
+    assert option('-h --help') == Option('h', 'help')
+    assert option('-h, --help') == Option('h', 'help')
 
-    assert Option(parse='-h TOPIC') == Option('h:', None)
-    assert Option(parse='--help TOPIC') == Option(None, 'help=')
-    assert Option(parse='-h TOPIC --help TOPIC') == Option('h:', 'help=')
-    assert Option(parse='-h TOPIC, --help TOPIC') == Option('h:', 'help=')
-    assert Option(parse='-h TOPIC, --help=TOPIC') == Option('h:', 'help=')
+    assert option('-h TOPIC') == Option('h:', None)
+    assert option('--help TOPIC') == Option(None, 'help=')
+    assert option('-h TOPIC --help TOPIC') == Option('h:', 'help=')
+    assert option('-h TOPIC, --help TOPIC') == Option('h:', 'help=')
+    assert option('-h TOPIC, --help=TOPIC') == Option('h:', 'help=')
 
-    assert Option(parse='-h  Description...') == Option('h', None)
-    assert Option(parse='-h --help  Description...') == Option('h', 'help')
-    assert Option(parse='-h TOPIC  Description...') == Option('h:', None)
+    assert option('-h  Description...') == Option('h', None)
+    assert option('-h --help  Description...') == Option('h', 'help')
+    assert option('-h TOPIC  Description...') == Option('h:', None)
 
-    assert Option(parse='    -h') == Option('h', None)
+    assert option('    -h') == Option('h', None)
 
-    assert Option(parse='-h TOPIC  Descripton... [default: 2]') == \
+    assert option('-h TOPIC  Descripton... [default: 2]') == \
                Option('h:', None, 2)
-    assert Option(parse='-h TOPIC  Descripton... [default: topic-1]') == \
+    assert option('-h TOPIC  Descripton... [default: topic-1]') == \
                Option('h:', None, 'topic-1')
-    assert Option(parse='--help=TOPIC  ... [default: 3.14]') == \
+    assert option('--help=TOPIC  ... [default: 3.14]') == \
                Option(None, 'help=', 3.14)
-    assert Option(parse='-h, --help=DIR  ... [default: "./"]') == \
+    assert option('-h, --help=DIR  ... [default: "./"]') == \
                Option('h:', 'help=', "./")
 
 
