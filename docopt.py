@@ -10,26 +10,25 @@ class DocoptError(Exception):
 
 class Pattern(object):
 
-    def __init__(self, *args):
-        self.args = args
+    def __init__(self, *children):
+        self.children = children
 
     def __eq__(self, other):
         return repr(self) == repr(other)
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([repr(a) for a in self.args]))
+                           ', '.join([repr(a) for a in self.children]))
 
 
 class Argument(Pattern):
 
     def __init__(self, meta):
         self.meta = meta
-        self.args = [meta]
 
     @property
     def name(self):
-        return self.args[0].strip('<>').lower()
+        return self.meta.strip('<>').lower()
 
     def match(self, left):
         args = [l for l in left if type(l) == Argument]
@@ -37,6 +36,9 @@ class Argument(Pattern):
             return False, left
         left.remove(args[0])
         return True, left
+
+    def __repr__(self):
+        return 'Argument(%s)' % self.meta
 
 
 class Option(Pattern):
@@ -90,7 +92,7 @@ class Parens(Pattern):
     def match(self, left):
         left = deepcopy(left)
         matched = True
-        for p in self.args:
+        for p in self.children:
             m, left = p.match(left)
             if not m:
                 matched = False
@@ -101,7 +103,7 @@ class Brackets(Pattern):
 
     def match(self, left):
         left = deepcopy(left)
-        for p in self.args:
+        for p in self.children:
             m, left = p.match(left)
         return True, left
 
@@ -109,10 +111,11 @@ class Brackets(Pattern):
 class OneOrMore(Pattern):
 
     def match(self, left):
+        assert len(self.children) == 1
         left_ = deepcopy(left)
         matched = True
         while matched:
-            matched, left_ = self.args[0].match(left_)
+            matched, left_ = self.children[0].match(left_)
         return (left != left_), left_
 
 
