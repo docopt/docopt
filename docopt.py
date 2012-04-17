@@ -28,7 +28,7 @@ class Argument(Pattern):
 
     @property
     def name(self):
-        return self.meta.strip('<>').lower()
+        return variabalize(self.meta.strip('<>').lower())
 
     def match(self, left):
         args = [l for l in left if type(l) == Argument]
@@ -67,10 +67,7 @@ class Option(Pattern):
     def name(self):
         s = self.long or self.short
         s = s.rstrip(':').rstrip('=')
-        ret = s[0] if s[0].isalpha() else '_'
-        for ch in s[1:]:
-            ret += ch if ch.isalpha() or ch.isdigit() else '_'
-        return ret
+        return variabalize(s)
 
     @property
     def forms(self):
@@ -142,6 +139,13 @@ class Options(Namespace):
 
 class Arguments(Namespace):
     pass
+
+
+def variabalize(s):
+    ret = s[0] if s[0].isalpha() else '_'
+    for ch in s[1:]:
+        ret += ch if ch.isalpha() or ch.isdigit() else '_'
+    return ret
 
 
 def option(parse):
