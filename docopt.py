@@ -23,22 +23,24 @@ class Pattern(object):
 
 class Argument(Pattern):
 
-    def __init__(self, meta):
+    def __init__(self, meta, value=None):
         self.meta = meta
+        self.value = value
 
     @property
     def name(self):
         return variabalize(self.meta.strip('<>').lower())
 
-    def match(self, left):
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
         args = [l for l in left if type(l) == Argument]
         if not len(args):
-            return False, left
+            return False, left, collected
         left.remove(args[0])
-        return True, left
+        return True, left, collected
 
     def __repr__(self):
-        return 'Argument(%s)' % self.meta
+        return 'Argument(%s, %s)' % (self.meta, self.value)
 
 
 class Option(Pattern):
@@ -48,13 +50,14 @@ class Option(Pattern):
         self.long = long
         self.value = value
 
-    def match(self, left):
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
         left_ = []
         for l in left:
             if not (type(l) == Option and
                     (self.short, self.long) == (l.short, l.long)):
                 left_.append(l)
-        return (left != left_), left_
+        return (left != left_), left_, collected
 
     @property
     def is_flag(self):
@@ -86,34 +89,37 @@ class VerticalBar(object):
 
 class Parens(Pattern):
 
-    def match(self, left):
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
         left = deepcopy(left)
         matched = True
         for p in self.children:
-            m, left = p.match(left)
+            m, left, c___ = p.match(left)
             if not m:
                 matched = False
-        return matched, left
+        return matched, left, collected
 
 
 class Brackets(Pattern):
 
-    def match(self, left):
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
         left = deepcopy(left)
         for p in self.children:
-            m, left = p.match(left)
-        return True, left
+            m, left, c___ = p.match(left)
+        return True, left, collected
 
 
 class OneOrMore(Pattern):
 
-    def match(self, left):
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
         assert len(self.children) == 1
         left_ = deepcopy(left)
         matched = True
         while matched:
-            matched, left_ = self.children[0].match(left_)
-        return (left != left_), left_
+            matched, left_, c___ = self.children[0].match(left_)
+        return (left != left_), left_, collected
 
 
 class Namespace(object):

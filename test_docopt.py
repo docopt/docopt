@@ -143,64 +143,64 @@ def test_parse():
 
 
 def test_option_match():
-    assert Option('a').match([Option('a')]) == (True, [])
-    assert Option('a').match([Option('x')]) == (False, [Option('x')])
-    assert Option('a').match([Argument('N')]) == (False, [Argument('N')])
+    assert Option('a').match([Option('a')]) == (True, [], [])
+    assert Option('a').match([Option('x')]) == (False, [Option('x')], [])
+    assert Option('a').match([Argument('N')]) == (False, [Argument('N')], [])
     assert Option('a').match([Option('x'), Option('a'), Argument('N')]) == \
-            (True, [Option('x'), Argument('N')])
+            (True, [Option('x'), Argument('N')], [])
     assert Option('a', None, False).match([Option('a', None, False)]) == \
-            (True, [])
+            (True, [], [])
 
 
 def test_argument_match():
-    assert Argument('N').match([Argument(9)]) == (True, [])
-    assert Argument('N').match([Option('x')]) == (False, [Option('x')])
+    assert Argument('N').match([Argument(9)]) == (True, [], [])
+    assert Argument('N').match([Option('x')]) == (False, [Option('x')], [])
     assert Argument('N').match([Option('x'), Option('a'), Argument('N')]) == \
-            (True, [Option('x'), Option('a')])
+            (True, [Option('x'), Option('a')], [])
     assert Argument('N').match([Argument(9), Argument(0)]) == \
-            (True, [Argument(0)])
+            (True, [Argument(0)], [])
 
 
 def test_brackets_match():
-    assert Brackets(Option('a')).match([Option('a')]) == (True, [])
-    assert Brackets(Option('a')).match([]) == (True, [])
-    assert Brackets(Option('a')).match([Option('x')]) == (True, [Option('x')])
+    assert Brackets(Option('a')).match([Option('a')]) == (True, [], [])
+    assert Brackets(Option('a')).match([]) == (True, [], [])
+    assert Brackets(Option('a')).match([Option('x')]) == (True, [Option('x')], [])
     assert Brackets(Option('a'), Option('b')).match([Option('a')]) == \
-            (True, [])
+            (True, [], [])
     assert Brackets(Option('a'), Option('b')).match([Option('b')]) == \
-            (True, [])
+            (True, [], [])
     assert Brackets(Option('a'), Option('b')).match([Option('x')]) == \
-            (True, [Option('x')])
+            (True, [Option('x')], [])
 
 
 def test_parens_match():
-    assert Parens(Option('a')).match([Option('a')]) == (True, [])
-    assert Parens(Option('a')).match([]) == (False, [])
-    assert Parens(Option('a')).match([Option('x')]) == (False, [Option('x')])
+    assert Parens(Option('a')).match([Option('a')]) == (True, [], [])
+    assert Parens(Option('a')).match([]) == (False, [], [])
+    assert Parens(Option('a')).match([Option('x')]) == (False, [Option('x')], [])
     assert Parens(Option('a'), Option('b')).match([Option('a')]) == \
-            (False, [])  # [] or [Option('a') ?
+            (False, [], [])  # [] or [Option('a') ?
     assert Brackets(Option('a'), Option('b')).match(
-            [Option('b'), Option('x'), Option('a')]) == (True, [Option('x')])
+            [Option('b'), Option('x'), Option('a')]) == (True, [Option('x')], [])
 
 
 def test_one_or_more_match():
-    assert OneOrMore(Argument('N')).match([Argument(9)]) == (True, [])
-    assert OneOrMore(Argument('N')).match([]) == (False, [])
+    assert OneOrMore(Argument('N')).match([Argument(9)]) == (True, [], [])
+    assert OneOrMore(Argument('N')).match([]) == (False, [], [])
     assert OneOrMore(Argument('N')).match([Option('x')]) == \
-            (False, [Option('x')])
+            (False, [Option('x')], [])
     assert OneOrMore(Argument('N')).match(
-            [Argument(9), Argument(8)]) == (True, [])
+            [Argument(9), Argument(8)]) == (True, [], [])
     assert OneOrMore(Argument('N')).match(
             [Argument(9), Option('x'), Argument(8)]) == \
-                    (True, [Option('x')])
+                    (True, [Option('x')], [])
     assert OneOrMore(Option('a')).match(
             [Option('a'), Argument(8), Option('a')]) == \
-                    (True, [Argument(8)])
+                    (True, [Argument(8)], [])
     assert OneOrMore(Option('a')).match([Argument(8), Option('x')]) == \
-                    (False, [Argument(8), Option('x')])
+                    (False, [Argument(8), Option('x')], [])
     assert OneOrMore(Parens(Option('a'), Argument('N'))).match(
             [Option('a'), Argument(1), Option('x'),
-             Option('a'), Argument(2)]) == (True, [Option('x')])
+             Option('a'), Argument(2)]) == (True, [Option('x')], [])
 
 
 def test_basic_pattern_matching():
@@ -208,10 +208,10 @@ def test_basic_pattern_matching():
     pattern = Parens(Option('a'), Argument('N'),
                      Brackets(Option('x'), Argument('Z')))
     # -a N
-    assert pattern.match([Option('a'), Argument(9)]) == (True, [])
+    assert pattern.match([Option('a'), Argument(9)]) == (True, [], [])
     # -a -x N Z
     assert pattern.match([Option('a'), Option('x'),
-                          Argument(9), Argument(5)]) == (True, [])
+                          Argument(9), Argument(5)]) == (True, [], [])
     # -x N Z  # BZZ!
     assert pattern.match([Option('x'),
-                          Argument(9), Argument(5)]) == (False, [])
+                          Argument(9), Argument(5)]) == (False, [], [])
