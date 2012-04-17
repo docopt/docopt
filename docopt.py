@@ -37,7 +37,7 @@ class Argument(Pattern):
         if not len(args):
             return False, left, collected
         left.remove(args[0])
-        return True, left, collected
+        return True, left, collected + [Argument(self.meta, args[0].value)]
 
     def __repr__(self):
         return 'Argument(%s, %s)' % (self.meta, self.value)
@@ -91,13 +91,14 @@ class Parens(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
+        c = []
         left = deepcopy(left)
         matched = True
         for p in self.children:
-            m, left, c___ = p.match(left)
+            m, left, c = p.match(left, c)
             if not m:
                 matched = False
-        return matched, left, collected
+        return matched, left, (collected + c if matched else collected)
 
 
 class Brackets(Pattern):
@@ -106,7 +107,7 @@ class Brackets(Pattern):
         collected = [] if collected is None else collected
         left = deepcopy(left)
         for p in self.children:
-            m, left, c___ = p.match(left)
+            m, left, collected = p.match(left, collected)
         return True, left, collected
 
 
@@ -114,12 +115,16 @@ class OneOrMore(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
+        c = []
         assert len(self.children) == 1
         left_ = deepcopy(left)
         matched = True
         while matched:
-            matched, left_, c___ = self.children[0].match(left_)
-        return (left != left_), left_, collected
+            matched, left_, c = self.children[0].match(left_, c)
+        # XXX: There could be that something below in hierarchy matched
+        # but didn't lead to change in `left_`?
+        matched = (left != left_)
+        return matched, left_, (collected + c if matched else collected)
 
 
 class Namespace(object):
@@ -268,7 +273,8 @@ def parse(source, options=None, is_pattern=False):
             parsed, source = do_shorts(parsed, source[0][1:],
                                        options, source[1:])
         else:
-            parsed += [Argument(source[0])]
+            a = Argument(source[0]) if is_pattern else Argument(None, source[0])
+            parsed += [a]
             source = source[1:]
     return parsed
 
@@ -285,31 +291,28 @@ def parse_doc_usage(doc, options=[]):
     #return [Parens(*pattern(s, options=options)) for s in raw_patterns]
 
 
-def pattern_arguments(pattern, options=[]):
-    pattern = re.sub(r'([\[\]\(\)\|]|\.\.\.)', ' ', pattern)
-    return [a for a in parse(pattern, options=options) if type(a) == Argument]
-
-
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
     patterns = []
     for p in parse_doc_usage(doc):
         pat = Parens(*pattern(p, options=options))
-        pat.arguments = pattern_arguments(p, options=options)
+        #pat.arguments = pattern_arguments(p, options=options)
         patterns.append(pat)
-    for p in patterns:
-        if p.match(args):
-            matched = p.arguments
     try:
         args = parse(args, options=options)
     except DocoptError as e:
         exit(e.message)
+    for p in patterns:
+        matched, left, collected = p.match(args)
+        if matched and left == []: #p.match(args):
+            break
     options += [o for o in args if type(o) is Option]
+
     if help and any(o for o in options
             if (o.short == 'h' or o.long == 'help') and o.value):
         exit(doc.strip())
     if version and any(o for o in options if o.long == 'version' and o.value):
         exit(str(version))
-    arguments = [a for a in args if type(a) is Argument]
+
     return (Options(**dict([(o.name, o.value) for o in options])),
-            Arguments(**dict([(m.meta, a.meta) for m, a in zip(matched, arguments)])))
+          Arguments(**dict([(a.name, a.value) for a in collected])))
