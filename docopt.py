@@ -4,10 +4,6 @@ import sys
 import re
 
 
-class DocoptError(Exception):
-    pass
-
-
 class Pattern(object):
 
     def __init__(self, *children):
@@ -40,7 +36,7 @@ class Argument(Pattern):
         return True, left, collected + [Argument(self.meta, args[0].value)]
 
     def __repr__(self):
-        return 'Argument(%s, %s)' % (self.meta, self.value)
+        return 'Argument(%r, %r)' % (self.meta, self.value)
 
 
 class Option(Pattern):
@@ -71,13 +67,6 @@ class Option(Pattern):
         s = self.long or self.short
         s = s.rstrip(':').rstrip('=')
         return variabalize(s)
-
-    @property
-    def forms(self):
-        if self.short:
-            yield '-' + self.short.rstrip(':')
-        if self.long:
-            yield '--' + self.long.rstrip('=')
 
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
@@ -140,8 +129,7 @@ class Namespace(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
-                ',\n    '.join(["%s=%s" % (kw, repr(a))
-                                for kw, a in self.__dict__.items()]))
+                ',\n    '.join(['%s=%r' % i for i in self.__dict__.items()]))
 
 
 class Options(Namespace):
@@ -195,18 +183,18 @@ def do_longs(parsed, raw, options, parse):
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-        raise DocoptError('--%s is not recognized' % raw)
+        exit('--%s is not recognized' % raw)
     if len(opt) > 1:
-        raise DocoptError('--%s is not a unique prefix: %s?' % (raw,
+        exit('--%s is not a unique prefix: %s?' % (raw,
                 ', '.join('--%s' % o.long for o in opt)))
     opt = opt[0]
     if not opt.is_flag:
         if value is None:
             if not parse:
-                raise DocoptError('--%s requires argument' % opt)
+                exit('--%s requires argument' % opt)
             value, parse = parse[0], parse[1:]
     elif value is not None:
-        raise DocoptError('--%s must not have an argument' % opt)
+        exit('--%s must not have an argument' % opt)
     opt.value = value or True
     parsed += [opt]
     return parsed, parse
@@ -223,7 +211,7 @@ def do_shorts(parsed, raw, options, parse):
         else:
             if raw == '':
                 if not parse:
-                    raise DocoptError('opt -%s requires argument' % opt)
+                    exit('opt -%s requires argument' % opt)
                 raw, parse = parse[0], parse[1:]
             value, raw = raw, ''
         opt.value = value
@@ -291,28 +279,24 @@ def parse_doc_usage(doc, options=[]):
     #return [Parens(*pattern(s, options=options)) for s in raw_patterns]
 
 
-def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    options = parse_doc_options(doc)
-    patterns = []
-    for p in parse_doc_usage(doc):
-        pat = Parens(*pattern(p, options=options))
-        #pat.arguments = pattern_arguments(p, options=options)
-        patterns.append(pat)
-    try:
-        args = parse(args, options=options)
-    except DocoptError as e:
-        exit(e.message)
-    for p in patterns:
-        matched, left, collected = p.match(args)
-        if matched and left == []: #p.match(args):
-            break
-    options += [o for o in args if type(o) is Option]
-
+def extras(help, version, options, doc):
     if help and any(o for o in options
             if (o.short == 'h' or o.long == 'help') and o.value):
         exit(doc.strip())
-    if version and any(o for o in options if o.long == 'version' and o.value):
+    if version and any(o for o in options
+            if o.long == 'version' and o.value):
         exit(str(version))
 
-    return (Options(**dict([(o.name, o.value) for o in options])),
-          Arguments(**dict([(a.name, a.value) for a in collected])))
+
+def docopt(doc, args=sys.argv[1:], help=True, version=None):
+    options = parse_doc_options(doc)
+    args = parse(args, options=options)
+    options += [o for o in args if type(o) is Option]
+    extras(help, version, options, doc)
+    for usage in parse_doc_usage(doc):
+        p = Parens(*pattern(usage, options=options))
+        matched, left, collected = p.match(args)
+        if matched and left == []:
+            return (Options(**dict([(o.name, o.value) for o in options])),
+                  Arguments(**dict([(a.name, a.value) for a in collected])))
+    exit('no match')
