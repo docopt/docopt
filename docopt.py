@@ -72,10 +72,6 @@ class Option(Pattern):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
 
-class VerticalBar(object):
-    pass
-
-
 class Parens(Pattern):
 
     def match(self, left, collected=None):
@@ -114,6 +110,10 @@ class OneOrMore(Pattern):
         # but didn't lead to change in `left_`?
         matched = (left != left_)
         return matched, left_, (collected + c if matched else collected)
+
+
+class Either(Pattern):
+    pass
 
 
 class Namespace(object):
@@ -219,6 +219,12 @@ def do_shorts(parsed, raw, options, parse):
     return parsed, parse
 
 
+def split(a, sep='|'):
+    if sep in a:
+        return [a[:a.index(sep)]] + split(a[a.index(sep) + 1:], sep)
+    return [a]
+
+
 def pattern(source, options=None):
     return parse(source=source, options=options, is_pattern=True)
 
@@ -231,13 +237,7 @@ def parse(source, options=None, is_pattern=False):
     source = source.split() if type(source) == str else source
     parsed = []
     while source:
-        if is_pattern and source[0] == '...':
-            parsed[-1] = OneOrMore(parsed[-1])
-            source = source[1:]
-        elif is_pattern and source[0] == '|':
-            parsed += [VerticalBar]
-            source = source[1:]
-        elif is_pattern and source[0] == '[':
+        if is_pattern and source[0] == '[':
             matching = [i for i, e in enumerate(source)
                         if e == ']'][source.count('[') - 1]
             sub_parse = source[1:matching]
@@ -251,6 +251,15 @@ def parse(source, options=None, is_pattern=False):
             parsed += [Parens(*parse(sub_parse, is_pattern=is_pattern,
                                      options=options))]
             source = source[matching + 1:]
+        elif is_pattern and '|' in source:
+            either = [Parens(*parse(s, is_pattern=is_pattern, options=options))
+                      for s in split(source, '|')]
+            assert parsed == []
+            parsed = [Either(*either)]
+            source = []
+        elif is_pattern and source[0] == '...':
+            parsed[-1] = OneOrMore(parsed[-1])
+            source = source[1:]
         elif source[0] == '--':
             parsed += [Argument(v) for v in parsed[1:]]
             break

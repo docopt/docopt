@@ -1,6 +1,13 @@
-from docopt import (Option, docopt, parse, Argument, VerticalBar,
+from docopt import (Option, docopt, parse, Argument, Either, split,
                     Parens, Brackets, pattern, OneOrMore, parse_doc_options,
                     parse_doc_usage, option, Options, Arguments)
+
+
+def test_split():
+    a = [1, 2, '|', 3, '|', 4, 5]
+    assert split(a, '|') == [[1, 2], [3], [4, 5]]
+    a = ['|', 3, '|']
+    assert split(a, '|') == [[], [3], []]
 
 
 def test_option():
@@ -121,18 +128,18 @@ def test_parse():
     assert pattern('[ ARG ... ]', options=o) == \
                [Brackets(OneOrMore(Argument('ARG')))]
     assert pattern('[ -h | -v ]', options=o) == \
-               [Brackets(Option('h', None, True), VerticalBar,
-                        Option('v', 'verbose', True))]
+               [Brackets(Either(Parens(Option('h', None, True)),
+                                Parens(Option('v', 'verbose', True))))]
     assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
-               [Parens(Option('h', None, True), VerticalBar,
-                        Option('v', 'verbose', True),
-                        Brackets(Option('f:', 'file=', 'f.txt')))]
+               [Parens(
+                   Either(Parens(Option('h', None, True)),
+                          Parens(Option('v', 'verbose', True),
+                                 Brackets(Option('f:', 'file=', 'f.txt')))))]
     assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
-               [Parens(Option('h', None, True),
-                       VerticalBar,
-                       Option('v', 'verbose', True),
-                       Brackets(Option('f:', 'file=', 'f.txt')),
-                       OneOrMore(Argument('N')))]
+               [Parens(Either(Parens(Option('h', None, True)),
+                              Parens(Option('v', 'verbose', True),
+                                     Brackets(Option('f:', 'file=', 'f.txt')),
+                                     OneOrMore(Argument('N')))))]
 
 
 def test_option_match():
