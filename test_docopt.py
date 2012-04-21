@@ -1,5 +1,5 @@
 from docopt import (Option, docopt, parse, Argument, Either, split,
-                    Parens, Brackets, pattern, OneOrMore, parse_doc_options,
+                    Required, Optional, pattern, OneOrMore, parse_doc_options,
                     parse_doc_usage, option, Options, Arguments)
 
 
@@ -68,7 +68,7 @@ def test_parse_doc_options():
 
 
 #def test_parse_doc_usage():
-#    assert parse_doc_usage('usage: prog ARG') == [Parens(Argument('ARG'))]
+#    assert parse_doc_usage('usage: prog ARG') == [Required(Argument('ARG'))]
 #    doc = """
 #    Usage: prog [-hv]
 #                 ARG
@@ -81,9 +81,9 @@ def test_parse_doc_options():
 #
 #    """
 #    assert parse_doc_usage(doc, options=parse_doc_options(doc)) == [
-#            Parens(Brackets(Option('h', None, True),
+#            Required(Optional(Option('h', None, True),
 #                            Option('v', None, True)), Argument('ARG')),
-#            Parens(Argument('N'), Argument('M'))]
+#            Required(Argument('N'), Argument('M'))]
 
 
 def test_parse_doc_usage():
@@ -124,21 +124,21 @@ def test_parse():
              Argument(None, 'arg2')]
 
     assert pattern('[ -h ]', options=o) == \
-               [Brackets(Option('h', None, True))]
+               [Optional(Option('h', None, True))]
     assert pattern('[ ARG ... ]', options=o) == \
-               [Brackets(OneOrMore(Argument('ARG')))]
+               [Optional(OneOrMore(Argument('ARG')))]
     assert pattern('[ -h | -v ]', options=o) == \
-               [Brackets(Either(Option('h', None, True),
+               [Optional(Either(Option('h', None, True),
                                 Option('v', 'verbose', True)))]
     assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
-               [Parens(
+               [Required(
                    Either(Option('h', None, True),
-                          Parens(Option('v', 'verbose', True),
-                                 Brackets(Option('f:', 'file=', 'f.txt')))))]
+                          Required(Option('v', 'verbose', True),
+                                 Optional(Option('f:', 'file=', 'f.txt')))))]
     assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
-               [Parens(Either(Option('h', None, True),
-                              Parens(Option('v', 'verbose', True),
-                                     Brackets(Option('f:', 'file=', 'f.txt')),
+               [Required(Either(Option('h', None, True),
+                              Required(Option('v', 'verbose', True),
+                                     Optional(Option('f:', 'file=', 'f.txt')),
                                      OneOrMore(Argument('N')))))]
 
 
@@ -163,26 +163,26 @@ def test_argument_match():
 
 
 def test_brackets_match():
-    assert Brackets(Option('a')).match([Option('a')]) == (True, [], [])
-    assert Brackets(Option('a')).match([]) == (True, [], [])
-    assert Brackets(Option('a')).match([Option('x')]) == (
+    assert Optional(Option('a')).match([Option('a')]) == (True, [], [])
+    assert Optional(Option('a')).match([]) == (True, [], [])
+    assert Optional(Option('a')).match([Option('x')]) == (
             True, [Option('x')], [])
-    assert Brackets(Option('a'), Option('b')).match([Option('a')]) == (
+    assert Optional(Option('a'), Option('b')).match([Option('a')]) == (
             True, [], [])
-    assert Brackets(Option('a'), Option('b')).match([Option('b')]) == (
+    assert Optional(Option('a'), Option('b')).match([Option('b')]) == (
             True, [], [])
-    assert Brackets(Option('a'), Option('b')).match([Option('x')]) == (
+    assert Optional(Option('a'), Option('b')).match([Option('x')]) == (
             True, [Option('x')], [])
 
 
 def test_parens_match():
-    assert Parens(Option('a')).match([Option('a')]) == (True, [], [])
-    assert Parens(Option('a')).match([]) == (False, [], [])
-    assert Parens(Option('a')).match([Option('x')]) == (
+    assert Required(Option('a')).match([Option('a')]) == (True, [], [])
+    assert Required(Option('a')).match([]) == (False, [], [])
+    assert Required(Option('a')).match([Option('x')]) == (
             False, [Option('x')], [])
-    assert Parens(Option('a'), Option('b')).match([Option('a')]) == (
+    assert Required(Option('a'), Option('b')).match([Option('a')]) == (
             False, [], [])  # [] or [Option('a') ?
-    assert Brackets(Option('a'), Option('b')).match(
+    assert Optional(Option('a'), Option('b')).match(
             [Option('b'), Option('x'), Option('a')]) == (
                     True, [Option('x')], [])
 
@@ -216,7 +216,7 @@ def test_one_or_more_match():
     assert OneOrMore(Option('a')).match([Argument(None, 8), Option('x')]) == (
                     False, [Argument(None, 8), Option('x')], [])
 # TODO: figure out
-#   assert OneOrMore(Parens(Option('a'), Argument('N'))).match(
+#   assert OneOrMore(Required(Option('a'), Argument('N'))).match(
 #           [Option('a'), Argument(None, 1), Option('x'),
 #            Option('a'), Argument(None, 2)]) == (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
 #       assert (True, [Optio...gument(N, 1)]) == (True, [Option...gument(N, 2)])
@@ -225,8 +225,8 @@ def test_one_or_more_match():
 
 def test_basic_pattern_matching():
     # ( -a N [ -x Z ] )
-    pattern = Parens(Option('a'), Argument('N'),
-                     Brackets(Option('x'), Argument('Z')))
+    pattern = Required(Option('a'), Argument('N'),
+                     Optional(Option('x'), Argument('Z')))
     # -a N
     assert pattern.match([Option('a'), Argument(None, 9)]) == (
             True, [], [Argument('N', 9)])

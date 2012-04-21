@@ -72,7 +72,7 @@ class Option(Pattern):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
 
-class Parens(Pattern):
+class Required(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -86,7 +86,7 @@ class Parens(Pattern):
         return matched, left, (collected + c if matched else collected)
 
 
-class Brackets(Pattern):
+class Optional(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -249,21 +249,21 @@ def parse(source, options=None, is_pattern=False):
             matching = [i for i, e in enumerate(source)
                         if e == ']'][source.count('[') - 1]
             sub_parse = source[1:matching]
-            parsed += [Brackets(*parse(sub_parse, is_pattern=is_pattern,
+            parsed += [Optional(*parse(sub_parse, is_pattern=is_pattern,
                                        options=options))]
             source = source[matching + 1:]
         elif is_pattern and source[0] == '(':
             matching = [i for i, e in enumerate(source)
                         if e == ')'][source.count('(') - 1]
             sub_parse = source[1:matching]
-            parsed += [Parens(*parse(sub_parse, is_pattern=is_pattern,
+            parsed += [Required(*parse(sub_parse, is_pattern=is_pattern,
                                      options=options))]
             source = source[matching + 1:]
         elif is_pattern and '|' in source:
             either = []
             for s in split(source, '|'):
                 p = parse(s, is_pattern=is_pattern, options=options)
-                either += p if len(p) == 1 else [Parens(*p)]
+                either += p if len(p) == 1 else [Required(*p)]
             assert parsed == []
             parsed = [Either(*either)]
             break
@@ -295,7 +295,7 @@ def parse_doc_usage(doc, options=[]):
     prog = raw_usage.split()[0]
     raw_patterns = raw_usage.strip(prog).split(prog)
     return [p.strip() for p in raw_patterns]
-    #return [Parens(*pattern(s, options=options)) for s in raw_patterns]
+    #return [Required(*pattern(s, options=options)) for s in raw_patterns]
 
 
 def extras(help, version, options, doc):
@@ -313,7 +313,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options += [o for o in args if type(o) is Option]
     extras(help, version, options, doc)
     for usage in parse_doc_usage(doc):
-        p = Parens(*pattern(usage, options=options))
+        p = Required(*pattern(usage, options=options))
         matched, left, collected = p.match(args)
         if matched and left == []:
             return (Options(**dict([(o.name, o.value) for o in options])),
