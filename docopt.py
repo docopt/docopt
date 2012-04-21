@@ -252,11 +252,13 @@ def parse(source, options=None, is_pattern=False):
                                      options=options))]
             source = source[matching + 1:]
         elif is_pattern and '|' in source:
-            either = [Parens(*parse(s, is_pattern=is_pattern, options=options))
-                      for s in split(source, '|')]
+            either = []
+            for s in split(source, '|'):
+                p = parse(s, is_pattern=is_pattern, options=options)
+                either += p if len(p) == 1 else [Parens(*p)]
             assert parsed == []
             parsed = [Either(*either)]
-            source = []
+            break
         elif is_pattern and source[0] == '...':
             parsed[-1] = OneOrMore(parsed[-1])
             source = source[1:]

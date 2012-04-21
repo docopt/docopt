@@ -128,15 +128,15 @@ def test_parse():
     assert pattern('[ ARG ... ]', options=o) == \
                [Brackets(OneOrMore(Argument('ARG')))]
     assert pattern('[ -h | -v ]', options=o) == \
-               [Brackets(Either(Parens(Option('h', None, True)),
-                                Parens(Option('v', 'verbose', True))))]
+               [Brackets(Either(Option('h', None, True),
+                                Option('v', 'verbose', True)))]
     assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
                [Parens(
-                   Either(Parens(Option('h', None, True)),
+                   Either(Option('h', None, True),
                           Parens(Option('v', 'verbose', True),
                                  Brackets(Option('f:', 'file=', 'f.txt')))))]
     assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
-               [Parens(Either(Parens(Option('h', None, True)),
+               [Parens(Either(Option('h', None, True),
                               Parens(Option('v', 'verbose', True),
                                      Brackets(Option('f:', 'file=', 'f.txt')),
                                      OneOrMore(Argument('N')))))]
@@ -186,6 +186,9 @@ def test_parens_match():
             [Option('b'), Option('x'), Option('a')]) == (
                     True, [Option('x')], [])
 
+
+#def test_either_match():
+#    assert Either(Parens)
 
 def test_one_or_more_match():
     assert OneOrMore(Argument('N')).match([Argument(None, 9)]) == (
