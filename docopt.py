@@ -310,12 +310,12 @@ def extras(help, version, options, doc):
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
     args = parse(args, options=options)
-    options += [o for o in args if type(o) is Option]
-    extras(help, version, options, doc)
+    overlapped = options + [o for o in args if type(o) is Option]
+    extras(help, version, overlapped, doc)
     for usage in parse_doc_usage(doc):
         p = Required(*pattern(usage, options=options))
         matched, left, collected = p.match(args)
         if matched and left == []:
-            return (Options(**dict([(o.name, o.value) for o in options])),
+            return (Options(**dict([(o.name, o.value) for o in overlapped])),
                   Arguments(**dict([(a.name, a.value) for a in collected])))
     exit('no match')
