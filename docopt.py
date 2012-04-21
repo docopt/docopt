@@ -113,7 +113,15 @@ class OneOrMore(Pattern):
 
 
 class Either(Pattern):
-    pass
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        left = deepcopy(left)
+        for p in self.children:
+            matched, l, c = p.match(left, collected)
+            if matched:
+                return matched, l, c
+        return False, left, collected
 
 
 class Namespace(object):

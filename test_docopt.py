@@ -187,8 +187,16 @@ def test_parens_match():
                     True, [Option('x')], [])
 
 
-#def test_either_match():
-#    assert Either(Parens)
+def test_either_match():
+    assert Either(Option('a'), Option('b')).match(
+            [Option('a')]) == (True, [], [])
+    assert Either(Option('a'), Option('b')).match(
+            [Option('a'), Option('b')]) == (True, [Option('b')], [])
+    assert Either(Option('a'), Option('b')).match(
+            [Option('x')]) == (False, [Option('x')], [])
+    assert Either(Option('a'), Option('b'), Option('c')).match(
+            [Option('x'), Option('b')]) == (True, [Option('x')], [])
+
 
 def test_one_or_more_match():
     assert OneOrMore(Argument('N')).match([Argument(None, 9)]) == (
