@@ -1,4 +1,4 @@
-from docopt import (Option, docopt, parse, Argument, Either, split,
+from docopt import (Option, docopt, parse, Argument, Either, split, usage,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
                     parse_doc_usage, option, Options, Arguments, matching_paren)
 
@@ -111,6 +111,7 @@ def test_parse_doc_usage():
 
     """
     assert parse_doc_usage(doc) == ['[-hv] ARG', 'N M']
+    assert usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
 
 
 def test_parse():

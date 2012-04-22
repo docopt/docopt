@@ -1,4 +1,4 @@
-"""Usage: example.py [options] arguments
+"""Usage: example.py [-hvqr] [--version] ARG
 
 Options:
   -h --help            show this help message and exit
@@ -26,7 +26,7 @@ from docopt import docopt
 
 def main(options, arguments):
     print(options)
-    print('Arguments: %s' % arguments)
+    print(arguments)
 
 
 if __name__ == '__main__':

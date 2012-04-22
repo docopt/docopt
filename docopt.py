@@ -5,7 +5,11 @@ import re
 
 
 class DocoptExit(SystemExit):
-    pass
+
+    usage = ''
+
+    def __init__(self, message):
+        SystemExit.__init__(self, message + '\n' + self.usage)
 
 
 class Pattern(object):
@@ -312,6 +316,11 @@ def parse_doc_options(doc):
     return [option('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
 
 
+def usage(doc):
+    return re.split(r'\n\s*\n', ''.join(re.split(r'([Uu]sage:)',
+                    doc)[1:3]))[0].strip()
+
+
 def parse_doc_usage(doc, options=[]):
     raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
     prog = raw_usage.split()[0]
@@ -322,19 +331,23 @@ def parse_doc_usage(doc, options=[]):
 def extras(help, version, options, doc):
     if help and any(o for o in options
             if (o.short == 'h' or o.long == 'help') and o.value):
-        raise DocoptExit(doc.strip())
+        print(doc.strip())
+        exit()
     if version and any(o for o in options if o.long == 'version' and o.value):
-        raise DocoptExit(str(version))
+        print(version)
+        exit()
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
+    u = usage(doc)
+    DocoptExit.usage = u
     options = parse_doc_options(doc)
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, overlapped, doc)
     patterns = []
-    for usage in parse_doc_usage(doc):
-        p = Required(*pattern(usage, options=options))
+    for raw_pattern in parse_doc_usage(doc):
+        p = Required(*pattern(raw_pattern, options=options))
         patterns.append(p)
     flats = sum([p.flat for p in patterns], [])
     pot_arguments = [a for a in flats if type(a) is Argument]
