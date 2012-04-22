@@ -1,4 +1,5 @@
-"""Usage: example.py [-vqr] [FILE]
+"""Usage: prog [-vqr] [FILE]
+          prog INPUT OUTPUT
 
 Options:
   -v  print status messages
@@ -6,15 +7,21 @@ Options:
   -r  show all occurrences of the same error
 
 """
-from docopt import docopt, Options, Arguments
-
+from docopt import docopt, Options, Arguments, DocoptExit
+from pytest import raises
 
 def test_docopt():
 
     o, a = docopt(__doc__, '-v file.py')
     assert o == Options(v=True, q=False, r=False)
-    assert a == Arguments(file='file.py')
+    assert a == Arguments(file='file.py', input=None, output=None)
 
     o, a = docopt(__doc__, '-v')
     assert o == Options(v=True, q=False, r=False)
-    assert a == Arguments(file=None)
+    assert a == Arguments(file=None, input=None, output=None)
+
+    with raises(DocoptExit):  # does not match
+        o, a = docopt(__doc__, '-v input.py output.py')
+
+    with raises(DocoptExit):
+        o, a = docopt(__doc__, '--fake')

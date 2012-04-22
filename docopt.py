@@ -4,6 +4,10 @@ import sys
 import re
 
 
+class DocoptExit(SystemExit):
+    pass
+
+
 class Pattern(object):
 
     def __init__(self, *children):
@@ -136,10 +140,10 @@ class Namespace(object):
         self.__dict__ = kw
 
     def __eq__(self, other):
-        return repr(self) == repr(other)
+        return self.__dict__ == other.__dict__
 
     def __ne__(self, other):
-        return repr(self) != repr(other)
+        return self.__dict__ != other.__dict__
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
@@ -197,18 +201,18 @@ def do_longs(parsed, raw, options, parse):
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-        exit('--%s is not recognized' % raw)
+        raise DocoptExit('--%s is not recognized' % raw)
     if len(opt) > 1:
-        exit('--%s is not a unique prefix: %s?' % (raw,
+        raise DocoptExit('--%s is not a unique prefix: %s?' % (raw,
                 ', '.join('--%s' % o.long for o in opt)))
     opt = opt[0]
     if not opt.is_flag:
         if value is None:
             if not parse:
-                exit('--%s requires argument' % opt)
+                raise DocoptExit('--%s requires argument' % opt)
             value, parse = parse[0], parse[1:]
     elif value is not None:
-        exit('--%s must not have an argument' % opt)
+        raise DocoptExit('--%s must not have an argument' % opt)
     opt.value = value or True
     parsed += [opt]
     return parsed, parse
@@ -225,7 +229,7 @@ def do_shorts(parsed, raw, options, parse):
         else:
             if raw == '':
                 if not parse:
-                    exit('opt -%s requires argument' % opt)
+                    raise DocoptExit('opt -%s requires argument' % opt)
                 raw, parse = parse[0], parse[1:]
             value, raw = raw, ''
         opt.value = value
@@ -250,7 +254,7 @@ def matching_paren(a):
             count -= 1
         if count == 0:
             return i
-    exit('parens not matching')
+    raise DocoptExit('parens not matching')
 
 
 def pattern(source, options=None):
@@ -317,9 +321,9 @@ def parse_doc_usage(doc, options=[]):
 
 def extras(help, version, argv, doc):
     if help and ('-h' in argv or '--help' in argv):
-        exit(doc.strip())
+        raise DocoptExit(doc.strip())
     if version and '--version' in argv:
-        exit(str(version))
+        raise DocoptExit(str(version))
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
@@ -339,4 +343,4 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
             return (Options(**dict([(o.name, o.value) for o in overlapped])),
                   Arguments(**dict([(a.name, a.value)
                             for a in pot_arguments + collected])))
-    exit('no match')
+    raise DocoptExit('did not match usage')
