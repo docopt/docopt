@@ -233,6 +233,50 @@ def split(a, sep='|'):
     return [a]
 
 
+#EOF = object()
+#class Parser(object):
+#    def __init__(self, tokens, options):
+#        self.tokens = tokens + [EOF]
+#        self.options = options
+#
+#    @property
+#    def first(self):
+#        return self.tokens[0]
+#
+#    def move(self):
+#        self.tokens.pop(0)
+#
+#    def parse_item(self):
+#        if self.first == '[':
+#            self.move()
+#            items = []
+#            while self.first != ']':
+#                items.append(self.parse_item())
+#            self.move()
+#            return Optional(*items)
+#        elif self.first == '(':
+#            self.move()
+#            items = []
+#            while self.first != ')':
+#                items.append(self.parse_item())
+#            self.move()
+#            return Required(*items)
+
+
+def matching_paren(a):
+    left = a[0]
+    right = '[]()'['[]()'.index(left) + 1]
+    count = 0
+    for i, v in enumerate(a):
+        if v == left:
+            count += 1
+        elif v == right:
+            count -= 1
+        if count == 0:
+            return i
+    exit('parens not matching')
+
+
 def pattern(source, options=None):
     return parse(source=source, options=options, is_pattern=True)
 
@@ -246,18 +290,16 @@ def parse(source, options=None, is_pattern=False):
     parsed = []
     while source:
         if is_pattern and source[0] == '[':
-            matching = [i for i, e in enumerate(source)
-                        if e == ']'][source.count('[') - 1]
+            matching = matching_paren(source)
             sub_parse = source[1:matching]
             parsed += [Optional(*parse(sub_parse, is_pattern=is_pattern,
                                        options=options))]
             source = source[matching + 1:]
         elif is_pattern and source[0] == '(':
-            matching = [i for i, e in enumerate(source)
-                        if e == ')'][source.count('(') - 1]
+            matching = matching_paren(source)
             sub_parse = source[1:matching]
             parsed += [Required(*parse(sub_parse, is_pattern=is_pattern,
-                                     options=options))]
+                                       options=options))]
             source = source[matching + 1:]
         elif is_pattern and '|' in source:
             either = []

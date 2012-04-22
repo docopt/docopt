@@ -1,4 +1,4 @@
-"""Usage: example.py [-vqr] FILE
+"""Usage: example.py [-vqr] [FILE]
 
 Options:
   -v  print status messages
@@ -14,3 +14,7 @@ def test_docopt():
     o, a = docopt(__doc__, '-v file.py')
     assert o == Options(v=True, q=False, r=False)
     assert a == Arguments(file='file.py')
+
+#   o, a = docopt(__doc__, '-v')
+#   assert o == Options(v=True, q=False, r=False)
+#   assert a == Arguments(file=None)

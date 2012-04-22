@@ -1,6 +1,6 @@
 from docopt import (Option, docopt, parse, Argument, Either, split,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option, Options, Arguments)
+                    parse_doc_usage, option, Options, Arguments, matching_paren)
 
 
 def test_split():
@@ -8,6 +8,12 @@ def test_split():
     assert split(a, '|') == [[1, 2], [3], [4, 5]]
     a = ['|', 3, '|']
     assert split(a, '|') == [[], [3], []]
+
+
+def test_matching_paren():
+    assert matching_paren(['[', ']']) == 1
+    assert matching_paren(['[', ']', '[', ']']) == 1
+    assert matching_paren(['[', '[', ']', ']']) == 3
 
 
 def test_option():
