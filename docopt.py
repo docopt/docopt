@@ -319,10 +319,11 @@ def parse_doc_usage(doc, options=[]):
     return [p.strip() for p in raw_patterns]
 
 
-def extras(help, version, argv, doc):
-    if help and ('-h' in argv or '--help' in argv):
+def extras(help, version, options, doc):
+    if help and any(o for o in options
+            if (o.short == 'h' or o.long == 'help') and o.value):
         raise DocoptExit(doc.strip())
-    if version and '--version' in argv:
+    if version and any(o for o in options if o.long == 'version' and o.value):
         raise DocoptExit(str(version))
 
 
@@ -330,7 +331,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
-    extras(help, version, args, doc)
+    extras(help, version, overlapped, doc)
     patterns = []
     for usage in parse_doc_usage(doc):
         p = Required(*pattern(usage, options=options))
