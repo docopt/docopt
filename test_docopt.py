@@ -3,6 +3,12 @@ from docopt import (Option, docopt, parse, Argument, Either, split,
                     parse_doc_usage, option, Options, Arguments, matching_paren)
 
 
+def test_pattern_flat():
+    assert Required(OneOrMore(Argument('N')),
+                    Option('a'), Argument('M')).flat == \
+                            [Argument('N'), Option('a'), Argument('M')]
+
+
 def test_split():
     a = [1, 2, '|', 3, '|', 4, 5]
     assert split(a, '|') == [[1, 2], [3], [4, 5]]

@@ -16,6 +16,12 @@ class Pattern(object):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join([repr(a) for a in self.children]))
 
+    @property
+    def flat(self):
+        if not hasattr(self, 'children'):
+            return [self]
+        return sum([c.flat for c in self.children], [])
+
 
 class Argument(Pattern):
 
@@ -321,10 +327,16 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, args, doc)
+    patterns = []
     for usage in parse_doc_usage(doc):
         p = Required(*pattern(usage, options=options))
+        patterns.append(p)
+    flats = sum([p.flat for p in patterns], [])
+    pot_arguments = [a for a in flats if type(a) is Argument]
+    for p in patterns:
         matched, left, collected = p.match(args)
         if matched and left == []:
             return (Options(**dict([(o.name, o.value) for o in overlapped])),
-                  Arguments(**dict([(a.name, a.value) for a in collected])))
+                  Arguments(**dict([(a.name, a.value)
+                            for a in pot_arguments + collected])))
     exit('no match')

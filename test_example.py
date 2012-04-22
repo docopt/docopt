@@ -15,6 +15,6 @@ def test_docopt():
     assert o == Options(v=True, q=False, r=False)
     assert a == Arguments(file='file.py')
 
-#   o, a = docopt(__doc__, '-v')
-#   assert o == Options(v=True, q=False, r=False)
-#   assert a == Arguments(file=None)
+    o, a = docopt(__doc__, '-v')
+    assert o == Options(v=True, q=False, r=False)
+    assert a == Arguments(file=None)
