@@ -233,36 +233,6 @@ def split(a, sep='|'):
     return [a]
 
 
-#EOF = object()
-#class Parser(object):
-#    def __init__(self, tokens, options):
-#        self.tokens = tokens + [EOF]
-#        self.options = options
-#
-#    @property
-#    def first(self):
-#        return self.tokens[0]
-#
-#    def move(self):
-#        self.tokens.pop(0)
-#
-#    def parse_item(self):
-#        if self.first == '[':
-#            self.move()
-#            items = []
-#            while self.first != ']':
-#                items.append(self.parse_item())
-#            self.move()
-#            return Optional(*items)
-#        elif self.first == '(':
-#            self.move()
-#            items = []
-#            while self.first != ')':
-#                items.append(self.parse_item())
-#            self.move()
-#            return Required(*items)
-
-
 def matching_paren(a):
     left = a[0]
     right = '[]()'['[]()'.index(left) + 1]
@@ -337,7 +307,6 @@ def parse_doc_usage(doc, options=[]):
     prog = raw_usage.split()[0]
     raw_patterns = raw_usage.strip(prog).split(prog)
     return [p.strip() for p in raw_patterns]
-    #return [Required(*pattern(s, options=options)) for s in raw_patterns]
 
 
 def extras(help, version, argv, doc):
