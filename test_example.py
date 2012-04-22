@@ -28,5 +28,5 @@ def test_docopt():
     with raises(DocoptExit):
         docopt(__doc__, '--fake')
 
-    with raises(DocoptExit):
+    with raises(SystemExit):
         docopt(__doc__, '--hel')
