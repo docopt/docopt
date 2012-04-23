@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>docopt — pythonic option parser, that will make you smile &mdash; docopt 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="docopt 0.1.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">docopt 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="docopt-pythonic-option-parser-that-will-make-you-smile">
+<h1><tt class="docutils literal"><span class="pre">docopt</span></tt> &#8212; pythonic option parser, that will make you smile<a class="headerlink" href="#docopt-pythonic-option-parser-that-will-make-you-smile" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><pre>pip install docopt</pre>
+</div>
+<p>Isn&#8217;t it awesome how <tt class="docutils literal"><span class="pre">optparse</span></tt> and <tt class="docutils literal"><span class="pre">argparse</span></tt> generate help and usage-messages
+based on your code?!</p>
+<p>Hell no!  You know what&#8217;s awesome?  It&#8217;s when the option parser <em>is</em> generated
+based on the help and usage-message that you write in a docstring!  This way
+you don&#8217;t need to write this stupid repeatable parser-code, and instead can
+write a beautiful usage-message (the way you want it!), which adds readability
+to your code.</p>
+<p>So instead of writing shit like this (typical example):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+
+<span class="k">def</span> <span class="nf">process_options</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="s">&quot;program.py [options] arguments&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;print status messages&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;report only file names&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-r&#39;</span><span class="p">,</span> <span class="s">&#39;--repeat&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;show all occurrences of the same error&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;--exclude&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;patterns&#39;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="s">&#39;.svn,CVS,.bzr,.hg,.git&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;exclude files or directories which match these &quot;</span>
+                        <span class="s">&quot;comma separated patterns [default: </span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span>
+                        <span class="s">&#39;.svn,CVS,.bzr,.hg,.git&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;--filename&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;patterns&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;*.py&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;when parsing directories, only check filenames &quot;</span>
+                        <span class="s">&quot;matching these comma separated patterns &quot;</span>
+                        <span class="s">&quot;[default: *.py]&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;--select&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;errors&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;select errors and warnings (e.g. E,W6)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;--ignore&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s">&#39;errors&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;skip errors and warnings (e.g. E4,W)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;--show-source&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&quot;show source code for each error&quot;</span><span class="p">)</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">options</span><span class="p">,</span> <span class="n">arguments</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+    <span class="k">pass</span>  <span class="c"># ...</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">process_options</span><span class="p">()</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can write an awesome, readable, clean, pythonic code like <em>that</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;Usage: program.py [options] arguments</span>
+
+<span class="sd">Options:</span>
+<span class="sd">  -h --help            show this help message and exit</span>
+<span class="sd">  -v --verbose         print status messages</span>
+<span class="sd">  -q --quiet           report only file names</span>
+<span class="sd">  -r --repeat          show all occurrences of the same error</span>
+<span class="sd">  --exclude=patterns   exclude files or directories which match these comma</span>
+<span class="sd">                       separated patterns [default: .svn,CVS,.bzr,.hg,.git]</span>
+<span class="sd">  --filename=patterns  when parsing directories, only check filenames matching</span>
+<span class="sd">                       these comma separated patterns [default: *.py]</span>
+<span class="sd">  --select=errors      select errors and warnings (e.g. E,W6)</span>
+<span class="sd">  --ignore=errors      skip errors and warnings (e.g. E4,W)</span>
+<span class="sd">  --show-source        show source code for each error</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">docopt</span> <span class="kn">import</span> <span class="n">docopt</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+    <span class="k">pass</span>  <span class="c"># ...</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># parse options based on docstring above</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">docopt</span><span class="p">(</span><span class="n">__doc__</span><span class="p">)</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Fuck yeah! The option parser is generated based on docstring above, that you
+pass to the <tt class="docutils literal"><span class="pre">docopt</span></tt> function.</p>
+<p>Also, the practice of putting usage-message in module&#8217;s docstring
+is endorsed by <a class="reference external" href="http://www.python.org/dev/peps/pep-0257/">pep257</a>:</p>
+<blockquote>
+<div>The docstring of a script (a stand-alone program) should be usable as its
+&#8220;usage&#8221; message, printed when the script is invoked with incorrect or
+missing arguments (or perhaps with a &#8220;-h&#8221; option, for &#8220;help&#8221;). Such a
+docstring should document the script&#8217;s function and command line syntax,
+environment variables, and files. Usage messages can be fairly elaborate
+(several screens full) and should be sufficient for a new user to use the
+command properly, as well as a complete quick reference to all options and
+arguments for the sophisticated user.</div></blockquote>
+<p>By the way, <tt class="docutils literal"><span class="pre">docopt</span></tt> is tested with Python 2.6, 2.7 and 3.2.</p>
+</div>
+<div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">docopt</span> <span class="kn">import</span> <span class="n">docopt</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="docopt">
+<tt class="descname">docopt</tt><big>(</big><em>doc[, args=sys.argv[1:]][, help=True][, version=None]</em><big>)</big><a class="headerlink" href="#docopt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><tt class="docutils literal"><span class="pre">docopt</span></tt> takes 1 required and 3 optional arguments:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">doc</span></tt> should be a module docstring (<tt class="docutils literal"><span class="pre">__doc__</span></tt>) or some other string that
+describes <strong>options</strong> in a human-readable format, that will be parsed to
+create the option parser.  The simple rules of how to write such a docstring
+(in order to generate option parser from it successfully) are given in the
+next section. Here is a quick example of such a string:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;Usage: your_program.py [options]</span>
+
+<span class="sd">-h --help     Show this.</span>
+<span class="sd">-v --verbose  Print more text.</span>
+<span class="sd">--quiet       Print less text.</span>
+<span class="sd">-o FILE       Specify output file [default: ./test.txt].&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">args</span></tt> is an optional argument; by default it is supplied with options and
+arguments passed to your program (<tt class="docutils literal"><span class="pre">sys.argv[1:]</span></tt>). In case you want to
+supply something else, it should be in the format similar to <tt class="docutils literal"><span class="pre">sys.argv</span></tt>,
+i.e. a list of strings, such as <tt class="docutils literal"><span class="pre">['--verbose',</span> <span class="pre">'-o',</span> <span class="pre">'hai.txt']</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">help</span></tt>, by default <tt class="docutils literal"><span class="pre">True</span></tt>, specifies whether the parser should
+automatically print the usage-message (supplied as <tt class="docutils literal"><span class="pre">doc</span></tt>) in case <tt class="docutils literal"><span class="pre">-h</span></tt>
+or <tt class="docutils literal"><span class="pre">--help</span></tt> options are encountered. After showing the usage-message, the
+program will terminate. If you want to handle <tt class="docutils literal"><span class="pre">-h</span></tt> or <tt class="docutils literal"><span class="pre">--help</span></tt> options
+manually (as all other options), set <tt class="docutils literal"><span class="pre">help=False</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">version</span></tt>, by default <tt class="docutils literal"><span class="pre">None</span></tt>, is an optional argument that specifies the
+version of your program. If supplied, then, if the parser encounters
+<tt class="docutils literal"><span class="pre">--version</span></tt> option, it will print the supplied version and terminate.
+<tt class="docutils literal"><span class="pre">version</span></tt> could be any printable object, but most likely a string,
+e.g. <tt class="docutils literal"><span class="pre">&quot;2.1.0rc1&quot;</span></tt>.</p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">when <tt class="docutils literal"><span class="pre">docopt</span></tt> is set to automatically handle <tt class="docutils literal"><span class="pre">-h</span></tt>, <tt class="docutils literal"><span class="pre">--help</span></tt> and
+<tt class="docutils literal"><span class="pre">--version</span></tt> options, you still need to mention them in the options
+description (<tt class="docutils literal"><span class="pre">doc</span></tt>) for your users to know about them.</p>
+</div>
+<p>The <strong>return</strong> value is a tuple <tt class="docutils literal"><span class="pre">options,</span> <span class="pre">arguments</span></tt>, where:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">options</span></tt> is an object with instance variables corresponding to each option.
+It can be pretty-printed for debugging (try <tt class="docutils literal"><span class="pre">example.py</span></tt>). Names of
+instance variables will be based on option names, so that characters
+that are not allowed in an instance variable name (such as dash <tt class="docutils literal"><span class="pre">-</span></tt>) will
+be substituted with underscore <tt class="docutils literal"><span class="pre">_</span></tt>. E.g. option <tt class="docutils literal"><span class="pre">--print-out</span></tt> will be
+presented as <tt class="docutils literal"><span class="pre">options.print_out</span></tt>, and option <tt class="docutils literal"><span class="pre">-v,</span> <span class="pre">--verbose</span></tt> will be
+presented as <tt class="docutils literal"><span class="pre">options.verbose</span></tt>, giving precedence to a longer variant.</li>
+<li><tt class="docutils literal"><span class="pre">arguments</span></tt> is a list of non-option arguments.</li>
+</ul>
+</div>
+<div class="section" id="docstring-format-for-your-usage-message">
+<h1>Docstring format for your usage-message<a class="headerlink" href="#docstring-format-for-your-usage-message" title="Permalink to this headline">¶</a></h1>
+<p>The main idea behind <tt class="docutils literal"><span class="pre">docopt</span></tt> is that a good usage-message (that describes
+options and defaults unambiguously) is enough to generate an option parser.</p>
+<p>Here are the simple rules (that you probably already follow) for your
+usage-message to be parsable:</p>
+<ul>
+<li><p class="first">Every line that starts with <tt class="docutils literal"><span class="pre">-</span></tt> or <tt class="docutils literal"><span class="pre">--</span></tt> (not counting spaces) is treated
+as an option description, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Options:</span>
+<span class="sd">  --verbose   # GOOD</span>
+<span class="sd">  -o FILE     # GOOD</span>
+<span class="sd">Other: --bad  # BAD, line does not start with dash &quot;-&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">To specify that an option has an argument, put a word describing that
+argument after space (or equals <tt class="docutils literal"><span class="pre">=</span></tt> sign) as shown below.
+You can use comma if you want to separate options. In the example below both
+lines are valid, however you are recommended to stick to a single style.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">-o FILE --output=FILE       # without comma, with &quot;=&quot; sign</span>
+<span class="sd">-i &lt;file&gt;, --input &lt;file&gt;   # with comma, wihtout &quot;=&quot; sing</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Use two spaces to separate options with their informal description.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">--verbose More text.   # BAD, will be treated as if verbose option had</span>
+<span class="sd">                       # an argument &quot;More&quot;, so use 2 spaces instead</span>
+<span class="sd">-q        Quit.        # GOOD</span>
+<span class="sd">-o FILE   Output file. # GOOD</span>
+<span class="sd">--stdout  Use stdout.  # GOOD, 2 spaces</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">If you want to set a default value for an option with an argument, put it
+into the option description, in form <tt class="docutils literal"><span class="pre">[default:</span> <span class="pre">&lt;your-default-value&gt;]</span></tt>.
+To be precise, it should match the following regular expression:
+<tt class="docutils literal"><span class="pre">&quot;\[default:</span> <span class="pre">(.*)\]&quot;</span></tt>.
+The parser will try to interprete the default value as Python literal
+(using <tt class="docutils literal"><span class="pre">ast.literal_eval</span></tt>), and if it can&#8217;t, it will be interpreted as a
+string, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">-i INSTANCE      Instance of something [default: 1]  # will be int</span>
+<span class="sd">--coefficient=K  The K coefficient [default: 2.95]   # will be float</span>
+<span class="sd">--output=FILE    Output file [default: &quot;test.txt&quot;]   # will be str</span>
+<span class="sd">--directory=DIR  Some directory [default: ./]        # will be str &quot;./&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Note, that <tt class="docutils literal"><span class="pre">docopt</span></tt> also tries to interprete passed arguments of options as
+Python literals, or else as strings, so in most cases you don&#8217;t need to
+convert types.</p>
+</div>
+<div class="section" id="something-missing">
+<h1>Something missing?<a class="headerlink" href="#something-missing" title="Permalink to this headline">¶</a></h1>
+<p>Missing a feature from your current option-parser? Together we can make
+<tt class="docutils literal"><span class="pre">docopt</span></tt> better, so send a patch or pull-request.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">docopt</span></tt> &#8212; pythonic option parser, that will make you smile</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+<li><a class="reference internal" href="#docstring-format-for-your-usage-message">Docstring format for your usage-message</a></li>
+<li><a class="reference internal" href="#something-missing">Something missing?</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">docopt 0.1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Vladimir Keleshev.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
