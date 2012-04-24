@@ -22,7 +22,7 @@ class Pattern(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join([repr(a) for a in self.children]))
+                           ', '.join(repr(a) for a in self.children))
 
     @property
     def flat(self):
@@ -78,9 +78,7 @@ class Option(Pattern):
 
     @property
     def name(self):
-        s = self.long or self.short
-        s = s.rstrip(':').rstrip('=')
-        return variabalize(s)
+        return variabalize((self.long or self.short).rstrip(':').rstrip('='))
 
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
@@ -151,7 +149,7 @@ class Namespace(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
-                ',\n    '.join(['%s=%r' % i for i in self.__dict__.items()]))
+                ',\n    '.join('%s=%r' % i for i in self.__dict__.items()))
 
 
 class Options(Namespace):
@@ -339,8 +337,7 @@ def extras(help, version, options, doc):
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    u = usage(doc)
-    DocoptExit.usage = u
+    DocoptExit.usage = usage(doc)
     options = parse_doc_options(doc)
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
