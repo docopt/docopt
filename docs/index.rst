@@ -14,15 +14,15 @@
    * :ref:`search`
 
 
-``docopt`` --- pythonic option parser, that will make you smile
+``docopt``---pythonic option parser, that will make you smile
 ===============================================================================
 
 ::
 
     pip install docopt
 
-Isn't it awesome how ``optparse`` and ``argparse`` generate help and usage-messages
-based on your code?!
+Isn't it awesome how ``optparse`` and ``argparse`` generate help and
+usage-messages based on your code?!
 
 Hell no!  You know what's awesome?  It's when the option parser *is* generated
 based on the help and usage-message that you write in a docstring!  This way
@@ -30,78 +30,92 @@ you don't need to write this stupid repeatable parser-code, and instead can
 write a beautiful usage-message (the way you want it!), which adds readability
 to your code.
 
-So instead of writing shit like this (typical example)::
+Imagine you are writing a program and thinking to allow it's usage as follows::
 
-    from optparse import OptionParser
+    Usage: prog [-vqrh] [FILE]
+           prog (--left | --right) CORRECTION FILE
 
+Using argparse you will end writing something like this::
 
-    def process_options():
-        parser = OptionParser(usage="program.py [options] arguments")
-        parser.add_option('-v', '--verbose', action='store_true',
-                          help="print status messages")
-        parser.add_option('-q', '--quiet', action='store_true',
-                          help="report only file names")
-        parser.add_option('-r', '--repeat', action='store_true',
-                          help="show all occurrences of the same error")
-        parser.add_option('--exclude', metavar='patterns',
-                          default='.svn,CVS,.bzr,.hg,.git',
-                          help="exclude files or directories which match these "
-                            "comma separated patterns [default: %s]" %
-                            '.svn,CVS,.bzr,.hg,.git')
-        parser.add_option('--filename', metavar='patterns', default='*.py',
-                          help="when parsing directories, only check filenames "
-                            "matching these comma separated patterns "
-                            "[default: *.py]")
-        parser.add_option('--select', metavar='errors',
-                          help="select errors and warnings (e.g. E,W6)")
-        parser.add_option('--ignore', metavar='errors',
-                          help="skip errors and warnings (e.g. E4,W)")
-        parser.add_option('--show-source', action='store_true',
-                          help="show source code for each error")
-        options, arguments = parser.parse_args()
-        return options, arguments
+    import argparse
+    import sys
 
 
-    def main(options, arguments):
-        pass  # ...
+    def process_arguments():
+        parser = argparse.ArgumentParser(
+                description='Process FILE and optionally apply correction to '
+                            'either left-hand side or right-hand side.')
+        parser.add_argument('correction', metavar='CORRECTION', nargs='?',
+                            help='correction angle, needs FILE, --left or '
+                                 '--right to be present')
+        parser.add_argument('file', metavar='FILE', nargs='?',
+                            help='optional input file')
+        parser.add_argument('-v', dest='v', action='store_true',
+                            help='verbose mode')
+        parser.add_argument('-q', dest='q', action='store_true',
+                            help='quiet mode')
+        parser.add_argument('-r', dest='r', action='store_true',
+                            help='make report')
+        left_or_right = parser.add_mutually_exclusive_group(required=False)
+        left_or_right.add_argument('--left', dest='left', action='store_true',
+                            help='use left-hand side')
+        left_or_right.add_argument('--right', dest='right', action='store_true',
+                            help='use right-hand side')
+        arguments = parser.parse_args()
+        if (arguments.correction and not (arguments.left or arguments.right)
+                and not arguments.file):
+            sys.stderr.write('correction angle, needs FILE, --left or --right '
+                             'to be present')
+            parser.print_help()
+        return arguments
+
+
+    def main(arguments):
+        # ...
 
 
     if __name__ == '__main__':
-        options, arguments = process_options()
-        main(options, arguments)
+        main(process_arguments())
 
-You can write an awesome, readable, clean, pythonic code like *that*::
+While ``docopt`` allows you to write an awesome, readable, clean, pythonic code
+like *that*::
 
-    """Usage: program.py [options] arguments
+    """Usage: prog [-vqrh] [FILE]
+              prog (--left | --right) CORRECTION FILE
+
+    Process FILE and optionally apply correction to either left-hand side or
+    right-hand side.
+
+    Arguments:
+      FILE        optional input file
+      CORRECTION  correction angle, needs FILE, --left or --right to be present
 
     Options:
-      -h --help            show this help message and exit
-      -v --verbose         print status messages
-      -q --quiet           report only file names
-      -r --repeat          show all occurrences of the same error
-      --exclude=patterns   exclude files or directories which match these comma
-                           separated patterns [default: .svn,CVS,.bzr,.hg,.git]
-      --filename=patterns  when parsing directories, only check filenames matching
-                           these comma separated patterns [default: *.py]
-      --select=errors      select errors and warnings (e.g. E,W6)
-      --ignore=errors      skip errors and warnings (e.g. E4,W)
-      --show-source        show source code for each error
+      -h --help
+      -v       verbose mode
+      -q       quiet mode
+      -r       make report
+      --left   use left-hand side
+      --right  use right-hand side
 
     """
     from docopt import docopt
 
 
     def main(options, arguments):
-        pass  # ...
+        # ...
 
 
     if __name__ == '__main__':
-        # parse options based on docstring above
+        # parse arguments based on docstring above
         options, arguments = docopt(__doc__)
         main(options, arguments)
 
-Fuck yeah! The option parser is generated based on docstring above, that you
-pass to the ``docopt`` function.
+Yep! The option parser is generated based on docstring above, that you
+pass to the ``docopt`` function.  ``docopt`` parses the usage-message and
+ensures that program invocation matches it; it parses both options and
+arguments based on that. The basic idea is that *a good usage-message
+has all necessary information in it to make a parser*.
 
 Also, the practice of putting usage-message in module's docstring
 is endorsed by `pep257 <http://www.python.org/dev/peps/pep-0257/>`_:
@@ -129,17 +143,19 @@ API
 ``docopt`` takes 1 required and 3 optional arguments:
 
 - ``doc`` should be a module docstring (``__doc__``) or some other string that
-  describes **options** in a human-readable format, that will be parsed to
-  create the option parser.  The simple rules of how to write such a docstring
-  (in order to generate option parser from it successfully) are given in the
-  next section. Here is a quick example of such a string::
+  describes **usage-message** in a human-readable format, that will be
+  parsed to create the option parser.  The simple rules of how to write such a
+  docstring (in order to generate option parser from it successfully) are given
+  in the next section. Here is a quick example of such a string::
 
-    """Usage: your_program.py [options]
+    """Usage: your_program.py [-hvo FILE] [--quiet] INPUT
 
-    -h --help     Show this.
-    -v --verbose  Print more text.
-    --quiet       Print less text.
-    -o FILE       Specify output file [default: ./test.txt]."""
+    -h --help     show this
+    -v --verbose  print more text
+    --quiet       print less text
+    -o FILE       specify output file [default: ./test.txt]
+
+    """
 
 - ``args`` is an optional argument; by default it is supplied with options and
   arguments passed to your program (``sys.argv[1:]``). In case you want to
@@ -147,10 +163,10 @@ API
   i.e. a list of strings, such as ``['--verbose', '-o', 'hai.txt']``.
 
 - ``help``, by default ``True``, specifies whether the parser should
-  automatically print the usage-message (supplied as ``doc``) in case ``-h``
-  or ``--help`` options are encountered. After showing the usage-message, the
-  program will terminate. If you want to handle ``-h`` or ``--help`` options
-  manually (as all other options), set ``help=False``.
+  automatically print the usage-message (supplied as ``doc``) and terminate,
+  in case ``-h`` or ``--help`` options are encountered. If you want to handle
+  ``-h`` or ``--help`` options manually (as all other options), set
+  ``help=False``.
 
 - ``version``, by default ``None``, is an optional argument that specifies the
   version of your program. If supplied, then, if the parser encounters
@@ -164,7 +180,7 @@ API
 
 The **return** value is a tuple ``options, arguments``, where:
 
-- ``options`` is an object with instance variables corresponding to each option.
+- ``options`` is a namespace with options values.
   It can be pretty-printed for debugging (try ``example.py``). Names of
   instance variables will be based on option names, so that characters
   that are not allowed in an instance variable name (such as dash ``-``) will
@@ -172,7 +188,7 @@ The **return** value is a tuple ``options, arguments``, where:
   presented as ``options.print_out``, and option ``-v, --verbose`` will be
   presented as ``options.verbose``, giving precedence to a longer variant.
 
-- ``arguments`` is a list of non-option arguments.
+- ``arguments`` is a namespace with arguments values.
 
 Docstring format for your usage-message
 ===============================================================================
