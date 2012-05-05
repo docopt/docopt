@@ -1,9 +1,15 @@
-"""Usage: prog [-vqr] [FILE]
+"""Usage: prog [-vqrh] [FILE]
           prog (--left | --right) CORRECTION FILE
-          prog --help
+
+Process FILE and optionally apply correction to either left-hand side or
+right-hand side.
+
+Arguments:
+  FILE        optional input file
+  CORRECTION  correction angle, needs FILE, --left or --right to be present
 
 Options:
-  --help
+  -h --help
   -v       verbose mode
   -q       quiet mode
   -r       make report
@@ -20,6 +26,6 @@ def main(options, arguments):
 
 
 if __name__ == '__main__':
-    # parse options based on docstring above
+    # parse arguments based on docstring above
     options, arguments = docopt(__doc__)
     main(options, arguments)
