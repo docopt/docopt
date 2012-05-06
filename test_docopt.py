@@ -1,6 +1,6 @@
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option, Options, Arguments, usage,
+                    option, Options, Arguments,
                     matching_paren, DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -93,50 +93,15 @@ def test_parse_doc_options():
                                       Option(None, 'verbose')]
 
 
-#def test_parse_doc_usage():
-#    assert parse_doc_usage('usage: prog ARG') == [Required(Argument('ARG'))]
-#    doc = """
-#    Usage: prog [-hv]
-#                 ARG
-#           prog N M
-#
-#    prog is a program.
-#
-#    -h
-#    -v
-#
-#    """
-#    assert parse_doc_usage(doc, options=parse_doc_options(doc)) == [
-#            Required(Optional(Option('h', None, True),
-#                            Option('v', None, True)), Argument('ARG')),
-#            Required(Argument('N'), Argument('M'))]
-
-
-def test_parse_doc_usage():  # XXX get rid of
-    assert parse_doc_usage('usage: prog ARG') == ['ARG']
-    doc = """
-    Usage: prog [-hv] ARG
-           prog N M
-
-    prog is a program.
-
-    -h
-    -v
-
-    """
-    assert parse_doc_usage(doc) == ['[-hv] ARG', 'N M']
-    assert usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
-
-
 def test_printable_and_formal_usage():
     doc = """
     Usage: prog [-hv] ARG
            prog N M
 
     prog is a program."""
-    pu = printable_usage(doc)
-    assert pu == "Usage: prog [-hv] ARG\n           prog N M"
-    assert formal_usage(pu) == "[-hv] ARG | N M"
+    assert printable_usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
+    assert formal_usage(printable_usage(doc)) == "[-hv] ARG | N M"
+    assert printable_usage('uSaGe: prog ARG\n\t \t\n bla') == "uSaGe: prog ARG"
 
 
 def test_parse():

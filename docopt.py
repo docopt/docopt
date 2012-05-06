@@ -15,7 +15,7 @@ class DocoptExit(SystemExit):
 
     usage = ''
 
-    def __init__(self, message):
+    def __init__(self, message=''):
         SystemExit.__init__(self, message + '\n' + self.usage)
 
 
@@ -339,22 +339,15 @@ def parse_doc_options(doc):
 
 
 def printable_usage(doc):
-    return re.split(r'\n\s*\n', ''.join(re.split(r'([Uu]sage:)',
-                    doc)[1:3]))[0].strip()
-usage = printable_usage  # XXX get rid of
+    return re.split(r'\n\s*\n',
+                    ''.join(re.split(r'(usage:)', doc, flags=re.I)[1:3])
+                    )[0].strip()
 
 
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
     prog = pu[0]
     return ' '.join(['|' if s == prog else s for s in pu[1:]])
-
-
-def parse_doc_usage(doc, options=[]):  # XXX get rid of
-    raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
-    prog = raw_usage.split()[0]
-    raw_patterns = raw_usage.strip(prog).split(prog)
-    return [p.strip() for p in raw_patterns]
 
 
 def extras(help, version, options, doc):
@@ -375,11 +368,10 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = Required(*pattern(formal_usage(usage), options=options))
-    flats = formal_pattern.flat
-    pot_arguments = [a for a in flats if type(a) is Argument]
+    pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.match(args)
     if matched and left == []:  # is checking left needed here?
         return (Options(**dict([(o.name, o.value) for o in overlapped])),
               Arguments(**dict([(a.name, a.value)
                         for a in pot_arguments + collected])))
-    raise DocoptExit('did not match usage')
+    raise DocoptExit()
