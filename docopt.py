@@ -246,9 +246,9 @@ def do_shorts(parsed, raw, options, parse):
     return parsed, parse
 
 
-def split(a, sep='|'):
+def split_either(a, sep='|'):
     if sep in a:
-        return [a[:a.index(sep)]] + split(a[a.index(sep) + 1:], sep)
+        return [a[:a.index(sep)]] + split_either(a[a.index(sep) + 1:], sep)
     return [a]
 
 
@@ -292,7 +292,7 @@ def parse(source, options=None, is_pattern=False):
             source = source[matching + 1:]
         elif is_pattern and '|' in source:
             either = []
-            for s in split(source, '|'):
+            for s in split_either(source, '|'):
                 p = parse(s, is_pattern=is_pattern, options=options)
                 either += p if len(p) == 1 else [Required(*p)]
             assert parsed == []

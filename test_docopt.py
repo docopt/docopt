@@ -1,6 +1,6 @@
-from docopt import (Option, docopt, parse, Argument, Either, split, usage,
+from docopt import (Option, docopt, parse, Argument, Either, split_either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option, Options, Arguments,
+                    parse_doc_usage, option, Options, Arguments, usage,
                     matching_paren, DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -14,9 +14,9 @@ def test_pattern_flat():
 
 def test_split():
     a = [1, 2, '|', 3, '|', 4, 5]
-    assert split(a, '|') == [[1, 2], [3], [4, 5]]
+    assert split_either(a, '|') == [[1, 2], [3], [4, 5]]
     a = ['|', 3, '|']
-    assert split(a, '|') == [[], [3], []]
+    assert split_either(a, '|') == [[], [3], []]
 
 
 def test_matching_paren():
