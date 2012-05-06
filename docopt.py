@@ -284,7 +284,7 @@ def matching_paren(a):
 
 
 def pattern(source, options=None):
-    return parse(source=source, options=options, is_pattern=True)
+    return Required(*parse(source=source, options=options, is_pattern=True))
 
 
 def parse(source, options=None, is_pattern=False):
@@ -367,7 +367,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, overlapped, doc)
-    formal_pattern = Required(*pattern(formal_usage(usage), options=options))
+    formal_pattern = pattern(formal_usage(usage), options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.match(args)
     if matched and left == []:  # is checking left needed here?

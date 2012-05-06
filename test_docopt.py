@@ -127,29 +127,29 @@ def test_parse():
              Argument(None, 'arg2')]
 
     assert pattern('[ -h ]', options=o) == \
-               [Optional(Option('h', None, True))]
+               Required(Optional(Option('h', None, True)))
     assert pattern('[ ARG ... ]', options=o) == \
-               [Optional(OneOrMore(Argument('ARG')))]
+               Required(Optional(OneOrMore(Argument('ARG'))))
     assert pattern('[ -h | -v ]', options=o) == \
-               [Optional(Either(Option('h', None, True),
-                                Option('v', 'verbose', True)))]
+               Required(Optional(Either(Option('h', None, True),
+                                Option('v', 'verbose', True))))
     assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
-               [Required(
+               Required(Required(
                    Either(Option('h', None, True),
                           Required(Option('v', 'verbose', True),
-                                 Optional(Option('f:', 'file=', 'f.txt')))))]
+                                 Optional(Option('f:', 'file=', 'f.txt'))))))
     assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
-               [Required(Either(Option('h', None, True),
+               Required(Required(Either(Option('h', None, True),
                               Required(Option('v', 'verbose', True),
                                      Optional(Option('f:', 'file=', 'f.txt')),
-                                     OneOrMore(Argument('N')))))]
+                                     OneOrMore(Argument('N'))))))
     assert pattern('(N [M | (K | L)] | O P)') == \
-               [Required(Either(
+               Required(Required(Either(
                    Required(Argument('N'),
                             Optional(Either(Argument('M'),
                                             Required(Either(Argument('K'),
                                                             Argument('L')))))),
-                   Required(Argument('O'), Argument('P'))))]
+                   Required(Argument('O'), Argument('P')))))
 
 # TODO: real parser
 #   assert pattern('[ -h ] [N]', options=o) == \
