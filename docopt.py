@@ -246,10 +246,26 @@ def do_shorts(parsed, raw, options, parse):
     return parsed, parse
 
 
-def split_either(a, sep='|'):
+def split_simple(a, sep='|'):
     if sep in a:
-        return [a[:a.index(sep)]] + split_either(a[a.index(sep) + 1:], sep)
+        return [a[:a.index(sep)]] + split_simple(a[a.index(sep) + 1:], sep)
     return [a]
+
+
+def split_either(a, sep='|'):
+    count_b = count_p = 0
+    for i, v in enumerate(a):
+        if v == '[':
+            count_b += 1
+        elif v == ']':
+            count_b -= 1
+        elif v == '(':
+            count_p += 1
+        elif v == ')':
+            count_p -= 1
+        elif v == '|' and count_b == count_p == 0:
+            a[i] = '@'
+    return split_simple(a, '@')
 
 
 def matching_paren(a):

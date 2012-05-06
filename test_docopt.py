@@ -17,6 +17,11 @@ def test_split():
     assert split_either(a, '|') == [[1, 2], [3], [4, 5]]
     a = ['|', 3, '|']
     assert split_either(a, '|') == [[], [3], []]
+    a = [1, '[', 2, '|', 3, ']', '|', 4, 5]
+    assert split_either(a, '|') == [[1, '[', 2, '|', 3, ']'], [4, 5]]
+    a = [1, '(', 2, '|', '[', 3, '|', 4, ']', ')', '|', 5]
+    assert split_either(a, '|') == \
+        [[1, '(', 2, '|', '[', 3, '|', 4, ']', ')'], [5]]
 
 
 def test_matching_paren():
