@@ -253,6 +253,7 @@ def split_simple(a, sep='|'):
 
 
 def split_either(a, sep='|'):
+    a = deepcopy(a)
     count_b = count_p = 0
     for i, v in enumerate(a):
         if v == '[':
@@ -294,7 +295,15 @@ def parse(source, options=None, is_pattern=False):
     source = source.split() if type(source) == str else source
     parsed = []
     while source:
-        if is_pattern and source[0] == '[':
+        if is_pattern and len(split_either(source)) > 1:  #'|' in source:
+            either = []
+            for s in split_either(source, '|'):
+                p = parse(s, is_pattern=is_pattern, options=options)
+                either += p if len(p) == 1 else [Required(*p)]
+            assert parsed == []
+            parsed = [Either(*either)]
+            break
+        elif is_pattern and source[0] == '[':
             matching = matching_paren(source)
             sub_parse = source[1:matching]
             parsed += [Optional(*parse(sub_parse, is_pattern=is_pattern,
@@ -306,14 +315,6 @@ def parse(source, options=None, is_pattern=False):
             parsed += [Required(*parse(sub_parse, is_pattern=is_pattern,
                                        options=options))]
             source = source[matching + 1:]
-        elif is_pattern and len(split_either(source)) > 1:  #'|' in source:
-            either = []
-            for s in split_either(source, '|'):
-                p = parse(s, is_pattern=is_pattern, options=options)
-                either += p if len(p) == 1 else [Required(*p)]
-            assert parsed == []
-            parsed = [Either(*either)]
-            break
         elif is_pattern and source[0] == '...':
             parsed[-1] = OneOrMore(parsed[-1])
             source = source[1:]
@@ -373,23 +374,12 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, overlapped, doc)
-    ##formal_pattern = Required(*pattern(formal_usage(usage), options=options))
-    patterns = []
-    for raw_pattern in parse_doc_usage(doc):
-        p = Required(*pattern(raw_pattern, options=options))
-        patterns.append(p)
-    flats = sum([p.flat for p in patterns], [])
-    ##flats = formal_pattern.flat
+    formal_pattern = Required(*pattern(formal_usage(usage), options=options))
+    flats = formal_pattern.flat
     pot_arguments = [a for a in flats if type(a) is Argument]
-    ##matched, left, collected = formal_pattern.match(args)
-    ##if matched and left == []:  # is checking left needed here?
-    ##    return (Options(**dict([(o.name, o.value) for o in overlapped])),
-    ##          Arguments(**dict([(a.name, a.value)
-    ##                    for a in pot_arguments + collected])))
-    for p in patterns:
-        matched, left, collected = p.match(args)
-        if matched and left == []:
-            return (Options(**dict([(o.name, o.value) for o in overlapped])),
-                  Arguments(**dict([(a.name, a.value)
-                            for a in pot_arguments + collected])))
+    matched, left, collected = formal_pattern.match(args)
+    if matched and left == []:  # is checking left needed here?
+        return (Options(**dict([(o.name, o.value) for o in overlapped])),
+              Arguments(**dict([(a.name, a.value)
+                        for a in pot_arguments + collected])))
     raise DocoptExit('did not match usage')
