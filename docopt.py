@@ -4,7 +4,14 @@ import sys
 import re
 
 
+class DocoptError(Exception):
+
+    """Error in construction of usage-message by developer."""
+
+
 class DocoptExit(SystemExit):
+
+    """Exit in case user invoked program with incorect arguments."""
 
     usage = ''
 
@@ -256,7 +263,7 @@ def matching_paren(a):
             count -= 1
         if count == 0:
             return i
-    raise DocoptExit('parens not matching')
+    raise DocoptError('Unbalanced parenthesis or brackets in usage-pattern.')
 
 
 def pattern(source, options=None):

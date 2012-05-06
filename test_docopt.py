@@ -1,6 +1,9 @@
 from docopt import (Option, docopt, parse, Argument, Either, split, usage,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    parse_doc_usage, option, Options, Arguments, matching_paren)
+                    parse_doc_usage, option, Options, Arguments,
+                    matching_paren, DocoptError
+                   )
+from pytest import raises
 
 
 def test_pattern_flat():
@@ -20,6 +23,12 @@ def test_matching_paren():
     assert matching_paren(['[', ']']) == 1
     assert matching_paren(['[', ']', '[', ']']) == 1
     assert matching_paren(['[', '[', ']', ']']) == 3
+    with raises(DocoptError):
+        matching_paren(['[', '[', ']'])
+    with raises(DocoptError):
+        docopt('Usage: prog [a [b]')
+    #with raises(DocoptError):  # nice to have but minor
+    #    docopt('Usage: prog [a [b] ] ]')
 
 
 def test_option():
