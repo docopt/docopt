@@ -188,7 +188,7 @@ def option(parse):
         else:
             is_flag = False
     if not is_flag:
-        matched = re.findall('\[default: (.*)\]', description)
+        matched = re.findall('\[default: (.*)\]', description, flags=re.I)
         value = argument_eval(matched[0]) if matched else False
         short = short + ':' if short else None
         long = long + '=' if long else None

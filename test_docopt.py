@@ -62,6 +62,8 @@ def test_option():
                Option(None, 'help=', 3.14)
     assert option('-h, --help=DIR  ... [default: "./"]') == \
                Option('h:', 'help=', "./")
+    assert option('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
+               Option('h:', None, 2)
 
 
 def test_option_name():
