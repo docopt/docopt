@@ -306,7 +306,7 @@ def parse(source, options=None, is_pattern=False):
             parsed += [Required(*parse(sub_parse, is_pattern=is_pattern,
                                        options=options))]
             source = source[matching + 1:]
-        elif is_pattern and '|' in source:
+        elif is_pattern and len(split_either(source)) > 1:  #'|' in source:
             either = []
             for s in split_either(source, '|'):
                 p = parse(s, is_pattern=is_pattern, options=options)

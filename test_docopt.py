@@ -178,6 +178,14 @@ def test_parse():
                               Required(Option('v', 'verbose', True),
                                      Optional(Option('f:', 'file=', 'f.txt')),
                                      OneOrMore(Argument('N')))))]
+    assert pattern('(N [M | (K | L)] | O P)') == \
+               [Required(Either(
+                   Required(Argument('N'),
+                            Optional(Either(Argument('M'),
+                                            Required(Either(Argument('K'),
+                                                            Argument('L')))))),
+                   Required(Argument('O'), Argument('P'))))]
+
 # TODO: real parser
 #   assert pattern('[ -h ] [N]', options=o) == \
 #              [Optional(Option('h', None, True)),
