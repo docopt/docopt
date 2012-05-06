@@ -321,12 +321,19 @@ def parse_doc_options(doc):
     return [option('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
 
 
-def usage(doc):
+def printable_usage(doc):
     return re.split(r'\n\s*\n', ''.join(re.split(r'([Uu]sage:)',
                     doc)[1:3]))[0].strip()
+usage = printable_usage  # XXX get rid of
 
 
-def parse_doc_usage(doc, options=[]):
+def formal_usage(printable_usage):
+    pu = printable_usage.split()[1:]  # split and drop "usage:"
+    prog = pu[0]
+    return ' '.join(['|' if s == prog else s for s in pu[1:]])
+
+
+def parse_doc_usage(doc, options=[]):  # XXX get rid of
     raw_usage = re.split(r'\n\s*\n', re.split(r'[Uu]sage:', doc)[1])[0].strip()
     prog = raw_usage.split()[0]
     raw_patterns = raw_usage.strip(prog).split(prog)
@@ -344,7 +351,9 @@ def extras(help, version, options, doc):
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    DocoptExit.usage = usage(doc)
+    usage = printable_usage(doc)
+    DocoptExit.usage = docopt.usage = usage
+    #formal_usage(usage)
     options = parse_doc_options(doc)
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]

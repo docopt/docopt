@@ -1,7 +1,7 @@
 from docopt import (Option, docopt, parse, Argument, Either, split, usage,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
                     parse_doc_usage, option, Options, Arguments,
-                    matching_paren, DocoptError
+                    matching_paren, DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
 
@@ -107,7 +107,7 @@ def test_parse_doc_options():
 #            Required(Argument('N'), Argument('M'))]
 
 
-def test_parse_doc_usage():
+def test_parse_doc_usage():  # XXX get rid of
     assert parse_doc_usage('usage: prog ARG') == ['ARG']
     doc = """
     Usage: prog [-hv] ARG
@@ -121,6 +121,17 @@ def test_parse_doc_usage():
     """
     assert parse_doc_usage(doc) == ['[-hv] ARG', 'N M']
     assert usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
+
+
+def test_printable_and_formal_usage():
+    doc = """
+    Usage: prog [-hv] ARG
+           prog N M
+
+    prog is a program."""
+    pu = printable_usage(doc)
+    assert pu == "Usage: prog [-hv] ARG\n           prog N M"
+    assert formal_usage(pu) == "[-hv] ARG | N M"
 
 
 def test_parse():
