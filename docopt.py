@@ -340,8 +340,8 @@ def parse_doc_options(doc):
 
 def printable_usage(doc):
     return re.split(r'\n\s*\n',
-                    ''.join(re.split(r'(usage:)', doc, flags=re.I)[1:3])
-                    )[0].strip()
+                    ''.join(re.split(r'(usage:)', doc, flags=re.I)[1:])
+                   )[0].strip()
 
 
 def formal_usage(printable_usage):
@@ -361,13 +361,12 @@ def extras(help, version, options, doc):
 
 
 def docopt(doc, args=sys.argv[1:], help=True, version=None):
-    usage = printable_usage(doc)
-    DocoptExit.usage = docopt.usage = usage
+    DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
     args = parse(args, options=options)
     overlapped = options + [o for o in args if type(o) is Option]
     extras(help, version, overlapped, doc)
-    formal_pattern = pattern(formal_usage(usage), options=options)
+    formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.match(args)
     if matched and left == []:  # is checking left needed here?
