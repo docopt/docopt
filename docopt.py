@@ -284,41 +284,47 @@ def matching_paren(a):
 
 
 def pattern(source, options=None):
-    return Required(*parse(source=source, options=options, is_pattern=True))
+    options = [] if options is None else deepcopy(options)
+    if type(source) == str:
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
+    tokens = '[ ] ( ) | ...'.split()
+    parsed = []
+    while source:
+        if '|' in source and len(split_either(source)) > 1:
+            either = []
+            for s in split_either(source, '|'):
+                p = pattern(s, options=options)
+                either += [p.children[0]] if len(p.children) == 1 else [p]
+            assert parsed == []
+            parsed = [Either(*either)]
+            break
+        elif source[0] == '[':
+            matching = matching_paren(source)
+            sub_parse = source[1:matching]
+            parsed += [Optional(*pattern(sub_parse, options=options).children)]
+            source = source[matching + 1:]
+        elif source[0] == '(':
+            matching = matching_paren(source)
+            sub_parse = source[1:matching]
+            parsed += [pattern(sub_parse, options=options)]
+            source = source[matching + 1:]
+        elif source[0] == '...':
+            parsed[-1] = OneOrMore(parsed[-1])
+            source = source[1:]
+        else:
+            i = min([source.index(t) for t in tokens if t in source]
+                    + [len(source)])
+            parsed += parse(source[:i], options=options, is_pattern=True)
+            source = source[i:]
+    return Required(*parsed)
 
 
 def parse(source, options=None, is_pattern=False):
     options = [] if options is None else deepcopy(options)
-    if type(source) == str and is_pattern:
-        # add space around tokens []()|... for easier parsing
-        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
     source = source.split() if type(source) == str else source
     parsed = []
     while source:
-        if is_pattern and len(split_either(source)) > 1:  #'|' in source:
-            either = []
-            for s in split_either(source, '|'):
-                p = parse(s, is_pattern=is_pattern, options=options)
-                either += p if len(p) == 1 else [Required(*p)]
-            assert parsed == []
-            parsed = [Either(*either)]
-            break
-        elif is_pattern and source[0] == '[':
-            matching = matching_paren(source)
-            sub_parse = source[1:matching]
-            parsed += [Optional(*parse(sub_parse, is_pattern=is_pattern,
-                                       options=options))]
-            source = source[matching + 1:]
-        elif is_pattern and source[0] == '(':
-            matching = matching_paren(source)
-            sub_parse = source[1:matching]
-            parsed += [Required(*parse(sub_parse, is_pattern=is_pattern,
-                                       options=options))]
-            source = source[matching + 1:]
-        elif is_pattern and source[0] == '...':
-            parsed[-1] = OneOrMore(parsed[-1])
-            source = source[1:]
-        elif source[0] == '--':
+        if source[0] == '--':
             parsed += [Argument(v) for v in parsed[1:]]
             break
         elif source[0][:2] == '--':
@@ -328,8 +334,8 @@ def parse(source, options=None, is_pattern=False):
             parsed, source = do_shorts(parsed, source[0][1:],
                                        options, source[1:])
         else:
-            a = Argument(source[0]) if is_pattern else Argument(None, source[0])
-            parsed += [a]
+            parsed.append(Argument(source[0]) if is_pattern
+                          else Argument(None, source[0]))
             source = source[1:]
     return parsed
 
