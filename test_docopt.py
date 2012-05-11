@@ -226,16 +226,11 @@ def test_one_or_more_match():
                     True, [Argument(None, 8)], [])
     assert OneOrMore(Option('a')).match([Argument(None, 8), Option('x')]) == (
                     False, [Argument(None, 8), Option('x')], [])
-# TODO: figure out
-#   print OneOrMore(Required(Option('a'), Argument('N'))).match(
-#           [Option('a'), Argument(None, 1), Option('x'),
-#            Option('a'), Argument(None, 2)])
+#   NOTE, Option is greedy, nothing to match second time
 #   assert OneOrMore(Required(Option('a'), Argument('N'))).match(
 #           [Option('a'), Argument(None, 1), Option('x'),
 #            Option('a'), Argument(None, 2)]) == \
 #                    (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
-#       assert (True, [Optio...gument(N, 1)]) == (True, [Option...gument(N, 2)])
-#         At index 2 diff: [Argument(N, 1)] != [Argument(N, 1), Argument(N, 2)]
 
 
 def test_basic_pattern_matching():

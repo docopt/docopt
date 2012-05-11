@@ -71,6 +71,7 @@ class Option(Pattern):
         collected = [] if collected is None else collected
         left_ = []
         for l in left:
+            # if this is so greedy, how to handle OneOrMore then?
             if not (type(l) == Option and
                     (self.short, self.long) == (l.short, l.long)):
                 left_.append(l)
@@ -123,11 +124,12 @@ class OneOrMore(Pattern):
         assert len(self.children) == 1
         left_ = deepcopy(left)
         matched = True
+        times = 0
         while matched:
+            # could it be that something didn't match but changed left_ or c?
             matched, left_, c = self.children[0].match(left_, c)
-        # XXX: There could be that something below in hierarchy matched
-        # but didn't lead to change in `left_`?
-        matched = (left != left_)
+            times += 1 if matched else 0
+        matched = (times >= 1)
         return matched, left_, (collected + c if matched else collected)
 
 
