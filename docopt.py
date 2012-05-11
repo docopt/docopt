@@ -325,7 +325,7 @@ def parse(source, options=None, is_pattern=False):
     parsed = []
     while source:
         if source[0] == '--':
-            parsed += [Argument(v) for v in parsed[1:]]
+            parsed += [Argument(None, v) for v in source[1:]]
             break
         elif source[0][:2] == '--':
             parsed, source = do_longs(parsed, source[0][2:],

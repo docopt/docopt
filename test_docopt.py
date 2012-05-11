@@ -127,6 +127,9 @@ def test_parse():
              Option('f:', 'file=', 'f.txt'),
              Argument(None, 'arg'),
              Argument(None, 'arg2')]
+    assert parse('-h arg -- -v', options=o) == [Option('h', None, True),
+                                                Argument(None, 'arg'),
+                                                Argument(None, '-v')]
 
     assert pattern('[ -h ]', options=o) == \
                Required(Optional(Option('h', None, True)))
