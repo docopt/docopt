@@ -75,15 +75,11 @@ def test_option_name():
 
 
 def test_docopt():
-#   assert docopt('\n-v  Be verbose.', ['-v']) == (
-#           Options(v=True), Arguments())
-#   assert docopt('-v  Be verbose.', ['-v']) == (
-#           Options(v=True), Arguments())
     doc = '''Usage: prog [-v] a
 
     -v  Be verbose.'''
-    assert docopt(doc, ['arg']) == (
-            Options(v=False), Arguments(a='arg'))
+    assert docopt(doc, 'arg') == (Options(v=False), Arguments(a='arg'))
+    assert docopt(doc, '-v arg') == (Options(v=True), Arguments(a='arg'))
 
 
 def test_parse_doc_options():
@@ -107,11 +103,7 @@ def test_printable_and_formal_usage():
 
 
 def test_parse():
-
-    o = [Option('h'),
-         Option('v', 'verbose'),
-         Option('f:', 'file=')]
-
+    o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert parse('') == []
     assert parse('-h', options=o) == [Option('h', None, True)]
     assert parse('-h --verbose', options=o) == \
@@ -130,7 +122,8 @@ def test_parse():
     assert parse('-h arg -- -v', options=o) == [Option('h', None, True),
                                                 Argument(None, 'arg'),
                                                 Argument(None, '-v')]
-
+def test_pattern():
+    o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert pattern('[ -h ]', options=o) == \
                Required(Optional(Option('h', None, True)))
     assert pattern('[ ARG ... ]', options=o) == \
@@ -155,11 +148,9 @@ def test_parse():
                                             Required(Either(Argument('K'),
                                                             Argument('L')))))),
                    Required(Argument('O'), Argument('P')))))
-
-# TODO: real parser
-#   assert pattern('[ -h ] [N]', options=o) == \
-#              [Optional(Option('h', None, True)),
-#               Optional(Argument('N'))]
+    assert pattern('[ -h ] [N]', options=o) == \
+               Required(Optional(Option('h', None, True)),
+                        Optional(Argument('N')))
 
 
 def test_option_match():
@@ -236,9 +227,13 @@ def test_one_or_more_match():
     assert OneOrMore(Option('a')).match([Argument(None, 8), Option('x')]) == (
                     False, [Argument(None, 8), Option('x')], [])
 # TODO: figure out
+#   print OneOrMore(Required(Option('a'), Argument('N'))).match(
+#           [Option('a'), Argument(None, 1), Option('x'),
+#            Option('a'), Argument(None, 2)])
 #   assert OneOrMore(Required(Option('a'), Argument('N'))).match(
 #           [Option('a'), Argument(None, 1), Option('x'),
-#            Option('a'), Argument(None, 2)]) == (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
+#            Option('a'), Argument(None, 2)]) == \
+#                    (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
 #       assert (True, [Optio...gument(N, 1)]) == (True, [Option...gument(N, 2)])
 #         At index 2 diff: [Argument(N, 1)] != [Argument(N, 1), Argument(N, 2)]
 
