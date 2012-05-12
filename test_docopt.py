@@ -233,6 +233,12 @@ def test_one_or_more_match():
 #                    (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
 
 
+def test_list_argutent_match():
+    assert Required(Argument('N'), Argument('N')).fix().match(
+            [Argument(None, 1), Argument(None, 2)]) == \
+                    (True, [], [Argument('N', [1, 2])])
+
+
 def test_basic_pattern_matching():
     # ( -a N [ -x Z ] )
     pattern = Required(Option('a'), Argument('N'),

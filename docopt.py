@@ -43,6 +43,11 @@ class Pattern(object):
             return [self]
         return sum([c.flat for c in self.children], [])
 
+    def fix(self):
+        self.fix_identities()
+        self.fix_list_arguments()
+        return self
+
     def fix_identities(self, uniq=None):
         """Make pattern-tree tips point to same object if they are equal."""
         if not hasattr(self, 'children'):
@@ -116,7 +121,16 @@ class Argument(Pattern):
         if not len(args):
             return False, left, collected
         left.remove(args[0])
-        return True, left, collected + [Argument(self.meta, args[0].value)]
+        if type(self.value) is not list:
+            return True, left, collected + [Argument(self.meta, args[0].value)]
+        same_meta = [a for a in collected
+                     if type(a) == Argument and a.meta == self.meta]
+        if len(same_meta):
+            same_meta[0].value += [args[0].value]
+            return True, left, collected
+        else:
+            return True, left, collected + [Argument(self.meta,
+                                                     [args[0].value])]
 
     def __repr__(self):
         return 'Argument(%r, %r)' % (self.meta, self.value)
