@@ -256,9 +256,8 @@ def test_pattern_either():
     assert Required(Either(Option('a'), Option('b')), Option('c')).either == \
             Either(Required(Option('a'), Option('c')),
                    Required(Option('b'), Option('c')))
-    assert Required(Option('a'), Either(Option('b'), Option('c'))).either == \
+    assert Optional(Option('a'), Either(Option('b'), Option('c'))).either == \
             Either(Required(Option('b'), Option('a')),
                    Required(Option('c'), Option('a')))
-#   print Either(Option('x'), Either(Option('y'), Option('z'))).either
-#   assert Either(Option('x'), Either(Option('y'), Option('z'))).either == \
-#           Either(Option('z'), Option('y'), Option('z'))
+    assert Either(Option('x'), Either(Option('y'), Option('z'))).either == \
+            Either(Option('x'), Option('y'), Option('z'))

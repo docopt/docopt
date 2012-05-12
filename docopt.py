@@ -43,20 +43,28 @@ class Pattern(object):
             return Either(self)
         else:
             ret = []
-            groups = [list(deepcopy(self.children))]
-            #groups = [self]
+            groups = [[self]]
             while groups:
                 children = groups.pop(0)
-                eithers = [c for c in children if type(c) == Either]
-                if len(eithers):
-                    either = eithers[0]
+                types = [type(c) for c in children]
+                if Either in types:
+                    either = [c for c in children if type(c) == Either][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
                         print groups
+                elif Required in types:
+                    required = [c for c in children if type(c) == Required][0]
+                    children.pop(children.index(required))
+                    groups.append(list(required.children) + children)
+                elif Optional in types:
+                    optional = [c for c in children if type(c) == Optional][0]
+                    children.pop(children.index(optional))
+                    groups.append(list(optional.children) + children)
                 else:
                     ret.append(children)
-            return Either(*[Required(*e) for e in ret])
+            return Either(*[(e[0] if len(e) == 1 else Required(*e))
+                            for e in ret])
 
 
 
