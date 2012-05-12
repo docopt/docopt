@@ -61,12 +61,14 @@ class Pattern(object):
                     optional = [c for c in children if type(c) == Optional][0]
                     children.pop(children.index(optional))
                     groups.append(list(optional.children) + children)
+                elif OneOrMore in types:
+                    oneormore = [c for c in children if type(c) == OneOrMore][0]
+                    children.pop(children.index(oneormore))
+                    groups.append(list(oneormore.children) * 2 + children)
                 else:
                     ret.append(children)
             return Either(*[(e[0] if len(e) == 1 else Required(*e))
                             for e in ret])
-
-
 
 
 class Argument(Pattern):

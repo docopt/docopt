@@ -261,3 +261,6 @@ def test_pattern_either():
                    Required(Option('c'), Option('a')))
     assert Either(Option('x'), Either(Option('y'), Option('z'))).either == \
             Either(Option('x'), Option('y'), Option('z'))
+    assert OneOrMore(Argument('n'), Argument('m')).either == \
+            Either(Required(Argument('n'), Argument('m'),
+                            Argument('n'), Argument('m')))
