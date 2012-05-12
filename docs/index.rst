@@ -71,7 +71,7 @@ Using argparse you will end writing something like this::
 
 
     def main(arguments):
-        # ...
+        pass  # ...
 
 
     if __name__ == '__main__':
@@ -103,7 +103,7 @@ like *that*::
 
 
     def main(options, arguments):
-        # ...
+        pass  # ...
 
 
     if __name__ == '__main__':
