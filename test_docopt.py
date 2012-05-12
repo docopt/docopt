@@ -278,3 +278,18 @@ def test_pattern_fix_list_arguments():
 def test_set():
     assert Argument('n') == Argument('n')
     assert set([Argument('n'), Argument('n')]) == set([Argument('n')])
+
+
+def test_pattern_fix_identities_1():
+    pattern = Required(Argument('n'), Argument('n'))
+    assert pattern.children[0] == pattern.children[1]
+    assert pattern.children[0] is not pattern.children[1]
+    pattern.fix_identities()
+    assert pattern.children[0] is pattern.children[1]
+
+def test_pattern_fix_identities_2():
+    pattern = Required(Optional(Argument('x'), Argument('n')), Argument('n'))
+    assert pattern.children[0].children[1] == pattern.children[1]
+    assert pattern.children[0].children[1] is not pattern.children[1]
+    pattern.fix_identities()
+    assert pattern.children[0].children[1] is pattern.children[1]

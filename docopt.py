@@ -22,7 +22,7 @@ class DocoptExit(SystemExit):
 class Pattern(object):
 
     def __init__(self, *children):
-        self.children = children
+        self.children = list(children)
 
     def __eq__(self, other):
         return repr(self) == repr(other)
@@ -42,6 +42,18 @@ class Pattern(object):
         if not hasattr(self, 'children'):
             return [self]
         return sum([c.flat for c in self.children], [])
+
+    def fix_identities(self, uniq=None):
+        """Make pattern-tree tips point to same object if they are equal."""
+        if not hasattr(self, 'children'):
+            return self
+        uniq = list(set(self.flat)) if uniq == None else uniq
+        for i, c in enumerate(self.children):
+            if not hasattr(c, 'children'):
+                assert c in uniq
+                self.children[i] = uniq[uniq.index(c)]
+            else:
+                c.fix_identities(uniq)
 
     def fix_list_arguments(self):
         """Find arguments that should accumulate values and fix them."""
