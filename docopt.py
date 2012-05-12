@@ -37,6 +37,29 @@ class Pattern(object):
             return [self]
         return sum([c.flat for c in self.children], [])
 
+    @property
+    def either(self):
+        if not hasattr(self, 'children'):
+            return Either(self)
+        else:
+            ret = []
+            groups = [list(deepcopy(self.children))]
+            #groups = [self]
+            while groups:
+                children = groups.pop(0)
+                eithers = [c for c in children if type(c) == Either]
+                if len(eithers):
+                    either = eithers[0]
+                    children.pop(children.index(either))
+                    for c in either.children:
+                        groups.append([c] + children)
+                        print groups
+                else:
+                    ret.append(children)
+            return Either(*[Required(*e) for e in ret])
+
+
+
 
 class Argument(Pattern):
 

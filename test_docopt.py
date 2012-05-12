@@ -248,3 +248,17 @@ def test_basic_pattern_matching():
     assert pattern.match([Option('x'),
                           Argument(None, 9), Argument(None, 5)]) == (
                                                               False, [], [])
+
+
+def test_pattern_either():
+    assert Option('a').either == Either(Option('a'))
+    assert Argument('a').either == Either(Argument('a'))
+    assert Required(Either(Option('a'), Option('b')), Option('c')).either == \
+            Either(Required(Option('a'), Option('c')),
+                   Required(Option('b'), Option('c')))
+    assert Required(Option('a'), Either(Option('b'), Option('c'))).either == \
+            Either(Required(Option('b'), Option('a')),
+                   Required(Option('c'), Option('a')))
+#   print Either(Option('x'), Either(Option('y'), Option('z'))).either
+#   assert Either(Option('x'), Either(Option('y'), Option('z'))).either == \
+#           Either(Option('z'), Option('y'), Option('z'))
