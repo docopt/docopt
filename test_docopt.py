@@ -237,6 +237,9 @@ def test_list_argutent_match():
     assert Required(Argument('N'), Argument('N')).fix().match(
             [Argument(None, 1), Argument(None, 2)]) == \
                     (True, [], [Argument('N', [1, 2])])
+    assert OneOrMore(Argument('N')).fix().match(
+            [Argument(None, 1), Argument(None, 2), Argument(None, 3)]) == \
+                    (True, [], [Argument('N', [1, 2, 3])])
 
 
 def test_basic_pattern_matching():
