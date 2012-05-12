@@ -39,6 +39,9 @@ class Pattern(object):
 
     @property
     def either(self):
+        """Transform pattern into an equivalent, with only top-level Either."""
+        # Currently the pattern will not be equivalent, but more "narrow",
+        # although good enough to reason about list arguments.
         if not hasattr(self, 'children'):
             return Either(self)
         else:
