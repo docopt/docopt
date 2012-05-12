@@ -16,7 +16,7 @@ class DocoptExit(SystemExit):
     usage = ''
 
     def __init__(self, message=''):
-        SystemExit.__init__(self, message + '\n' + self.usage)
+        SystemExit.__init__(self, (message + '\n' + self.usage).strip())
 
 
 class Pattern(object):
@@ -87,7 +87,6 @@ class Pattern(object):
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
-                        print groups
                 elif Required in types:
                     required = [c for c in children if type(c) == Required][0]
                     children.pop(children.index(required))
@@ -452,7 +451,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
-    matched, left, collected = formal_pattern.match(args)
+    matched, left, collected = formal_pattern.fix().match(args)
     if matched and left == []:  # is checking left needed here?
         return (Options(**dict([(o.name, o.value) for o in overlapped])),
               Arguments(**dict([(a.name, a.value)
