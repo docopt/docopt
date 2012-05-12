@@ -251,8 +251,8 @@ def test_basic_pattern_matching():
 
 
 def test_pattern_either():
-    assert Option('a').either == Either(Option('a'))
-    assert Argument('a').either == Either(Argument('a'))
+    assert Option('a').either == Either(Required(Option('a')))
+    assert Argument('a').either == Either(Required(Argument('a')))
     assert Required(Either(Option('a'), Option('b')), Option('c')).either == \
             Either(Required(Option('a'), Option('c')),
                    Required(Option('b'), Option('c')))
@@ -260,7 +260,9 @@ def test_pattern_either():
             Either(Required(Option('b'), Option('a')),
                    Required(Option('c'), Option('a')))
     assert Either(Option('x'), Either(Option('y'), Option('z'))).either == \
-            Either(Option('x'), Option('y'), Option('z'))
+            Either(Required(Option('x')),
+                   Required(Option('y')),
+                   Required(Option('z')))
     assert OneOrMore(Argument('n'), Argument('m')).either == \
             Either(Required(Argument('n'), Argument('m'),
                             Argument('n'), Argument('m')))

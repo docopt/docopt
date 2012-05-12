@@ -48,7 +48,7 @@ class Pattern(object):
         # Currently the pattern will not be equivalent, but more "narrow",
         # although good enough to reason about list arguments.
         if not hasattr(self, 'children'):
-            return Either(self)
+            return Either(Required(self))
         else:
             ret = []
             groups = [[self]]
@@ -75,8 +75,7 @@ class Pattern(object):
                     groups.append(list(oneormore.children) * 2 + children)
                 else:
                     ret.append(children)
-            return Either(*[(e[0] if len(e) == 1 else Required(*e))
-                            for e in ret])
+            return Either(*[Required(*e) for e in ret])
 
 
 class Argument(Pattern):
