@@ -270,3 +270,11 @@ def test_pattern_either():
 
 def test_pattern_fix_list_arguments():
     assert Option('a').fix_list_arguments() == Option('a')
+    assert Argument('n', None).fix_list_arguments() == Argument('n', None)
+    assert Required(Argument('n'), Argument('n')).fix_list_arguments() == \
+            Required(Argument('n', []), Argument('n', []))
+
+
+def test_set():
+    assert Argument('n') == Argument('n')
+    assert set([Argument('n'), Argument('n')]) == set([Argument('n')])

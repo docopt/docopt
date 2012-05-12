@@ -27,6 +27,12 @@ class Pattern(object):
     def __eq__(self, other):
         return repr(self) == repr(other)
 
+    def __hash__(self):
+        return hash(repr(self))
+
+#   def __ne__(self, other):
+#       return repr(self) == repr(other)
+
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join(repr(a) for a in self.children))
@@ -39,7 +45,11 @@ class Pattern(object):
 
     def fix_list_arguments(self):
         """Find arguments that should accumulate values and fix them."""
-        #either = self.either
+        either = [list(c.children) for c in self.either.children]
+        for case in either:
+            case = [c for c in case if case.count(c) > 1]
+            for a in [e for e in case if type(e) == Argument]:
+                a.value = []
         return self
 
     @property
