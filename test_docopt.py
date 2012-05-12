@@ -264,3 +264,7 @@ def test_pattern_either():
     assert OneOrMore(Argument('n'), Argument('m')).either == \
             Either(Required(Argument('n'), Argument('m'),
                             Argument('n'), Argument('m')))
+
+
+def test_pattern_fix_list_arguments():
+    assert Option('a').fix_list_arguments() == Option('a')

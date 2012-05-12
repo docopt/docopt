@@ -37,6 +37,11 @@ class Pattern(object):
             return [self]
         return sum([c.flat for c in self.children], [])
 
+    def fix_list_arguments(self):
+        """Find arguments that should accumulate values and fix them."""
+        #either = self.either
+        return self
+
     @property
     def either(self):
         """Transform pattern into an equivalent, with only top-level Either."""
