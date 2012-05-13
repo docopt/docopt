@@ -184,6 +184,8 @@ def test_brackets_match():
             True, [], [])
     assert Optional(Option('a'), Option('b')).match([Option('x')]) == (
             True, [Option('x')], [])
+    assert Optional(Argument('N')).match([Argument(None, 9)]) == (
+            True, [], [Argument('N', 9)])
 
 
 def test_parens_match():
@@ -231,6 +233,8 @@ def test_one_or_more_match():
 #           [Option('a'), Argument(None, 1), Option('x'),
 #            Option('a'), Argument(None, 2)]) == \
 #                    (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
+    assert OneOrMore(Optional(Argument('N'))).match([Argument(None, 9)])
+#                   (True, [], [Argument('N', 9)])
 
 
 def test_list_argutent_match():

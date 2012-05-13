@@ -194,18 +194,24 @@ class Optional(Pattern):
 class OneOrMore(Pattern):
 
     def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        c = []
         assert len(self.children) == 1
-        left_ = deepcopy(left)
+        collected = [] if collected is None else collected
+        l = deepcopy(left)
+        c = []
+        l_ = None
         matched = True
         times = 0
         while matched:
-            # could it be that something didn't match but changed left_ or c?
-            matched, left_, c = self.children[0].match(left_, c)
+            # could it be that something didn't match but changed l or c?
+            # XXX: match() here does not have access to real `collected`,
+            # thus possible that it will not update already-matched argument
+            matched, l, c = self.children[0].match(l, c)
             times += 1 if matched else 0
+            if l_ == l:
+                break
+            l_ = deepcopy(l)
         matched = (times >= 1)
-        return matched, left_, (collected + c if matched else collected)
+        return matched, l, (collected + c if matched else collected)
 
 
 class Either(Pattern):
