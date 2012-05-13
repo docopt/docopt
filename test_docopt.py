@@ -1,6 +1,6 @@
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    option, Options, Arguments,
+                    option, Options, Arguments, DocoptExit,
                     matching_paren, DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -296,9 +296,45 @@ def test_pattern_fix_identities_1():
     pattern.fix_identities()
     assert pattern.children[0] is pattern.children[1]
 
+
 def test_pattern_fix_identities_2():
     pattern = Required(Optional(Argument('x'), Argument('n')), Argument('n'))
     assert pattern.children[0].children[1] == pattern.children[1]
     assert pattern.children[0].children[1] is not pattern.children[1]
     pattern.fix_identities()
     assert pattern.children[0].children[1] is pattern.children[1]
+
+
+def test_long_options_error_handling():
+    with raises(DocoptError):
+        docopt('Usage: prog --non-existent')
+    with raises(DocoptExit):
+        docopt('Usage: prog', '--non-existent')
+    with raises(DocoptError):
+        docopt('Usage: prog --ver\n\n--version\n--verbose')
+    with raises(DocoptExit):
+        docopt('''Usage: prog [--version --verbose]\n\n
+                  --version\n--verbose''', '--ver')
+    with raises(DocoptError):
+        docopt('Usage: prog --long\n\n--long ARG')
+    with raises(DocoptExit):
+        docopt('Usage: prog --long ARG\n\n--long ARG', '--long')
+    with raises(DocoptError):
+        docopt('Usage: prog --long=arg\n\n--long')
+    with raises(DocoptExit):
+        docopt('Usage: prog --long\n\n--long', '--long=arg')
+
+
+def test_short_options_error_handling():
+    with raises(DocoptError):
+        docopt('Usage: prog -x\n\n-x  this\n-x  that')
+
+    with raises(DocoptError):
+        docopt('Usage: prog -x')
+    with raises(DocoptExit):
+        docopt('Usage: prog', '-x')
+
+    with raises(DocoptError):
+        docopt('Usage: prog -o\n\n-o ARG')
+    with raises(DocoptExit):
+        docopt('Usage: prog -o ARG\n\n-o ARG', '-o')

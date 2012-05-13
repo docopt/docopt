@@ -279,7 +279,7 @@ def argument_eval(s):
         return s
 
 
-def do_longs(parsed, raw, options, parse):
+def do_longs(parsed, raw, options, parse, is_pattern):
     try:
         i = raw.index('=')
         raw, value = raw[:i], raw[i + 1:]
@@ -287,26 +287,46 @@ def do_longs(parsed, raw, options, parse):
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
+        if is_pattern:
+            raise DocoptError('--%s in "usage" should be '
+                              'mentioned in option-description' % raw)
         raise DocoptExit('--%s is not recognized' % raw)
     if len(opt) > 1:
-        raise DocoptExit('--%s is not a unique prefix: %s?' % (raw,
-                ', '.join('--%s' % o.long for o in opt)))
+        if is_pattern:
+            raise DocoptError('--%s in "usage" is not a unique prefix: %s?' %
+                              (raw, ', '.join('--%s' % o.long for o in opt)))
+        raise DocoptExit('--%s is not a unique prefix: %s?' %
+                         (raw, ', '.join('--%s' % o.long for o in opt)))
     opt = opt[0]
     if not opt.is_flag:
         if value is None:
             if not parse:
-                raise DocoptExit('--%s requires argument' % opt)
+                if is_pattern:
+                    raise DocoptError('--%s in "usage" requires argument' %
+                                      opt.name)
+                raise DocoptExit('--%s requires argument' % opt.name)
             value, parse = parse[0], parse[1:]
     elif value is not None:
-        raise DocoptExit('--%s must not have an argument' % opt)
+        if is_pattern:
+            raise DocoptError('--%s in "usage" must not have an argument' %
+                             opt.name)
+        raise DocoptExit('--%s must not have an argument' % opt.name)
     opt.value = value or True
     parsed += [opt]
     return parsed, parse
 
 
-def do_shorts(parsed, raw, options, parse):
+def do_shorts(parsed, raw, options, parse, is_pattern):
     while raw != '':
         opt = [o for o in options if o.short and o.short.startswith(raw[0])]
+        if len(opt) > 1:
+            raise DocoptError('-%s is specified ambiguously %d times' %
+                              (raw[0], len(opt)))
+        if len(opt) < 1:
+            if is_pattern:
+                raise DocoptError('-%s in "usage" should be mentioned '
+                                  'in option-description' % raw[0])
+            raise DocoptExit('-%s is not recognized' % raw[0])
         assert len(opt) == 1
         opt = opt[0]
         raw = raw[1:]
@@ -315,7 +335,10 @@ def do_shorts(parsed, raw, options, parse):
         else:
             if raw == '':
                 if not parse:
-                    raise DocoptExit('opt -%s requires argument' % opt)
+                    if is_pattern:
+                        raise DocoptError('-%s in "usage" requires argument' %
+                                          opt.short[0])
+                    raise DocoptExit('-%s requires argument' % opt.short[0])
                 raw, parse = parse[0], parse[1:]
             value, raw = raw, ''
         opt.value = value
@@ -406,10 +429,10 @@ def parse(source, options=None, is_pattern=False):
             break
         elif source[0][:2] == '--':
             parsed, source = do_longs(parsed, source[0][2:],
-                                      options, source[1:])
+                                      options, source[1:], is_pattern)
         elif source[0][:1] == '-' and source[0] != '-':
             parsed, source = do_shorts(parsed, source[0][1:],
-                                       options, source[1:])
+                                       options, source[1:], is_pattern)
         else:
             parsed.append(Argument(source[0]) if is_pattern
                           else Argument(None, source[0]))
