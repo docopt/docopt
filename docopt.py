@@ -1,5 +1,5 @@
 from ast import literal_eval
-from copy import deepcopy
+from copy import copy, deepcopy
 import sys
 import re
 
@@ -171,8 +171,8 @@ class Required(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        l = deepcopy(left)
-        c = deepcopy(collected)
+        l = copy(left)
+        c = copy(collected)
         for p in self.children:
             matched, l, c = p.match(l, c)
             if not matched:
@@ -184,7 +184,7 @@ class Optional(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left = deepcopy(left)
+        left = copy(left)
         for p in self.children:
             m, left, collected = p.match(left, collected)
         return True, left, collected
@@ -195,8 +195,8 @@ class OneOrMore(Pattern):
     def match(self, left, collected=None):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
-        l = deepcopy(left)
-        c = deepcopy(collected)
+        l = copy(left)
+        c = copy(collected)
         l_ = None
         matched = True
         times = 0
@@ -206,7 +206,7 @@ class OneOrMore(Pattern):
             times += 1 if matched else 0
             if l_ == l:
                 break
-            l_ = deepcopy(l)
+            l_ = copy(l)
         if times >= 1:
             return True, l, c
         return False, left, collected
@@ -216,7 +216,7 @@ class Either(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left = deepcopy(left)
+        left = copy(left)
         for p in self.children:
             matched, l, c = p.match(left, collected)
             if matched:
@@ -357,7 +357,7 @@ def split_simple(a, sep='|'):
 
 
 def split_either(a, sep='|'):
-    a = deepcopy(a)
+    a = copy(a)
     count_b = count_p = 0
     for i, v in enumerate(a):
         if v == '[':
@@ -388,7 +388,7 @@ def matching_paren(a):
 
 
 def pattern(source, options=None):
-    options = [] if options is None else deepcopy(options)
+    options = [] if options is None else copy(options)
     if type(source) == str:
         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = '[ ] ( ) | ...'.split()
