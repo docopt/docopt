@@ -171,14 +171,13 @@ class Required(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        c = []
-        left = deepcopy(left)
-        matched = True
+        l = deepcopy(left)
+        c = deepcopy(collected)
         for p in self.children:
-            m, left, c = p.match(left, c)
-            if not m:
-                matched = False
-        return matched, left, (collected + c if matched else collected)
+            matched, l, c = p.match(l, c)
+            if not matched:
+                return False, left, collected
+        return True, l, c
 
 
 class Optional(Pattern):
@@ -197,21 +196,20 @@ class OneOrMore(Pattern):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
         l = deepcopy(left)
-        c = []
+        c = deepcopy(collected)
         l_ = None
         matched = True
         times = 0
         while matched:
             # could it be that something didn't match but changed l or c?
-            # XXX: match() here does not have access to real `collected`,
-            # thus possible that it will not update already-matched argument
             matched, l, c = self.children[0].match(l, c)
             times += 1 if matched else 0
             if l_ == l:
                 break
             l_ = deepcopy(l)
-        matched = (times >= 1)
-        return matched, l, (collected + c if matched else collected)
+        if times >= 1:
+            return True, l, c
+        return False, left, collected
 
 
 class Either(Pattern):

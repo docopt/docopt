@@ -194,7 +194,7 @@ def test_parens_match():
     assert Required(Option('a')).match([Option('x')]) == (
             False, [Option('x')], [])
     assert Required(Option('a'), Option('b')).match([Option('a')]) == (
-            False, [], [])  # [] or [Option('a') ?
+            False, [Option('a')], [])
     assert Optional(Option('a'), Option('b')).match(
             [Option('b'), Option('x'), Option('a')]) == (
                     True, [Option('x')], [])
@@ -247,12 +247,15 @@ def test_list_argutent_match():
     assert Required(Argument('N'), OneOrMore(Argument('N'))).fix().match(
             [Argument(None, 1), Argument(None, 2), Argument(None, 3)]) == \
                     (True, [], [Argument('N', [1, 2, 3])])
+    assert Required(Argument('N'), Required(Argument('N'))).fix().match(
+            [Argument(None, 1), Argument(None, 2)]) == \
+                    (True, [], [Argument('N', [1, 2])])
 
 
 def test_basic_pattern_matching():
     # ( -a N [ -x Z ] )
     pattern = Required(Option('a'), Argument('N'),
-                     Optional(Option('x'), Argument('Z')))
+                       Optional(Option('x'), Argument('Z')))
     # -a N
     assert pattern.match([Option('a'), Argument(None, 9)]) == (
             True, [], [Argument('N', 9)])
@@ -262,8 +265,11 @@ def test_basic_pattern_matching():
                                 True, [], [Argument('N', 9), Argument('Z', 5)])
     # -x N Z  # BZZ!
     assert pattern.match([Option('x'),
-                          Argument(None, 9), Argument(None, 5)]) == (
-                                                              False, [], [])
+                          Argument(None, 9),
+                          Argument(None, 5)]) == (
+                                False, [Option('x'),
+                                        Argument(None, 9),
+                                        Argument(None, 5)], [])
 
 
 def test_pattern_either():
