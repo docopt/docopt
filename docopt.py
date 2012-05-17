@@ -470,15 +470,15 @@ def extras(help, version, options, doc):
         exit()
 
 
-def docopt(doc, args=sys.argv[1:], help=True, version=None):
+def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
-    args = parse(args, options=options)
-    overlapped = options + [o for o in args if type(o) is Option]
+    argv = parse(argv, options=options)
+    overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
-    matched, left, collected = formal_pattern.fix().match(args)
+    matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # is checking left needed here?
         return (Options(**dict((o.name, o.value) for o in overlapped)),
               Arguments(**dict((a.name, a.value)
