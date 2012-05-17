@@ -1,5 +1,5 @@
 from ast import literal_eval
-from copy import copy, deepcopy
+from copy import copy
 import sys
 import re
 
@@ -301,7 +301,7 @@ def do_longs(parsed, raw, options, parse, is_pattern):
                               (raw, ', '.join('--%s' % o.long for o in opt)))
         raise DocoptExit('--%s is not a unique prefix: %s?' %
                          (raw, ', '.join('--%s' % o.long for o in opt)))
-    opt = opt[0]
+    opt = copy(opt[0])
     if not opt.is_flag:
         if value is None:
             if not parse:
@@ -332,7 +332,7 @@ def do_shorts(parsed, raw, options, parse, is_pattern):
                                   'in option-description' % raw[0])
             raise DocoptExit('-%s is not recognized' % raw[0])
         assert len(opt) == 1
-        opt = opt[0]
+        opt = copy(opt[0])
         raw = raw[1:]
         if opt.is_flag:
             value = True
@@ -424,7 +424,7 @@ def pattern(source, options=None):
 
 
 def parse(source, options=None, is_pattern=False):
-    options = [] if options is None else deepcopy(options)
+    options = [] if options is None else copy(options)
     source = source.split() if type(source) == str else source
     parsed = []
     while source:
