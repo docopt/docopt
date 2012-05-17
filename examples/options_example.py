@@ -1,10 +1,10 @@
 """Example of program with many options using docopt.
 
-Usage: example.py [-hvqrf NAME] [--exclude=PATTERNS]
-                  [--select=ERRORS | --ignore=ERRORS] [--show-source]
-                  [--statistics] [--count] [--benchmark] PATH...
-       example.py (--doctest | --testsuite=DIR)
-       example.py --version
+Usage: options_example.py [-hvqrf NAME] [--exclude=PATTERNS]
+                          [--select=ERRORS | --ignore=ERRORS] [--show-source]
+                          [--statistics] [--count] [--benchmark] PATH...
+       options_example.py (--doctest | --testsuite=DIR)
+       options_example.py --version
 
 Options:
   -h --help            show this help message and exit

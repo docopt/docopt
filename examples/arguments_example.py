@@ -1,5 +1,5 @@
-"""Usage: prog [-vqrh] [FILE]
-          prog (--left | --right) CORRECTION FILE
+"""Usage: arguments_example.py [-vqrh] [FILE] ...
+          arguments_example.py (--left | --right) CORRECTION FILE
 
 Process FILE and optionally apply correction to either left-hand side or
 right-hand side.
