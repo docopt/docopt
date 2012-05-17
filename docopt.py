@@ -457,7 +457,7 @@ def printable_usage(doc):
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
     prog = pu[0]
-    return ' '.join(['|' if s == prog else s for s in pu[1:]])
+    return ' '.join('|' if s == prog else s for s in pu[1:])
 
 
 def extras(help, version, options, doc):
@@ -480,7 +480,7 @@ def docopt(doc, args=sys.argv[1:], help=True, version=None):
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(args)
     if matched and left == []:  # is checking left needed here?
-        return (Options(**dict([(o.name, o.value) for o in overlapped])),
-              Arguments(**dict([(a.name, a.value)
-                        for a in pot_arguments + collected])))
+        return (Options(**dict((o.name, o.value) for o in overlapped)),
+              Arguments(**dict((a.name, a.value)
+                        for a in pot_arguments + collected)))
     raise DocoptExit()
