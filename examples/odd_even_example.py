@@ -1,7 +1,10 @@
-"""Usage: odd_even_example.py (ODD EVEN)...
+"""Usage: odd_even_example.py [-h | --help] (ODD EVEN)...
 
-Example:
+Example, try:
   odd_even_example.py 1 2 3 4
+
+Options:
+  -h, --help
 
 """
 from docopt import docopt
