@@ -248,7 +248,7 @@ class Namespace(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
-                ',\n    '.join('%s=%r' % i for i in self.__dict__.items()))
+                ','.join('\n    %s=%r' % i for i in self.__dict__.items()))
 
 
 class Options(Namespace):
