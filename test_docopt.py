@@ -295,6 +295,10 @@ def test_pattern_fix_list_arguments():
     assert Argument('n', None).fix_list_arguments() == Argument('n', None)
     assert Required(Argument('n'), Argument('n')).fix_list_arguments() == \
             Required(Argument('n', []), Argument('n', []))
+    assert GreedyEither(Argument('N'),
+                        OneOrMore(Argument('N'))).fix() == \
+            GreedyEither(Argument('N', []),
+                         OneOrMore(Argument('N', [])))
 
 
 def test_greedy_either():

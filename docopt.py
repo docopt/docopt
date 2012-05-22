@@ -82,8 +82,9 @@ class Pattern(object):
             while groups:
                 children = groups.pop(0)
                 types = [type(c) for c in children]
-                if Either in types:
-                    either = [c for c in children if type(c) == Either][0]
+                if Either in types or GreedyEither in types:
+                    either = [c for c in children if
+                              type(c) == Either or type(c) == GreedyEither][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
@@ -430,7 +431,6 @@ def pattern(source, options=None):
                     + [len(source)])
             parsed += parse(source[:i], options=options, is_pattern=True)
             source = source[i:]
-    print parsed
     return Required(*parsed)
 
 
