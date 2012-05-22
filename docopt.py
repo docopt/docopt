@@ -216,11 +216,21 @@ class Either(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left = copy(left)
         for p in self.children:
-            matched, l, c = p.match(left, collected)
-            if matched:
-                return matched, l, c
+            matched, l, c = p.match(copy(left), copy(collected))
+            if matched:  # and l == []:
+                return True, l, c
+        return False, left, collected
+
+
+class GreedyEither(Pattern):
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        for p in self.children:
+            matched, l, c = p.match(copy(left), copy(collected))
+            if matched and l == []:
+                return True, l, c
         return False, left, collected
 
 
@@ -420,6 +430,7 @@ def pattern(source, options=None):
                     + [len(source)])
             parsed += parse(source[:i], options=options, is_pattern=True)
             source = source[i:]
+    print parsed
     return Required(*parsed)
 
 
@@ -477,6 +488,8 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
+    if type(formal_pattern.children[0]) is Either:
+        formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # is checking left needed here?
