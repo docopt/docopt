@@ -18,7 +18,7 @@
 ===============================================================================
 
 .. note:: since version 0.2 ``docopt`` parses both options and arguments, and
-   is more awesome than ever, however that lead to API incompatibility with 0.1
+   is better than ever, however that lead to some API incompatibility with 0.1
    line.
 
 Isn't it awesome how ``optparse`` and ``argparse`` generate help and
@@ -102,10 +102,11 @@ like *that*::
         options, arguments = docopt(__doc__)  # parse arguments based on docstring above
 
 Almost magic! The option parser is generated based on docstring above, that you
-pass to ``docopt`` function.  ``docopt`` parses the usage-message and
-ensures that program invocation matches it; it parses both options and
-arguments based on that. The basic idea is that *a good usage-message
-has all necessary information in it to make a parser*.
+pass to ``docopt`` function.  ``docopt`` parses the usage-pattern
+(``"Usage: ..."``) and options-description (lines starting with dash ``-``) and
+ensures that program invocation matches the ussage-pattern; it parses both
+options and arguments based on that. The basic idea is that
+*a good usage-message has all necessary information in it to make a parser*.
 
 Using ``docopt`` you stay DRY and follow
 `pep257 <http://www.python.org/dev/peps/pep-0257/>`_ at the same time:
@@ -117,7 +118,7 @@ Using ``docopt`` you stay DRY and follow
 Installation
 ===============================================================================
 
-Use `pip <http://pin-installer.org>`_ or easy_install::
+Use `pip <http://pip-installer.org>`_ or easy_install::
 
     pip install docopt
 
@@ -143,7 +144,7 @@ API
   docstring are given in next sections.
   Here is a quick example of such a string::
 
-    """Usage: your_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+    """Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
     -h --help    show this
     -s --sorted  sorted output
@@ -205,7 +206,7 @@ Usage-message consists of 2 parts:
 
 - Usage-pattern, e.g.::
 
-    Usage: your_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+    Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
 - Option-description, e.g.::
 
@@ -224,7 +225,7 @@ Usage-pattern format
 ``usage:`` (not case-sensitive) and ends with *visibly* empty line.
 Minimum example::
 
-    """Usage: your_program.py
+    """Usage: my_program.py
 
     """
 
@@ -232,47 +233,52 @@ The first word after ``usage:`` is interpreted as your program's name.
 You can specify your program's name several times to signify several
 exclusive patterns::
 
-    """Usage: your_program.py FILE
-              your_program.py COUNT FILE
+    """Usage: my_program.py FILE
+              my_program.py COUNT FILE
 
     """
 
 Each pattern can consist of following elements:
 
 - **Arguments** are specified as either upper-case words, e.g.
-  ``your_program.py CONTENT-PATH``
+  ``my_program.py CONTENT-PATH``
   or words surrounded by greater/less-than signs:
-  ``your_program.py <content-path>``.
+  ``my_program.py <content-path>``.
 - **Options** are words started with dash (``-``), e.g. ``--output``, ``-o``.
   You can "stack" several of one-letter options, e.g. ``-oiv`` which will
   be same as ``-o -i -v``. Options can have arguments, e.g. ``--input=FILE`` or
   ``-i FILE`` or even ``-iFILE``. However it is important that you specify
   all options-descriptions (see next section) to avoid ambiguity.
 - **Optional** things. If option or argument is optional (not required),
-  put it in brackets, e.g. ``your_program.py [-hvqo FILE]``
+  put it in brackets, e.g. ``my_program.py [-hvqo FILE]``
 - **Required** things. If option or argument is required (not optional),
-  don't put it in squared brackets: ``your_program.py --path=PATH FILE``.
+  don't put it in squared brackets: ``my_program.py --path=PATH FILE``.
   (Although "required options" might be not a good idea for your users).
 - **Mutualy exclussive** things. Use horisontal bar (``|``) to specify
   mutually exclussive things, and group them with parenthesis (``()``):
-  ``your_program.py (--clockwise | --counter-clockwise) TIME``. You can
+  ``my_program.py (--clockwise | --counter-clockwise) TIME``. You can
   group with brackets (``[]``) to specify that neither of mutually exclussive
-  things are required: ``your_program.py [--left | --right]``.
+  things are required: ``my_program.py [--left | --right]``.
 - **One or more** things. To specify that arbitrary number of repeating
   things could be accepted use ellipsis (``...``), e.g.
-  ``your_program.py FILE ...`` means one or more ``FILE``-s are accepted.
+  ``my_program.py FILE ...`` means one or more ``FILE``-s are accepted.
   If you want to accept zero or more things, use brackets, e.g.:
-  ``your_program.py [FILE ...]``. Ellipsis works as unary operator on
+  ``my_program.py [FILE ...]``. Ellipsis works as unary operator on
   expression to the left.
+
+If your usage-patterns allow to match same-named argument several times,
+parser will put matched values into a list, e.g. in case pattern is
+``my-program.py FILE FILE`` then ``arguments.file`` will be a list; in case
+pattern is ``my-program.py FILE...`` it will also be a list.
 
 
 Options-description format
 -------------------------------------------------------------------------------
 
 **Options-description** is a list of options that you put below your
-ussage-patterns.  It is required to specify all options to avoid ambiguity
-in ussage-patterns, since options can have short/long forms and, sometimes,
-arguments and default values.
+ussage-patterns.  It is required to list all options that are in
+in ussage-patterns, their short/long versions (if any), and default values
+(if any).
 
 - Every line in ``doc`` that starts with ``-`` or ``--`` (not counting spaces)
   is treated as an option description, e.g.::
@@ -299,7 +305,7 @@ arguments and default values.
     --stdout  Use stdout.  # GOOD, 2 spaces
 
 - If you want to set a default value for an option with an argument, put it
-  into the option description, in form ``[default: <your-default-value>]``.
+  into the option description, in form ``[default: <my-default-value>]``.
   ::
 
     --coefficient=K  The K coefficient [default: 2.95]
