@@ -125,7 +125,8 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively you can just drop ``docopt.py`` file into your project---it is
 self-contained. `Get source on github <http://github.com/halst/docopt>`_.
 
-``docopt`` is tested with Python 2.6, 2.7 and 3.2.
+``docopt`` is tested with Python 2.6, 2.7, 3.2, and is known to work with
+other versions as well.
 
 API
 ===============================================================================
@@ -176,14 +177,13 @@ API
 
 The **return** value is a tuple ``options, arguments``, where:
 
-- ``options`` is a namespace with option values.
+- ``options`` is a namespace with option values:
     - leading dashes (``-``) are stripped: ``--path => options.path``
     - longer variant is given precedence: ``-v --verbose => options.verbose``
     - characters not allowed in names are substituted by underscore (``_``):
       ``--print-out => options.print_out``,
-      ``-@ => options._``
 
-- ``arguments`` is a namespace with argument values.
+- ``arguments`` is a namespace with argument values:
     - leading/trailing lower/greater-than signes (used by one convention) are
       stripped:
       ``<output> => arguments.output``
@@ -277,7 +277,7 @@ Options-description format
 
 **Options-description** is a list of options that you put below your
 ussage-patterns.  It is required to list all options that are in
-in ussage-patterns, their short/long versions (if any), and default values
+ussage-patterns, their short/long versions (if any), and default values
 (if any).
 
 - Every line in ``doc`` that starts with ``-`` or ``--`` (not counting spaces)
@@ -316,5 +316,5 @@ Development
 ===============================================================================
 
 ``docopt`` lives on `github <http://github.com/halst/docopt>`_. Feel free to
-contribute, make pull requrests, suggest ideas and discuss ``docopt`` in
-"issues". You can also drop me a line at vladimir@keleshev.com.
+contribute, make pull requrests, report bugs, suggest ideas and discuss
+``docopt`` in "issues". You can also drop me a line at vladimir@keleshev.com.
