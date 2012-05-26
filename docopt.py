@@ -453,7 +453,7 @@ def parse_doc_options(doc):
 
 def printable_usage(doc):
     return re.split(r'\n\s*\n',
-                    ''.join(re.split(r'(usage:)', doc, flags=re.I)[1:])
+                    ''.join(re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)[1:])
                    )[0].strip()
 
 
