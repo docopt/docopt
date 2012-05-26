@@ -29,3 +29,6 @@ nosetests.xml
 
 #Mr Developer
 .mr.developer.cfg
+
+# Sphinx
+docs/_*
