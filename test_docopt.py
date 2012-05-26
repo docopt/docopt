@@ -55,15 +55,15 @@ def test_option():
     assert option('    -h') == Option('h', None)
 
     assert option('-h TOPIC  Descripton... [default: 2]') == \
-               Option('h:', None, 2)
+               Option('h:', None, '2')
     assert option('-h TOPIC  Descripton... [default: topic-1]') == \
                Option('h:', None, 'topic-1')
     assert option('--help=TOPIC  ... [default: 3.14]') == \
-               Option(None, 'help=', 3.14)
-    assert option('-h, --help=DIR  ... [default: "./"]') == \
+               Option(None, 'help=', '3.14')
+    assert option('-h, --help=DIR  ... [default: ./]') == \
                Option('h:', 'help=', "./")
     assert option('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
-               Option('h:', None, 2)
+               Option('h:', None, '2')
 
 
 def test_option_name():

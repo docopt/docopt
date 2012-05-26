@@ -1,4 +1,3 @@
-from ast import literal_eval
 from copy import copy
 import sys
 import re
@@ -281,17 +280,10 @@ def option(parse):
             is_flag = False
     if not is_flag:
         matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-        value = argument_eval(matched[0]) if matched else False
+        value = matched[0] if matched else False
         short = short + ':' if short else None
         long = long + '=' if long else None
     return Option(short, long, value)
-
-
-def argument_eval(s):
-    try:
-        return literal_eval(s)
-    except (ValueError, SyntaxError):
-        return s
 
 
 def do_longs(parsed, raw, options, parse, is_pattern):
