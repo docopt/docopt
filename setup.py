@@ -4,13 +4,13 @@ from setuptools import setup
 
 setup(
     name = "docopt",
-    version = "0.1.1",
+    version = "0.2.0",
     author = "Vladimir Keleshev",
     author_email = "vladimir@keleshev.com",
-    description = "Pythonic option parser, that will make you smile",
+    description = "Pythonic argument parser, that will make you smile",
     license = "MIT",
-    keywords = "option parsing optparse argparse getopt",
-    url = "http://github.com/halst/docopt",
+    keywords = "option arguments parsing optparse argparse getopt",
+    url = "http://docopt.org",
     py_modules=['docopt'],
     long_description=__doc__,
     classifiers=[
