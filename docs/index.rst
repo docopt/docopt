@@ -216,7 +216,8 @@ Usage-message consists of 2 parts:
     --quiet      print less text
     --verbose    print more text
 
-Their format is described below; other text is ignored.
+Their format is described below; other text is ignored. You can also
+`take a look at more examples <https://github.com/halst/docopt/tree/master/examples>`_.
 
 Usage-pattern format
 -------------------------------------------------------------------------------
