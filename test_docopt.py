@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
                     option, Options, Arguments, DocoptExit, GreedyEither,

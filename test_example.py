@@ -9,6 +9,7 @@ Options:
   --help
 
 """
+from __future__ import with_statement
 from docopt import docopt, Options, Arguments, DocoptExit
 from pytest import raises
 

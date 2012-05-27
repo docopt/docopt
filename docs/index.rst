@@ -125,8 +125,7 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively you can just drop ``docopt.py`` file into your project---it is
 self-contained. `Get source on github <http://github.com/halst/docopt>`_.
 
-``docopt`` is tested with Python 2.6, 2.7, 3.2, and is known to work with
-other versions as well.
+``docopt`` is tested with Python 2.5, 2.6, 2.7, 3.2.
 
 API
 ===============================================================================
