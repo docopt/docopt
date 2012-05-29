@@ -10,7 +10,7 @@ class DocoptError(Exception):
 
 class DocoptExit(SystemExit):
 
-    """Exit in case user invoked program with incorect arguments."""
+    """Exit in case user invoked program with incorrect arguments."""
 
     usage = ''
 
@@ -29,8 +29,8 @@ class Pattern(object):
     def __hash__(self):
         return hash(repr(self))
 
-#   def __ne__(self, other):
-#       return repr(self) == repr(other)
+    def __ne__(self, other):
+        return repr(self) == repr(other)
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
@@ -268,9 +268,8 @@ def variabalize(s):
 def option(parse):
     is_flag = True
     short, long, value = None, None, False
-    split = parse.strip().split('  ')
-    options = split[0].replace(',', ' ').replace('=', ' ')
-    description = ''.join(split[1:])
+    options, _, description = parse.strip().partition('  ')
+    options = options.replace(',', ' ').replace('=', ' ')
     for s in options.split():
         if s.startswith('--'):
             long = s.lstrip('-')
@@ -378,7 +377,7 @@ def split_either(a, sep='|'):
 
 def matching_paren(a):
     left = a[0]
-    right = '[]()'['[]()'.index(left) + 1]
+    right = {'[':']', '(':')'}[left]
     count = 0
     for i, v in enumerate(a):
         if v == left:
@@ -434,10 +433,10 @@ def parse(source, options=None, is_pattern=False):
         if source[0] == '--':
             parsed += [Argument(None, v) for v in source[1:]]
             break
-        elif source[0][:2] == '--':
+        elif source[0].startswith('--'):
             parsed, source = do_longs(parsed, source[0][2:],
                                       options, source[1:], is_pattern)
-        elif source[0][:1] == '-' and source[0] != '-':
+        elif source[0].startswith('-') and source[0] != '-':
             parsed, source = do_shorts(parsed, source[0][1:],
                                        options, source[1:], is_pattern)
         else:
@@ -464,11 +463,11 @@ def formal_usage(printable_usage):
 
 
 def extras(help, version, options, doc):
-    if help and any(o for o in options
-            if (o.short == 'h' or o.long == 'help') and o.value):
+    if help and any((o.short == 'h' or o.long == 'help') and o.value 
+                    for o in options):
         print(doc.strip())
         exit()
-    if version and any(o for o in options if o.long == 'version' and o.value):
+    if version and any(o.long == 'version' and o.value for o in options):
         print(version)
         exit()
 
