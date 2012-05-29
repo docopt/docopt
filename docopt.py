@@ -81,9 +81,9 @@ class Pattern(object):
             while groups:
                 children = groups.pop(0)
                 types = [type(c) for c in children]
-                if Either in types or GreedyEither in types:
+                if Either in types:
                     either = [c for c in children if
-                              type(c) == Either or type(c) == GreedyEither][0]
+                              type(c) == Either][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
@@ -216,21 +216,16 @@ class Either(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
+
+        outcomes = []
         for p in self.children:
-            matched, l, c = p.match(copy(left), copy(collected))
-            if matched:  # and l == []:
-                return True, l, c
-        return False, left, collected
+            matched, _, _ = outcome = p.match(copy(left), copy(collected))
+            if matched:
+                outcomes.append(outcome)
 
+        if outcomes:
+            return min(outcomes, key=lambda(m, left, c): len(left))
 
-class GreedyEither(Pattern):
-
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        for p in self.children:
-            matched, l, c = p.match(copy(left), copy(collected))
-            if matched and l == []:
-                return True, l, c
         return False, left, collected
 
 
@@ -479,8 +474,6 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
-    if type(formal_pattern.children[0]) is Either:
-        formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # is checking left needed here?

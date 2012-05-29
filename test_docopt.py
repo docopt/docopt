@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    option, Options, Arguments, DocoptExit, GreedyEither,
+                    option, Options, Arguments, DocoptExit,
                     matching_paren, DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -296,17 +296,10 @@ def test_pattern_fix_list_arguments():
     assert Argument('n', None).fix_list_arguments() == Argument('n', None)
     assert Required(Argument('n'), Argument('n')).fix_list_arguments() == \
             Required(Argument('n', []), Argument('n', []))
-    assert GreedyEither(Argument('N'),
+    assert Either(Argument('N'),
                         OneOrMore(Argument('N'))).fix() == \
-            GreedyEither(Argument('N', []),
-                         OneOrMore(Argument('N', [])))
-
-
-def test_greedy_either():
-    assert GreedyEither(Argument('M'),
-                        Required(Argument('N'), Argument('M'))).match(
-                                   [Argument(None, 1), Argument(None, 2)]) == \
-            (True, [], [Argument('N', 1), Argument('M', 2)])
+           Either(Argument('N', []),
+                        OneOrMore(Argument('N', [])))
 
 
 def test_set():
