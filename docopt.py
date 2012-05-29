@@ -80,23 +80,23 @@ class Pattern(object):
             groups = [[self]]
             while groups:
                 children = groups.pop(0)
-                types = [type(c) for c in children]
+                types = map(type, children)
                 if Either in types:
                     either = [c for c in children if
-                              type(c) == Either][0]
+                              type(c) is Either][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
                 elif Required in types:
-                    required = [c for c in children if type(c) == Required][0]
+                    required = [c for c in children if type(c) is Required][0]
                     children.pop(children.index(required))
                     groups.append(list(required.children) + children)
                 elif Optional in types:
-                    optional = [c for c in children if type(c) == Optional][0]
+                    optional = [c for c in children if type(c) is Optional][0]
                     children.pop(children.index(optional))
                     groups.append(list(optional.children) + children)
                 elif OneOrMore in types:
-                    oneormore = [c for c in children if type(c) == OneOrMore][0]
+                    oneormore = [c for c in children if type(c) is OneOrMore][0]
                     children.pop(children.index(oneormore))
                     groups.append(list(oneormore.children) * 2 + children)
                 else:
@@ -116,14 +116,14 @@ class Argument(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        args = [l for l in left if type(l) == Argument]
+        args = [l for l in left if type(l) is Argument]
         if not len(args):
             return False, left, collected
         left.remove(args[0])
         if type(self.value) is not list:
             return True, left, collected + [Argument(self.meta, args[0].value)]
         same_meta = [a for a in collected
-                     if type(a) == Argument and a.meta == self.meta]
+                     if type(a) is Argument and a.meta == self.meta]
         if len(same_meta):
             same_meta[0].value += [args[0].value]
             return True, left, collected
@@ -147,7 +147,7 @@ class Option(Pattern):
         left_ = []
         for l in left:
             # if this is so greedy, how to handle OneOrMore then?
-            if not (type(l) == Option and
+            if not (type(l) is Option and
                     (self.short, self.long) == (l.short, l.long)):
                 left_.append(l)
         return (left != left_), left_, collected
@@ -386,7 +386,7 @@ def matching_paren(a):
 
 def pattern(source, options=None):
     options = [] if options is None else copy(options)
-    if type(source) == str:
+    if type(source) is str:
         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = '[ ] ( ) | ...'.split()
     parsed = []
@@ -422,7 +422,8 @@ def pattern(source, options=None):
 
 def parse(source, options=None, is_pattern=False):
     options = [] if options is None else copy(options)
-    source = source.split() if type(source) == str else source
+    if type(source) is str:
+        source = source.split()
     parsed = []
     while source:
         if source[0] == '--':
