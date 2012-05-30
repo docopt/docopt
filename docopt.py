@@ -281,6 +281,7 @@ def option(full_description):
 
 
 class ReversibleIterator(object):
+
     def __init__(self, iterator):
         self.iterator = iterator
         self.unnexted = []
@@ -395,6 +396,7 @@ def parse_pattern(source, options):
 # This is why all these parse_ functions return lists.
 
 def parse_expr(tokens, options):
+    """EXPR ::= SEQ ('|' SEQ)*"""
     seq = parse_seq(tokens, options)
 
     if not tokens.has_more() or tokens.ahead() != '|':
@@ -406,9 +408,7 @@ def parse_expr(tokens, options):
     while tokens.has_more() and tokens.ahead() == '|':
         tokens.next()
         seq = parse_seq(tokens, options)
-        if len(seq) > 1:
-            seq = [Required(*seq)]
-        result += seq
+        result += [Required(*seq)] if len(seq) > 1 else seq
 
     if len(result) == 1:
         return result
@@ -416,11 +416,10 @@ def parse_expr(tokens, options):
 
 
 def parse_seq(tokens, options):
+    """SEQ ::= (ATOM ['...'])*"""
     result = []
     while True:
-        if not tokens.has_more():
-            break
-        if tokens.ahead() in [']', ')', '|']:
+        if not tokens.has_more() or tokens.ahead() in [']', ')', '|']:
             break
 
         atom = parse_atom(tokens, options)
@@ -436,6 +435,7 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
+    """ATOM ::= LONG | SHORTS (plural!) | ARG | '[' EXPR ']' | '(' EXPR ')'"""
     token = tokens.next()
     result = []
     if token == '(':
