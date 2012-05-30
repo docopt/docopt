@@ -1,8 +1,8 @@
 from __future__ import with_statement
-from docopt import (Option, docopt, parse, Argument, Either, split_either,
+from docopt import (Option, docopt, parse, Argument, Either,
                     Required, Optional, pattern, OneOrMore, parse_doc_options,
                     option, Options, Arguments, DocoptExit, GreedyEither,
-                    matching_paren, DocoptError, printable_usage, formal_usage
+                    DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
 
@@ -11,30 +11,6 @@ def test_pattern_flat():
     assert Required(OneOrMore(Argument('N')),
                     Option('a'), Argument('M')).flat == \
                             [Argument('N'), Option('a'), Argument('M')]
-
-
-def test_split():
-    a = [1, 2, '|', 3, '|', 4, 5]
-    assert split_either(a, '|') == [[1, 2], [3], [4, 5]]
-    a = ['|', 3, '|']
-    assert split_either(a, '|') == [[], [3], []]
-    a = [1, '[', 2, '|', 3, ']', '|', 4, 5]
-    assert split_either(a, '|') == [[1, '[', 2, '|', 3, ']'], [4, 5]]
-    a = [1, '(', 2, '|', '[', 3, '|', 4, ']', ')', '|', 5]
-    assert split_either(a, '|') == \
-        [[1, '(', 2, '|', '[', 3, '|', 4, ']', ')'], [5]]
-
-
-def test_matching_paren():
-    assert matching_paren(['[', ']']) == 1
-    assert matching_paren(['[', ']', '[', ']']) == 1
-    assert matching_paren(['[', '[', ']', ']']) == 3
-    with raises(DocoptError):
-        matching_paren(['[', '[', ']'])
-    with raises(DocoptError):
-        docopt('Usage: prog [a [b]')
-    #with raises(DocoptError):  # nice to have but minor
-    #    docopt('Usage: prog [a [b] ] ]')
 
 
 def test_option():

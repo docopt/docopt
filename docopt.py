@@ -265,10 +265,10 @@ def variabalize(s):
     return ret
 
 
-def option(parse):
+def option(full_description):
     is_flag = True
     short, long, value = None, None, False
-    options, _, description = parse.strip().partition('  ')
+    options, _, description = full_description.strip().partition('  ')
     options = options.replace(',', ' ').replace('=', ' ')
     for s in options.split():
         if s.startswith('--'):
@@ -285,7 +285,37 @@ def option(parse):
     return Option(short, long, value)
 
 
-def do_longs(parsed, raw, options, parse, is_pattern):
+class ReversibleIterator(object):
+    def __init__(self, iterator):
+        self.iterator = iterator
+        self.unnexted = []
+
+    def __iter__(self):
+        return self
+
+    def next(self, *args):
+        if self.unnexted:
+            return self.unnexted.pop()
+        return self.iterator.next(*args)
+
+    def unnext(self, item):
+        self.unnexted.append(item)
+
+    def has_more(self):
+        try:
+            t = self.next()
+            self.unnext(t)
+            return True
+        except StopIteration:
+            return False
+
+    def ahead(self):
+        result = self.next()
+        self.unnext(result)
+        return result
+
+
+def do_long(raw, options, tokens, is_pattern):
     try:
         i = raw.index('=')
         raw, value = raw[:i], raw[i + 1:]
@@ -306,23 +336,23 @@ def do_longs(parsed, raw, options, parse, is_pattern):
     opt = copy(opt[0])
     if not opt.is_flag:
         if value is None:
-            if not parse:
+            if not tokens.has_more():
                 if is_pattern:
                     raise DocoptError('--%s in "usage" requires argument' %
                                       opt.name)
                 raise DocoptExit('--%s requires argument' % opt.name)
-            value, parse = parse[0], parse[1:]
+            value = tokens.next()
     elif value is not None:
         if is_pattern:
             raise DocoptError('--%s in "usage" must not have an argument' %
                              opt.name)
         raise DocoptExit('--%s must not have an argument' % opt.name)
     opt.value = value or True
-    parsed += [opt]
-    return parsed, parse
+    return opt
 
 
-def do_shorts(parsed, raw, options, parse, is_pattern):
+def do_shorts(raw, options, tokens, is_pattern):
+    parsed = []
     while raw != '':
         opt = [o for o in options if o.short and o.short.startswith(raw[0])]
         if len(opt) > 1:
@@ -340,18 +370,19 @@ def do_shorts(parsed, raw, options, parse, is_pattern):
             value = True
         else:
             if raw == '':
-                if not parse:
+                if not tokens.has_more():
                     if is_pattern:
                         raise DocoptError('-%s in "usage" requires argument' %
                                           opt.short[0])
                     raise DocoptExit('-%s requires argument' % opt.short[0])
-                raw, parse = parse[0], parse[1:]
+                raw = tokens.next()
             value, raw = raw, ''
         opt.value = value
         parsed += [opt]
-    return parsed, parse
+    return parsed
 
 
+"""
 def split_simple(a, sep='|'):
     if sep in a:
         return [a[:a.index(sep)]] + split_simple(a[a.index(sep) + 1:], sep)
@@ -423,27 +454,109 @@ def pattern(source, options=None):
             parsed += parse(source[:i], options=options, is_pattern=True)
             source = source[i:]
     return Required(*parsed)
+"""
 
 
-def parse(source, options=None, is_pattern=False):
-    options = [] if options is None else copy(options)
-    source = source.split() if type(source) == str else source
-    parsed = []
-    while source:
-        if source[0] == '--':
-            parsed += [Argument(None, v) for v in source[1:]]
+def parse_pattern(source, options):
+    if type(source) == str:
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
+    tokens = ReversibleIterator(iter(source))
+    result = parse_expr(tokens, options)
+    assert not tokens.has_more()
+    return result
+
+
+def parse_expr(tokens, options):
+    result = []
+    result.append(parse_seq(tokens, options))
+    while tokens.has_more() and tokens.ahead() == '|':
+        tokens.next()
+        result.append(parse_seq(tokens, options))
+    
+    if len(result) == 1:
+        return result[0]
+    return Either(*result)
+
+
+def parse_seq(tokens, options):
+    result = []
+    while True:
+        if not tokens.has_more():
             break
-        elif source[0].startswith('--'):
-            parsed, source = do_longs(parsed, source[0][2:],
-                                      options, source[1:], is_pattern)
-        elif source[0].startswith('-') and source[0] != '-':
-            parsed, source = do_shorts(parsed, source[0][1:],
-                                       options, source[1:], is_pattern)
+        if tokens.ahead() in [']', ')', '|']:
+            break
+
+        atom = parse_atom(tokens, options)
+
+        if tokens.has_more() and tokens.ahead() == '...':
+            token.next()
+            atom, = atom
+            atom = [OneOrMore(atom)]
+
+        result += atom
+
+    return Required(*result)
+
+
+def parse_atom(tokens, options):
+    '''
+    return _list_ of patterns; 
+    this list is usually singleton, except when shortS are invoved
+    '''
+    token = tokens.next()
+    result = []
+    if token == '(':
+        result = [parse_expr(tokens, options)]
+        token = next(tokens, 'EOF')
+        if token != ')':
+            raise DocoptError("Unmatched '('")
+        return result
+    elif token == '[':
+        result = [Optional(parse_expr(tokens, options))]
+        token = next(tokens, 'EOF')
+        if token != ']':
+            raise DocoptError("Unmatched '['")
+        return result
+    elif token == '--':
+        raise DocoptError("'--' in usage string is not supported")
+    elif token.startswith('--'):
+        return [do_long(token[2:], options, tokens, is_pattern=True)]
+    elif token.startswith('-'):
+        return do_shorts(token[1:], options, tokens, is_pattern=True)
+    else:
+        return [Argument(token)]
+        
+
+def pattern(source, options=None):
+    tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
+    tokens = ReversibleIterator(iter(tokens))
+    parsed = []
+    parsed += parse(tokens, options=options, is_pattern=True)
+    return Required(*parsed)
+
+
+def parse_args(tokens, options=None):
+    options = [] if options is None else copy(options)
+    parsed = []
+    while tokens.has_more():
+        token = tokens.next()
+        if token == '--':
+            parsed += [Argument(None, v) for v in tokens]
+            break
+        elif token.startswith('--'):
+            parsed += [do_long(token[2:], options, tokens, is_pattern=False)]
+        elif token.startswith('-') and token != '-':
+            parsed += do_shorts(token[1:], options, tokens, is_pattern=False)
         else:
-            parsed.append(Argument(source[0]) if is_pattern
-                          else Argument(None, source[0]))
-            source = source[1:]
+            parsed.append(Argument(None, token))
     return parsed
+
+
+def parse(source, options):
+    if type(source) is str:
+        source = source.split()
+    tokens = ReversibleIterator(iter(source))
+    parse_args(tokens, options)
 
 
 def parse_doc_options(doc):
@@ -475,13 +588,17 @@ def extras(help, version, options, doc):
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
-    argv = parse(argv, options=options)
+
+    argv_tokens = ReversibleIterator(iter(argv))
+    argv = parse_args(argv_tokens, options=options)
+
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
-    formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
+    formal_pattern = parse_pattern(formal_usage(DocoptExit.usage), options=options)
     if type(formal_pattern.children[0]) is Either:
         formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
+    
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # is checking left needed here?
         return (Options(**dict((o.name, o.value) for o in overlapped)),
