@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse_args, Argument, Either,
-                    Required, Optional, parse_pattern, OneOrMore, parse_doc_options,
-                    option, Options, Arguments, DocoptExit,
+                    Required, Optional, parse_pattern, OneOrMore,
+                    parse_doc_options, option, Options, Arguments, DocoptExit,
                     DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -100,6 +100,8 @@ def test_parse():
             [Option('h', None, True),
              Argument(None, 'arg'),
              Argument(None, '-v')]
+
+
 def test_pattern():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert parse_pattern('[ -h ]', options=o) == \

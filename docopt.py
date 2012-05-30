@@ -409,7 +409,7 @@ def parse_expr(tokens, options):
         if len(seq) > 1:
             seq = [Required(*seq)]
         result += seq
-    
+
     if len(result) == 1:
         return result
     return [Either(*result)]
@@ -497,7 +497,7 @@ def formal_usage(printable_usage):
 
 
 def extras(help, version, options, doc):
-    if help and any((o.short == 'h' or o.long == 'help') and o.value 
+    if help and any((o.short == 'h' or o.long == 'help') and o.value
                     for o in options):
         print(doc.strip())
         exit()
@@ -514,9 +514,10 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
 
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
-    formal_pattern = parse_pattern(formal_usage(DocoptExit.usage), options=options)
+    formal_pattern = parse_pattern(formal_usage(DocoptExit.usage),
+                                   options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
-    
+
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # is checking left needed here?
         return (Options(**dict((o.name, o.value) for o in overlapped)),
