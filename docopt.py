@@ -80,23 +80,23 @@ class Pattern(object):
             groups = [[self]]
             while groups:
                 children = groups.pop(0)
-                types = [type(c) for c in children]
-                if Either in types or GreedyEither in types:
+                types = map(type, children)
+                if Either in types:
                     either = [c for c in children if
-                              type(c) == Either or type(c) == GreedyEither][0]
+                              type(c) is Either][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
                 elif Required in types:
-                    required = [c for c in children if type(c) == Required][0]
+                    required = [c for c in children if type(c) is Required][0]
                     children.pop(children.index(required))
                     groups.append(list(required.children) + children)
                 elif Optional in types:
-                    optional = [c for c in children if type(c) == Optional][0]
+                    optional = [c for c in children if type(c) is Optional][0]
                     children.pop(children.index(optional))
                     groups.append(list(optional.children) + children)
                 elif OneOrMore in types:
-                    oneormore = [c for c in children if type(c) == OneOrMore][0]
+                    oneormore = [c for c in children if type(c) is OneOrMore][0]
                     children.pop(children.index(oneormore))
                     groups.append(list(oneormore.children) * 2 + children)
                 else:
@@ -116,14 +116,14 @@ class Argument(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        args = [l for l in left if type(l) == Argument]
+        args = [l for l in left if type(l) is Argument]
         if not len(args):
             return False, left, collected
         left.remove(args[0])
         if type(self.value) is not list:
             return True, left, collected + [Argument(self.meta, args[0].value)]
         same_meta = [a for a in collected
-                     if type(a) == Argument and a.meta == self.meta]
+                     if type(a) is Argument and a.meta == self.meta]
         if len(same_meta):
             same_meta[0].value += [args[0].value]
             return True, left, collected
@@ -147,7 +147,7 @@ class Option(Pattern):
         left_ = []
         for l in left:
             # if this is so greedy, how to handle OneOrMore then?
-            if not (type(l) == Option and
+            if not (type(l) is Option and
                     (self.short, self.long) == (l.short, l.long)):
                 left_.append(l)
         return (left != left_), left_, collected
@@ -216,21 +216,16 @@ class Either(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
+
+        outcomes = []
         for p in self.children:
-            matched, l, c = p.match(copy(left), copy(collected))
-            if matched:  # and l == []:
-                return True, l, c
-        return False, left, collected
+            matched, _, _ = outcome = p.match(copy(left), copy(collected))
+            if matched:
+                outcomes.append(outcome)
 
+        if outcomes:
+            return min(outcomes, key=lambda(m, left, c): len(left))
 
-class GreedyEither(Pattern):
-
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        for p in self.children:
-            matched, l, c = p.match(copy(left), copy(collected))
-            if matched and l == []:
-                return True, l, c
         return False, left, collected
 
 
@@ -527,8 +522,6 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = parse_pattern(formal_usage(DocoptExit.usage), options=options)
-    if type(formal_pattern.children[0]) is Either:
-        formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     
     matched, left, collected = formal_pattern.fix().match(argv)
