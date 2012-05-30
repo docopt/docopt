@@ -187,6 +187,10 @@ def test_either_match():
             [Option('x')]) == (False, [Option('x')], [])
     assert Either(Option('a'), Option('b'), Option('c')).match(
             [Option('x'), Option('b')]) == (True, [Option('x')], [])
+    assert Either(Argument('M'),
+                  Required(Argument('N'), Argument('M'))).match(
+                                   [Argument(None, 1), Argument(None, 2)]) == \
+            (True, [], [Argument('N', 1), Argument('M', 2)])
 
 
 def test_one_or_more_match():
