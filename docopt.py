@@ -460,7 +460,10 @@ def parse_atom(tokens, options):
         return [Argument(token)]
 
 
-def parse_args(tokens, options):
+def parse_args(source, options):
+    if type(source) is str:
+        source = source.split()
+    tokens = ReversibleIterator(iter(source))
     options = copy(options)
     parsed = []
     while tokens.has_more():
@@ -475,13 +478,6 @@ def parse_args(tokens, options):
         else:
             parsed.append(Argument(None, token))
     return parsed
-
-
-def parse(source, options):
-    if type(source) is str:
-        source = source.split()
-    tokens = ReversibleIterator(iter(source))
-    return parse_args(tokens, options)
 
 
 def parse_doc_options(doc):
@@ -514,10 +510,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
 
-    if type(argv) is str:
-        argv = argv.split()
-    argv_tokens = ReversibleIterator(iter(argv))
-    argv = parse_args(argv_tokens, options=options)
+    argv = parse_args(argv, options=options)
 
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)

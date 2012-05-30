@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from docopt import (Option, docopt, parse, Argument, Either,
+from docopt import (Option, docopt, parse_args, Argument, Either,
                     Required, Optional, parse_pattern, OneOrMore, parse_doc_options,
                     option, Options, Arguments, DocoptExit,
                     DocoptError, printable_usage, formal_usage
@@ -81,24 +81,25 @@ def test_printable_and_formal_usage():
 
 def test_parse():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
-    assert parse('', options=o) == []
-    assert parse('-h', options=o) == [Option('h', None, True)]
-    assert parse('-h --verbose', options=o) == \
+    assert parse_args('', options=o) == []
+    assert parse_args('-h', options=o) == [Option('h', None, True)]
+    assert parse_args('-h --verbose', options=o) == \
             [Option('h', None, True), Option('v', 'verbose', True)]
-    assert parse('-h --file f.txt', options=o) == \
+    assert parse_args('-h --file f.txt', options=o) == \
             [Option('h', None, True), Option('f:', 'file=', 'f.txt')]
-    assert parse('-h --file f.txt arg', options=o) == \
+    assert parse_args('-h --file f.txt arg', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
              Argument(None, 'arg')]
-    assert parse('-h --file f.txt arg arg2', options=o) == \
+    assert parse_args('-h --file f.txt arg arg2', options=o) == \
             [Option('h', None, True),
              Option('f:', 'file=', 'f.txt'),
              Argument(None, 'arg'),
              Argument(None, 'arg2')]
-    assert parse('-h arg -- -v', options=o) == [Option('h', None, True),
-                                                Argument(None, 'arg'),
-                                                Argument(None, '-v')]
+    assert parse_args('-h arg -- -v', options=o) == \
+            [Option('h', None, True),
+             Argument(None, 'arg'),
+             Argument(None, '-v')]
 def test_pattern():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert parse_pattern('[ -h ]', options=o) == \
