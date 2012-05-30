@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse, Argument, Either,
-                    Required, Optional, pattern, OneOrMore, parse_doc_options,
+                    Required, Optional, parse_pattern, OneOrMore, parse_doc_options,
                     option, Options, Arguments, DocoptExit, GreedyEither,
                     DocoptError, printable_usage, formal_usage
                    )
@@ -81,7 +81,7 @@ def test_printable_and_formal_usage():
 
 def test_parse():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
-    assert parse('') == []
+    assert parse('', options=o) == []
     assert parse('-h', options=o) == [Option('h', None, True)]
     assert parse('-h --verbose', options=o) == \
             [Option('h', None, True), Option('v', 'verbose', True)]
@@ -101,31 +101,31 @@ def test_parse():
                                                 Argument(None, '-v')]
 def test_pattern():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
-    assert pattern('[ -h ]', options=o) == \
+    assert parse_pattern('[ -h ]', options=o) == \
                Required(Optional(Option('h', None, True)))
-    assert pattern('[ ARG ... ]', options=o) == \
+    assert parse_pattern('[ ARG ... ]', options=o) == \
                Required(Optional(OneOrMore(Argument('ARG'))))
-    assert pattern('[ -h | -v ]', options=o) == \
+    assert parse_pattern('[ -h | -v ]', options=o) == \
                Required(Optional(Either(Option('h', None, True),
                                 Option('v', 'verbose', True))))
-    assert pattern('( -h | -v [ --file f.txt ] )', options=o) == \
+    assert parse_pattern('( -h | -v [ --file f.txt ] )', options=o) == \
                Required(Required(
                    Either(Option('h', None, True),
                           Required(Option('v', 'verbose', True),
                                  Optional(Option('f:', 'file=', 'f.txt'))))))
-    assert pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
+    assert parse_pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
                Required(Required(Either(Option('h', None, True),
                               Required(Option('v', 'verbose', True),
                                      Optional(Option('f:', 'file=', 'f.txt')),
                                      OneOrMore(Argument('N'))))))
-    assert pattern('(N [M | (K | L)] | O P)') == \
+    assert parse_pattern('(N [M | (K | L)] | O P)', options=[]) == \
                Required(Required(Either(
                    Required(Argument('N'),
                             Optional(Either(Argument('M'),
                                             Required(Either(Argument('K'),
                                                             Argument('L')))))),
                    Required(Argument('O'), Argument('P')))))
-    assert pattern('[ -h ] [N]', options=o) == \
+    assert parse_pattern('[ -h ] [N]', options=o) == \
                Required(Optional(Option('h', None, True)),
                         Optional(Argument('N')))
 

@@ -382,100 +382,42 @@ def do_shorts(raw, options, tokens, is_pattern):
     return parsed
 
 
-"""
-def split_simple(a, sep='|'):
-    if sep in a:
-        return [a[:a.index(sep)]] + split_simple(a[a.index(sep) + 1:], sep)
-    return [a]
-
-
-def split_either(a, sep='|'):
-    a = copy(a)
-    count_b = count_p = 0
-    for i, v in enumerate(a):
-        if v == '[':
-            count_b += 1
-        elif v == ']':
-            count_b -= 1
-        elif v == '(':
-            count_p += 1
-        elif v == ')':
-            count_p -= 1
-        elif v == '|' and count_b == count_p == 0:
-            a[i] = '@'
-    return split_simple(a, '@')
-
-
-def matching_paren(a):
-    left = a[0]
-    right = {'[':']', '(':')'}[left]
-    count = 0
-    for i, v in enumerate(a):
-        if v == left:
-            count += 1
-        elif v == right:
-            count -= 1
-        if count == 0:
-            return i
-    raise DocoptError('Unbalanced parenthesis or brackets in usage-pattern.')
-
-
-def pattern(source, options=None):
-    options = [] if options is None else copy(options)
-    if type(source) == str:
-        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
-    tokens = '[ ] ( ) | ...'.split()
-    parsed = []
-    while source:
-        if '|' in source and len(split_either(source)) > 1:
-            either = []
-            for s in split_either(source, '|'):
-                p = pattern(s, options=options)
-                either += [p.children[0]] if len(p.children) == 1 else [p]
-            assert parsed == []
-            parsed = [Either(*either)]
-            break
-        elif source[0] == '[':
-            matching = matching_paren(source)
-            sub_parse = source[1:matching]
-            parsed += [Optional(*pattern(sub_parse, options=options).children)]
-            source = source[matching + 1:]
-        elif source[0] == '(':
-            matching = matching_paren(source)
-            sub_parse = source[1:matching]
-            parsed += [pattern(sub_parse, options=options)]
-            source = source[matching + 1:]
-        elif source[0] == '...':
-            parsed[-1] = OneOrMore(parsed[-1])
-            source = source[1:]
-        else:
-            i = min([source.index(t) for t in tokens if t in source]
-                    + [len(source)])
-            parsed += parse(source[:i], options=options, is_pattern=True)
-            source = source[i:]
-    return Required(*parsed)
-"""
-
-
 def parse_pattern(source, options):
-    if type(source) == str:
-        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
-    tokens = ReversibleIterator(iter(source))
+    tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
+    tokens = ReversibleIterator(iter(tokens))
     result = parse_expr(tokens, options)
     assert not tokens.has_more()
-    return result
+    return Required(*result)
 
+
+# Usage string grammar:
+#   EXPR ::= SEQ ("|" SEQ)*
+#   SEQ  ::= (ATOM ["..."])*
+#   ATOM ::= LONG | SHORTS (plural!) | ARG | "[" EXPR "]" | "(" EXPR ")"
+#
+# Note [] behavior:
+#   [-a -b] is equivalent to [-a] [-b], not [(-a -b)]
+# This is why all these parse_ functions return lists.
 
 def parse_expr(tokens, options):
-    result = []
-    result.append(parse_seq(tokens, options))
+    seq = parse_seq(tokens, options)
+
+    if not tokens.has_more() or tokens.ahead() != '|':
+        return seq
+
+    if len(seq) > 1:
+        seq = [Required(*seq)]
+    result = seq
     while tokens.has_more() and tokens.ahead() == '|':
         tokens.next()
-        result.append(parse_seq(tokens, options))
+        seq = parse_seq(tokens, options)
+        if len(seq) > 1:
+            seq = [Required(*seq)]
+        result += seq
     
     if len(result) == 1:
-        return result[0]
-    return Either(*result)
+        return result
+    return [Either(*result)]
 
 
 def parse_seq(tokens, options):
@@ -489,30 +431,26 @@ def parse_seq(tokens, options):
         atom = parse_atom(tokens, options)
 
         if tokens.has_more() and tokens.ahead() == '...':
-            token.next()
+            tokens.next()
             atom, = atom
             atom = [OneOrMore(atom)]
 
         result += atom
 
-    return Required(*result)
+    return result
 
 
 def parse_atom(tokens, options):
-    '''
-    return _list_ of patterns; 
-    this list is usually singleton, except when shortS are invoved
-    '''
     token = tokens.next()
     result = []
     if token == '(':
-        result = [parse_expr(tokens, options)]
+        result = [Required(*parse_expr(tokens, options))]
         token = next(tokens, 'EOF')
         if token != ')':
             raise DocoptError("Unmatched '('")
         return result
     elif token == '[':
-        result = [Optional(parse_expr(tokens, options))]
+        result = [Optional(*parse_expr(tokens, options))]
         token = next(tokens, 'EOF')
         if token != ']':
             raise DocoptError("Unmatched '['")
@@ -525,18 +463,10 @@ def parse_atom(tokens, options):
         return do_shorts(token[1:], options, tokens, is_pattern=True)
     else:
         return [Argument(token)]
-        
-
-def pattern(source, options=None):
-    tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
-    tokens = ReversibleIterator(iter(tokens))
-    parsed = []
-    parsed += parse(tokens, options=options, is_pattern=True)
-    return Required(*parsed)
 
 
-def parse_args(tokens, options=None):
-    options = [] if options is None else copy(options)
+def parse_args(tokens, options):
+    options = copy(options)
     parsed = []
     while tokens.has_more():
         token = tokens.next()
@@ -556,7 +486,7 @@ def parse(source, options):
     if type(source) is str:
         source = source.split()
     tokens = ReversibleIterator(iter(source))
-    parse_args(tokens, options)
+    return parse_args(tokens, options)
 
 
 def parse_doc_options(doc):
@@ -589,6 +519,8 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
 
+    if type(argv) is str:
+        argv = argv.split()
     argv_tokens = ReversibleIterator(iter(argv))
     argv = parse_args(argv_tokens, options=options)
 
