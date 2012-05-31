@@ -229,7 +229,7 @@ class Either(Pattern):
                 outcomes.append(outcome)
 
         if outcomes:
-            return min(outcomes, key=lambda(m, left, c): len(left))
+            return min(outcomes, key=lambda outcome: len(outcome[1]))
 
         return False, left, collected
 
@@ -266,21 +266,26 @@ class ReversibleIterator(object):
     def next(self, *args):
         if self.unnexted:
             return self.unnexted.pop()
-        return self.iterator.next(*args)
+        return next(self.iterator, *args)
+
+    def __next__(self, *args):
+        if self.unnexted:
+            return self.unnexted.pop()
+        return next(self.iterator, *args)
 
     def unnext(self, item):
         self.unnexted.append(item)
 
     def has_more(self):
         try:
-            t = self.next()
+            t = next(self)
             self.unnext(t)
             return True
         except StopIteration:
             return False
 
     def ahead(self):
-        result = self.next()
+        result = next(self)
         self.unnext(result)
         return result
 
@@ -311,7 +316,7 @@ def do_long(raw, options, tokens, is_pattern):
                     raise DocoptError('--%s in "usage" requires argument' %
                                       opt.name)
                 raise DocoptExit('--%s requires argument' % opt.name)
-            value = tokens.next()
+            value = next(tokens)
     elif value is not None:
         if is_pattern:
             raise DocoptError('--%s in "usage" must not have an argument' %
@@ -345,7 +350,7 @@ def do_shorts(raw, options, tokens, is_pattern):
                         raise DocoptError('-%s in "usage" requires argument' %
                                           opt.short[0])
                     raise DocoptExit('-%s requires argument' % opt.short[0])
-                raw = tokens.next()
+                raw = next(tokens)
             value, raw = raw, ''
         opt.value = value
         parsed += [opt]
@@ -380,7 +385,7 @@ def parse_expr(tokens, options):
         seq = [Required(*seq)]
     result = seq
     while tokens.has_more() and tokens.ahead() == '|':
-        tokens.next()
+        next(tokens)
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
 
@@ -399,7 +404,7 @@ def parse_seq(tokens, options):
         atom = parse_atom(tokens, options)
 
         if tokens.has_more() and tokens.ahead() == '...':
-            tokens.next()
+            next(tokens)
             atom, = atom
             atom = [OneOrMore(atom)]
 
@@ -410,7 +415,7 @@ def parse_seq(tokens, options):
 
 def parse_atom(tokens, options):
     """ATOM ::= LONG | SHORTS (plural!) | ARG | '[' EXPR ']' | '(' EXPR ')'"""
-    token = tokens.next()
+    token = next(tokens)
     result = []
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
@@ -441,7 +446,7 @@ def parse_args(source, options):
     options = copy(options)
     parsed = []
     while tokens.has_more():
-        token = tokens.next()
+        token = next(tokens)
         if token == '--':
             parsed += [Argument(None, v) for v in tokens]
             break
@@ -495,7 +500,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # better message if left?
-        return Dict(dict((o.name, o.value) for o in overlapped).items() +
-                    dict((a.meta, a.value) for a in
-                         pot_arguments + collected).items())
+        return Dict(list(dict((o.name, o.value) for o in overlapped).items()) +
+                    list(dict((a.meta, a.value) for a in
+                              pot_arguments + collected).items()))
     raise DocoptExit()
