@@ -3,6 +3,14 @@ import sys
 import re
 
 
+try:
+    next
+except NameError:
+    # python 2.5 and earlier
+    def next(obj, *arg):
+        return obj.next(*arg)
+
+
 class DocoptError(Exception):
 
     """Error in construction of usage-message by developer."""
