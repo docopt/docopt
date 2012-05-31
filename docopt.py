@@ -88,10 +88,9 @@ class Pattern(object):
             groups = [[self]]
             while groups:
                 children = groups.pop(0)
-                types = map(type, children)
+                types = [type(c) for c in children]
                 if Either in types:
-                    either = [c for c in children if
-                              type(c) is Either][0]
+                    either = [c for c in children if type(c) is Either][0]
                     children.pop(children.index(either))
                     for c in either.children:
                         groups.append([c] + children)
@@ -109,6 +108,7 @@ class Pattern(object):
                     groups.append(list(oneormore.children) * 2 + children)
                 else:
                     ret.append(children)
+            print(Either(*[Required(*e) for e in ret]))
             return Either(*[Required(*e) for e in ret])
 
 
@@ -269,9 +269,7 @@ class ReversibleIterator(object):
         return next(self.iterator, *args)
 
     def __next__(self, *args):
-        if self.unnexted:
-            return self.unnexted.pop()
-        return next(self.iterator, *args)
+        return self.next(*args)
 
     def unnext(self, item):
         self.unnexted.append(item)
