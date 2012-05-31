@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse_args, Argument, Either,
                     Required, Optional, parse_pattern, OneOrMore,
-                    parse_doc_options, option, Options, Arguments, DocoptExit,
+                    parse_doc_options, option, DocoptExit,
                     DocoptError, printable_usage, formal_usage
                    )
 from pytest import raises
@@ -44,19 +44,19 @@ def test_option():
 
 
 def test_option_name():
-    assert Option('h').name == 'h'
-    assert Option('h', 'help').name == 'help'
-    assert Option('h:', 'help=').name == 'help'
-    assert Option('h', 'help-me').name == 'help_me'
-    assert Option('2', '2-times').name == '__times'
+    assert Option('h').name == '-h'
+    assert Option('h', 'help').name == '--help'
+    assert Option('h:', 'help=').name == '--help'
+    assert Option('h', 'help-me').name == '--help-me'
+    assert Option('2', '2-times').name == '--2-times'
 
 
 def test_docopt():
-    doc = '''Usage: prog [-v] a
+    doc = '''Usage: prog [-v] A
 
     -v  Be verbose.'''
-    assert docopt(doc, 'arg') == (Options(v=False), Arguments(a='arg'))
-    assert docopt(doc, '-v arg') == (Options(v=True), Arguments(a='arg'))
+    assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
+    assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
 
 
 def test_parse_doc_options():

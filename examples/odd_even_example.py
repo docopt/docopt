@@ -11,5 +11,5 @@ from docopt import docopt
 
 
 if __name__ == '__main__':
-    options, arguments = docopt(__doc__)
+    arguments = docopt(__doc__)
     print(arguments)

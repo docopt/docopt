@@ -110,10 +110,6 @@ class Argument(Pattern):
         self.meta = meta
         self.value = value
 
-    @property
-    def name(self):
-        return variabalize(self.meta.strip('<>').lower())
-
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         args = [l for l in left if type(l) is Argument]
@@ -161,7 +157,8 @@ class Option(Pattern):
 
     @property
     def name(self):
-        return variabalize((self.long or self.short).rstrip(':').rstrip('='))
+        return ('--' + self.long.rstrip('=') if self.long
+                else '-' + self.short.rstrip(':'))
 
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
@@ -227,37 +224,6 @@ class Either(Pattern):
             return min(outcomes, key=lambda(m, left, c): len(left))
 
         return False, left, collected
-
-
-class Namespace(object):
-
-    def __init__(self, **kw):
-        self.__dict__ = kw
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return self.__dict__ != other.__dict__
-
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__,
-                ','.join('\n    %s=%r' % i for i in self.__dict__.items()))
-
-
-class Options(Namespace):
-    pass
-
-
-class Arguments(Namespace):
-    pass
-
-
-def variabalize(s):
-    ret = s[0] if s[0].isalpha() else '_'
-    for ch in s[1:]:
-        ret += ch if ch.isalpha() or ch.isdigit() else '_'
-    return ret
 
 
 def option(full_description):
@@ -506,21 +472,22 @@ def extras(help, version, options, doc):
         exit()
 
 
+class Dict(dict):
+    def __repr__(self):
+        return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
+
+
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = printable_usage(doc)
     options = parse_doc_options(doc)
-
     argv = parse_args(argv, options=options)
-
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
-    formal_pattern = parse_pattern(formal_usage(DocoptExit.usage),
-                                   options=options)
+    formal_pattern = parse_pattern(formal_usage(docopt.usage), options=options)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
-
     matched, left, collected = formal_pattern.fix().match(argv)
-    if matched and left == []:  # is checking left needed here?
-        return (Options(**dict((o.name, o.value) for o in overlapped)),
-              Arguments(**dict((a.name, a.value)
-                        for a in pot_arguments + collected)))
+    if matched and left == []:  # better message if left?
+        return Dict(dict((o.name, o.value) for o in overlapped).items() +
+                    dict((a.meta, a.value) for a in
+                         pot_arguments + collected).items())
     raise DocoptExit()

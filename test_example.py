@@ -10,18 +10,18 @@ Options:
 
 """
 from __future__ import with_statement
-from docopt import docopt, Options, Arguments, DocoptExit
+from docopt import docopt, DocoptExit
 from pytest import raises
 
 def test_docopt():
 
-    o, a = docopt(__doc__, '-v file.py')
-    assert o == Options(v=True, q=False, r=False, help=False)
-    assert a == Arguments(file='file.py', input=None, output=None)
+    a = docopt(__doc__, '-v file.py')
+    assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                 'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
 
-    o, a = docopt(__doc__, '-v')
-    assert o == Options(v=True, q=False, r=False, help=False)
-    assert a == Arguments(file=None, input=None, output=None)
+    a = docopt(__doc__, '-v')
+    assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                 'FILE': None, 'INPUT': None, 'OUTPUT': None}
 
     with raises(DocoptExit):  # does not match
         docopt(__doc__, '-v input.py output.py')
