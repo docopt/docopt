@@ -380,3 +380,8 @@ def test_short_options_error_handling():
         docopt('Usage: prog -o\n\n-o ARG')
     with raises(DocoptExit):
         docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
+
+def test_empty_pattern():
+    # See https://github.com/halst/docopt/issues/9
+    doc = '''usage: prog'''
+    docopt(doc, '')

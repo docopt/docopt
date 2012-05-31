@@ -489,7 +489,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
-    if type(formal_pattern.children[0]) is Either:
+    if formal_pattern.children and type(formal_pattern.children[0]) is Either:
         formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(argv)
