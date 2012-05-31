@@ -1,8 +1,9 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
-                    Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    option, Options, Arguments, DocoptExit, GreedyEither,
-                    matching_paren, DocoptError, printable_usage, formal_usage
+                    Required, Optional, AnyOption, pattern, OneOrMore,
+                    parse_doc_options, option, Options, Arguments, DocoptExit,
+                    GreedyEither, matching_paren, DocoptError, printable_usage,
+                    formal_usage
                    )
 from pytest import raises
 
@@ -81,6 +82,16 @@ def test_docopt():
     -v  Be verbose.'''
     assert docopt(doc, 'arg') == (Options(v=False), Arguments(a='arg'))
     assert docopt(doc, '-v arg') == (Options(v=True), Arguments(a='arg'))
+
+
+def test_any_option():
+    doc = '''Usage: prog [options] a
+
+    -q  Be quiet
+    -v  Be verbose.'''
+    assert docopt(doc, 'arg') == (Options(v=False, q=False), Arguments(a='arg'))
+    assert docopt(doc, '-v arg') == (Options(v=True, q=False), Arguments(a='arg'))
+    assert docopt(doc, '-q arg') == (Options(v=False, q=True), Arguments(a='arg'))
 
 
 def test_parse_doc_options():
@@ -271,6 +282,12 @@ def test_basic_pattern_matching():
                                 False, [Option('x'),
                                         Argument(None, 9),
                                         Argument(None, 5)], [])
+
+def test_pattern_any_option():
+    pattern = AnyOption()
+    assert pattern.match([Option('a')])
+    assert pattern.match([Option('b')])
+    assert pattern.match([Option('c', 'ccc')])
 
 
 def test_pattern_either():
