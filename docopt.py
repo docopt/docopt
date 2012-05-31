@@ -166,6 +166,12 @@ class Option(Pattern):
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
+class AnyOptions(Pattern):
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        left_ = [l for l in left if not type(l) == Option]
+        return (left != left_), left_, collected
 
 class Required(Pattern):
 
@@ -408,7 +414,10 @@ def pattern(source, options=None):
         elif source[0] == '[':
             matching = matching_paren(source)
             sub_parse = source[1:matching]
-            parsed += [Optional(*pattern(sub_parse, options=options).children)]
+            if " ".join(sub_parse).lower() == 'options':
+                parsed += [Optional(AnyOptions())]
+            else:
+                parsed += [Optional(*pattern(sub_parse, options=options).children)]
             source = source[matching + 1:]
         elif source[0] == '(':
             matching = matching_paren(source)
