@@ -1,8 +1,9 @@
 from __future__ import with_statement
 from docopt import (Option, docopt, parse, Argument, Either, split_either,
-                    Required, Optional, pattern, OneOrMore, parse_doc_options,
-                    option, Options, Arguments, DocoptExit, GreedyEither,
-                    matching_paren, DocoptError, printable_usage, formal_usage
+                    Required, Optional, AnyOptions, pattern, OneOrMore,
+                    parse_doc_options, option, Options, Arguments, DocoptExit,
+                    GreedyEither, matching_paren, DocoptError, printable_usage,
+                    formal_usage
                    )
 from pytest import raises
 
@@ -83,6 +84,16 @@ def test_docopt():
     assert docopt(doc, '-v arg') == (Options(v=True), Arguments(a='arg'))
 
 
+def test_any_options():
+    doc = '''Usage: prog [options] a
+
+    -q  Be quiet
+    -v  Be verbose.'''
+    assert docopt(doc, 'arg') == (Options(v=False, q=False), Arguments(a='arg'))
+    assert docopt(doc, '-v arg') == (Options(v=True, q=False), Arguments(a='arg'))
+    assert docopt(doc, '-q arg') == (Options(v=False, q=True), Arguments(a='arg'))
+
+
 def test_parse_doc_options():
     doc = '''-h, --help  Print help message.
     -o FILE     Output file.
@@ -152,6 +163,13 @@ def test_pattern():
     assert pattern('[ -h ] [N]', options=o) == \
                Required(Optional(Option('h', None, True)),
                         Optional(Argument('N')))
+    assert pattern('[options]') == Required(Optional(AnyOptions()))
+    assert pattern('[options] A', options=o) == Required(
+                Optional(AnyOptions()),
+                Argument('A'))
+    assert pattern('-v [options]', options=o) == Required(
+                Option('v', 'verbose', True),
+                Optional(AnyOptions()))
 
 
 def test_option_match():
@@ -272,6 +290,16 @@ def test_basic_pattern_matching():
                                         Argument(None, 9),
                                         Argument(None, 5)], [])
 
+def test_pattern_any_option():
+    pattern = AnyOptions()
+    assert pattern.match([Option('a')]) == (True, [], [])
+    assert pattern.match([Option('b')]) == (True, [], [])
+    assert pattern.match([Option('l', 'long')]) == (True, [], [])
+    assert pattern.match([Option(None, 'long')]) == (True, [], [])
+    assert pattern.match([Option('a'), Option('b')]) == (True, [], [])
+    assert pattern.match([Option('a'), Option(None, 'long')]) == (True, [], [])
+    assert not pattern.match([Argument('N')])[0]
+
 
 def test_pattern_either():
     assert Option('a').either == Either(Required(Option('a')))
@@ -363,3 +391,8 @@ def test_short_options_error_handling():
         docopt('Usage: prog -o\n\n-o ARG')
     with raises(DocoptExit):
         docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
+
+def test_empty_pattern():
+    # See https://github.com/halst/docopt/issues/9
+    doc = '''usage: prog'''
+    docopt(doc, '')

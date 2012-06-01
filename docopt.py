@@ -166,6 +166,12 @@ class Option(Pattern):
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
+class AnyOptions(Pattern):
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        left_ = [l for l in left if not type(l) == Option]
+        return (left != left_), left_, collected
 
 class Required(Pattern):
 
@@ -408,7 +414,10 @@ def pattern(source, options=None):
         elif source[0] == '[':
             matching = matching_paren(source)
             sub_parse = source[1:matching]
-            parsed += [Optional(*pattern(sub_parse, options=options).children)]
+            if " ".join(sub_parse).lower() == 'options':
+                parsed += [Optional(AnyOptions())]
+            else:
+                parsed += [Optional(*pattern(sub_parse, options=options).children)]
             source = source[matching + 1:]
         elif source[0] == '(':
             matching = matching_paren(source)
@@ -480,7 +489,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = pattern(formal_usage(DocoptExit.usage), options=options)
-    if type(formal_pattern.children[0]) is Either:
+    if formal_pattern.children and type(formal_pattern.children[0]) is Either:
         formal_pattern = GreedyEither(*formal_pattern.children[0].children)
     pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
     matched, left, collected = formal_pattern.fix().match(argv)
