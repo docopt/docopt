@@ -259,10 +259,10 @@ class TokenStream(object):
     def __iter__(self):
         return iter(self.i)
 
-    def pop(self, default=None):
+    def move(self, default=None):
         return self.i.pop(0) if len(self.i) else default
 
-    def peek(self, default=None):
+    def current(self, default=None):
         return self.i[0] if len(self.i) else default
 
 
@@ -287,12 +287,12 @@ def do_long(raw, options, tokens, is_pattern):
     opt = copy(opt[0])
     if not opt.is_flag:
         if value is None:
-            if tokens.peek() is None:
+            if tokens.current() is None:
                 if is_pattern:
                     raise DocoptError('--%s in "usage" requires argument' %
                                       opt.name)
                 raise DocoptExit('--%s requires argument' % opt.name)
-            value = tokens.pop()
+            value = tokens.move()
     elif value is not None:
         if is_pattern:
             raise DocoptError('--%s in "usage" must not have an argument' %
@@ -321,12 +321,12 @@ def do_shorts(raw, options, tokens, is_pattern):
             value = True
         else:
             if raw == '':
-                if tokens.peek() is None:
+                if tokens.current() is None:
                     if is_pattern:
                         raise DocoptError('-%s in "usage" requires argument' %
                                           opt.short[0])
                     raise DocoptExit('-%s requires argument' % opt.short[0])
-                raw = tokens.pop()
+                raw = tokens.move()
             value, raw = raw, ''
         opt.value = value
         parsed += [opt]
@@ -336,7 +336,7 @@ def parse_pattern(source, options):
     tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = TokenStream(tokens)
     result = parse_expr(tokens, options)
-    assert tokens.peek() is None
+    assert tokens.current() is None
     return Required(*result)
 
 
@@ -353,14 +353,14 @@ def parse_expr(tokens, options):
     """EXPR ::= SEQ ('|' SEQ)*"""
     seq = parse_seq(tokens, options)
 
-    if tokens.peek() != '|':
+    if tokens.current() != '|':
         return seq
 
     if len(seq) > 1:
         seq = [Required(*seq)]
     result = seq
-    while tokens.peek() is not None and tokens.peek() == '|':
-        tokens.pop()
+    while tokens.current() is not None and tokens.current() == '|':
+        tokens.move()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
 
@@ -373,13 +373,13 @@ def parse_seq(tokens, options):
     """SEQ ::= (ATOM ['...'])*"""
     result = []
     while True:
-        if tokens.peek() is None or tokens.peek() in [']', ')', '|']:
+        if tokens.current() is None or tokens.current() in [']', ')', '|']:
             break
 
         atom = parse_atom(tokens, options)
 
-        if tokens.peek() == '...':
-            tokens.pop()
+        if tokens.current() == '...':
+            tokens.move()
             atom, = atom
             atom = [OneOrMore(atom)]
 
@@ -393,21 +393,21 @@ def parse_atom(tokens, options):
         LONG | SHORTS (plural!) | ANYOPTIONS
         | ARG | '[' EXPR ']' | '(' EXPR ')'
     """
-    token = tokens.pop()
+    token = tokens.move()
     result = []
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
-        token = tokens.pop()
+        token = tokens.move()
         if token != ')':
             raise DocoptError("Unmatched '('")
         return result
     elif token == '[':
-        if tokens.peek() == 'options':
+        if tokens.current() == 'options':
             result = [Optional(AnyOptions())]
-            tokens.pop()
+            tokens.move()
         else:
             result = [Optional(*parse_expr(tokens, options))]
-        token = tokens.pop()
+        token = tokens.move()
         if token != ']':
             raise DocoptError("Unmatched '['")
         return result
@@ -427,8 +427,8 @@ def parse_args(source, options):
     tokens = TokenStream(source)
     options = copy(options)
     parsed = []
-    while tokens.peek() is not None:
-        token = tokens.pop()
+    while tokens.current() is not None:
+        token = tokens.move()
         if token == '--':
             parsed += [Argument(None, v) for v in tokens]
             break
