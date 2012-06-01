@@ -8,7 +8,13 @@ try:
 except NameError:
     # python 2.5 and earlier
     def next(obj, *arg):
-        return obj.next(*arg)
+        try:
+            return obj.next()
+        except StopIteration:
+            if len(arg):
+                return arg[0]
+            else:
+                raise
 
 
 class DocoptError(Exception):
