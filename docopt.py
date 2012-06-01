@@ -3,20 +3,6 @@ import sys
 import re
 
 
-try:
-    next
-except NameError:
-    # python 2.5 and earlier
-    def next(obj, *arg):
-        try:
-            return obj.next()
-        except StopIteration:
-            if len(arg):
-                return arg[0]
-            else:
-                raise
-
-
 class DocoptError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -265,38 +251,19 @@ def option(full_description):
     return Option(short, long, value)
 
 
-class ReversibleIterator(object):
+class TokenStream(object):
 
-    def __init__(self, iterator):
-        self.iterator = iterator
-        self.unnexted = []
+    def __init__(self, iterable):
+        self.i = iterable
 
     def __iter__(self):
-        return self
+        return iter(self.i)
 
-    def next(self, *args):
-        if self.unnexted:
-            return self.unnexted.pop()
-        return next(self.iterator, *args)
+    def pop(self, default=None):
+        return self.i.pop(0) if len(self.i) else default
 
-    def __next__(self, *args):
-        return self.next(*args)
-
-    def unnext(self, item):
-        self.unnexted.append(item)
-
-    def has_more(self):
-        try:
-            t = next(self)
-            self.unnext(t)
-            return True
-        except StopIteration:
-            return False
-
-    def ahead(self):
-        result = next(self)
-        self.unnext(result)
-        return result
+    def peek(self, default=None):
+        return self.i[0] if len(self.i) else default
 
 
 def do_long(raw, options, tokens, is_pattern):
@@ -320,12 +287,12 @@ def do_long(raw, options, tokens, is_pattern):
     opt = copy(opt[0])
     if not opt.is_flag:
         if value is None:
-            if not tokens.has_more():
+            if not tokens.peek():
                 if is_pattern:
                     raise DocoptError('--%s in "usage" requires argument' %
                                       opt.name)
                 raise DocoptExit('--%s requires argument' % opt.name)
-            value = next(tokens)
+            value = tokens.pop()
     elif value is not None:
         if is_pattern:
             raise DocoptError('--%s in "usage" must not have an argument' %
@@ -354,12 +321,12 @@ def do_shorts(raw, options, tokens, is_pattern):
             value = True
         else:
             if raw == '':
-                if not tokens.has_more():
+                if not tokens.peek():
                     if is_pattern:
                         raise DocoptError('-%s in "usage" requires argument' %
                                           opt.short[0])
                     raise DocoptExit('-%s requires argument' % opt.short[0])
-                raw = next(tokens)
+                raw = tokens.pop()
             value, raw = raw, ''
         opt.value = value
         parsed += [opt]
@@ -367,9 +334,9 @@ def do_shorts(raw, options, tokens, is_pattern):
 
 def parse_pattern(source, options):
     tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
-    tokens = ReversibleIterator(iter(tokens))
+    tokens = TokenStream(tokens)
     result = parse_expr(tokens, options)
-    assert not tokens.has_more()
+    assert not tokens.peek()
     return Required(*result)
 
 
@@ -386,14 +353,14 @@ def parse_expr(tokens, options):
     """EXPR ::= SEQ ('|' SEQ)*"""
     seq = parse_seq(tokens, options)
 
-    if not tokens.has_more() or tokens.ahead() != '|':
+    if not tokens.peek() or tokens.peek() != '|':
         return seq
 
     if len(seq) > 1:
         seq = [Required(*seq)]
     result = seq
-    while tokens.has_more() and tokens.ahead() == '|':
-        next(tokens)
+    while tokens.peek() and tokens.peek() == '|':
+        tokens.pop()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
 
@@ -406,13 +373,13 @@ def parse_seq(tokens, options):
     """SEQ ::= (ATOM ['...'])*"""
     result = []
     while True:
-        if not tokens.has_more() or tokens.ahead() in [']', ')', '|']:
+        if not tokens.peek() or tokens.peek() in [']', ')', '|']:
             break
 
         atom = parse_atom(tokens, options)
 
-        if tokens.has_more() and tokens.ahead() == '...':
-            next(tokens)
+        if tokens.peek() and tokens.peek() == '...':
+            tokens.pop()
             atom, = atom
             atom = [OneOrMore(atom)]
 
@@ -426,21 +393,21 @@ def parse_atom(tokens, options):
         LONG | SHORTS (plural!) | ANYOPTIONS
         | ARG | '[' EXPR ']' | '(' EXPR ')'
     """
-    token = next(tokens)
+    token = tokens.pop()
     result = []
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
-        token = next(tokens, 'EOF')
+        token = tokens.pop(default='EOF')
         if token != ')':
             raise DocoptError("Unmatched '('")
         return result
     elif token == '[':
-        if tokens.ahead().lower() == 'options':
+        if tokens.peek() == 'options':
             result = [Optional(AnyOptions())]
-            tokens.next()
+            tokens.pop()
         else:
             result = [Optional(*parse_expr(tokens, options))]
-        token = next(tokens, 'EOF')
+        token = tokens.pop(default='EOF')
         if token != ']':
             raise DocoptError("Unmatched '['")
         return result
@@ -457,11 +424,11 @@ def parse_atom(tokens, options):
 def parse_args(source, options):
     if type(source) is str:
         source = source.split()
-    tokens = ReversibleIterator(iter(source))
+    tokens = TokenStream(source)
     options = copy(options)
     parsed = []
-    while tokens.has_more():
-        token = next(tokens)
+    while tokens.peek():
+        token = tokens.pop()
         if token == '--':
             parsed += [Argument(None, v) for v in tokens]
             break
