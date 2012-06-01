@@ -287,7 +287,7 @@ def do_long(raw, options, tokens, is_pattern):
     opt = copy(opt[0])
     if not opt.is_flag:
         if value is None:
-            if not tokens.peek():
+            if tokens.peek() is None:
                 if is_pattern:
                     raise DocoptError('--%s in "usage" requires argument' %
                                       opt.name)
@@ -321,7 +321,7 @@ def do_shorts(raw, options, tokens, is_pattern):
             value = True
         else:
             if raw == '':
-                if not tokens.peek():
+                if tokens.peek() is None:
                     if is_pattern:
                         raise DocoptError('-%s in "usage" requires argument' %
                                           opt.short[0])
@@ -336,7 +336,7 @@ def parse_pattern(source, options):
     tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = TokenStream(tokens)
     result = parse_expr(tokens, options)
-    assert not tokens.peek()
+    assert tokens.peek() is None
     return Required(*result)
 
 
@@ -359,7 +359,7 @@ def parse_expr(tokens, options):
     if len(seq) > 1:
         seq = [Required(*seq)]
     result = seq
-    while tokens.peek() and tokens.peek() == '|':
+    while tokens.peek() is not None and tokens.peek() == '|':
         tokens.pop()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
@@ -373,7 +373,7 @@ def parse_seq(tokens, options):
     """SEQ ::= (ATOM ['...'])*"""
     result = []
     while True:
-        if not tokens.peek() or tokens.peek() in [']', ')', '|']:
+        if tokens.peek() is None or tokens.peek() in [']', ')', '|']:
             break
 
         atom = parse_atom(tokens, options)
@@ -397,7 +397,7 @@ def parse_atom(tokens, options):
     result = []
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
-        token = tokens.pop(default='EOF')
+        token = tokens.pop()
         if token != ')':
             raise DocoptError("Unmatched '('")
         return result
@@ -407,7 +407,7 @@ def parse_atom(tokens, options):
             tokens.pop()
         else:
             result = [Optional(*parse_expr(tokens, options))]
-        token = tokens.pop(default='EOF')
+        token = tokens.pop()
         if token != ']':
             raise DocoptError("Unmatched '['")
         return result
@@ -427,7 +427,7 @@ def parse_args(source, options):
     tokens = TokenStream(source)
     options = copy(options)
     parsed = []
-    while tokens.peek():
+    while tokens.peek() is not None:
         token = tokens.pop()
         if token == '--':
             parsed += [Argument(None, v) for v in tokens]
