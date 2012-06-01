@@ -265,6 +265,16 @@ Each pattern can consist of following elements:
   If you want to accept zero or more things, use brackets, e.g.:
   ``my_program.py [FILE ...]``. Ellipsis works as unary operator on
   expression to the left.
+- **Any options** shortcut ``[options]`` (case insensitive, so it could be
+  ``[OPTIONS]`` as well). You can use it if you want to specify that usage
+  pattern could be provided with any options defined below in
+  options-description section and do not want to enumerate them all in pattern.
+
+  .. note::
+    It is preferable that you use ``[options]`` shortcut only for command line
+    interfaces which allow huge number of options to appear in single usage
+    pattern, otherwise it's more advisable to enumerate allowed options pattern
+    to provide better user experience.
 
 If your usage-patterns allow to match same-named argument several times,
 parser will put matched values into a list, e.g. in case pattern is
