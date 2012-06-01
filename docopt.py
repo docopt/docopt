@@ -353,7 +353,7 @@ def parse_expr(tokens, options):
     """EXPR ::= SEQ ('|' SEQ)*"""
     seq = parse_seq(tokens, options)
 
-    if not tokens.peek() or tokens.peek() != '|':
+    if tokens.peek() != '|':
         return seq
 
     if len(seq) > 1:
@@ -378,7 +378,7 @@ def parse_seq(tokens, options):
 
         atom = parse_atom(tokens, options)
 
-        if tokens.peek() and tokens.peek() == '...':
+        if tokens.peek() == '...':
             tokens.pop()
             atom, = atom
             atom = [OneOrMore(atom)]
