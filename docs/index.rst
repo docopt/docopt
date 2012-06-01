@@ -265,8 +265,8 @@ Each pattern can consist of following elements:
   If you want to accept zero or more things, use brackets, e.g.:
   ``my_program.py [FILE ...]``. Ellipsis works as unary operator on
   expression to the left.
-- **Any options** shortcut ``[options]`` (case insensitive, so it could be
-  ``[OPTIONS]`` as well). You can use it if you want to specify that usage
+- **Any options** shortcut ``[options]`` (case sensitive).
+  You can use it if you want to specify that usage
   pattern could be provided with any options defined below in
   options-description section and do not want to enumerate them all in pattern.
 

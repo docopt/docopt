@@ -414,7 +414,7 @@ def pattern(source, options=None):
         elif source[0] == '[':
             matching = matching_paren(source)
             sub_parse = source[1:matching]
-            if " ".join(sub_parse).lower() == 'options':
+            if " ".join(sub_parse) == 'options':
                 parsed += [Optional(AnyOptions())]
             else:
                 parsed += [Optional(*pattern(sub_parse, options=options).children)]
