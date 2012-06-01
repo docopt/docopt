@@ -171,6 +171,12 @@ class Option(Pattern):
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
+class AnyOptions(Pattern):
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        left_ = [l for l in left if not type(l) == Option]
+        return (left != left_), left_, collected
 
 class Required(Pattern):
 
@@ -354,7 +360,6 @@ def do_shorts(raw, options, tokens, is_pattern):
         parsed += [opt]
     return parsed
 
-
 def parse_pattern(source, options):
     tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = ReversibleIterator(iter(tokens))
@@ -412,7 +417,10 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """ATOM ::= LONG | SHORTS (plural!) | ARG | '[' EXPR ']' | '(' EXPR ')'"""
+    """ATOM ::=
+        LONG | SHORTS (plural!) | ANYOPTIONS
+        | ARG | '[' EXPR ']' | '(' EXPR ')'
+    """
     token = next(tokens)
     result = []
     if token == '(':
@@ -422,7 +430,11 @@ def parse_atom(tokens, options):
             raise DocoptError("Unmatched '('")
         return result
     elif token == '[':
-        result = [Optional(*parse_expr(tokens, options))]
+        if tokens.ahead().lower() == 'options':
+            result = [Optional(AnyOptions())]
+            tokens.next()
+        else:
+            result = [Optional(*parse_expr(tokens, options))]
         token = next(tokens, 'EOF')
         if token != ']':
             raise DocoptError("Unmatched '['")
