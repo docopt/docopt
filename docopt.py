@@ -108,7 +108,6 @@ class Pattern(object):
                     groups.append(list(oneormore.children) * 2 + children)
                 else:
                     ret.append(children)
-            print(Either(*[Required(*e) for e in ret]))
             return Either(*[Required(*e) for e in ret])
 
 
