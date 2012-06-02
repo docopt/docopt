@@ -394,6 +394,11 @@ def test_short_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
 
-def test_empty_pattern():
-    # See https://github.com/halst/docopt/issues/9
-    docopt('usage: prog', '')
+
+def test_allow_double_underscore_in_pattern():
+    docopt('usage: prog [-o] [--] <arg>\n\n-o',
+           '-- -o') == {'-o': False, '<arg>': '-o'}
+
+
+def test_allow_empty_pattern():
+    docopt('usage: prog', '') == {}

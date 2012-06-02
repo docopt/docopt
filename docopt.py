@@ -423,7 +423,7 @@ def parse_atom(tokens, options):
             raise DocoptError("Unmatched '['")
         return result
     elif token == '--':
-        raise DocoptError("'--' in usage string is not supported")
+        return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
         return [parse_long(token[2:], options, tokens, is_pattern=True)]
     elif token.startswith('-'):
