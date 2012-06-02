@@ -181,12 +181,14 @@ class Option(Pattern):
     def __repr__(self):
         return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
 
+
 class AnyOptions(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         left_ = [l for l in left if not type(l) == Option]
         return (left != left_), left_, collected
+
 
 class Required(Pattern):
 
@@ -285,7 +287,7 @@ class TokenStream(object):
         return self.i[0] if len(self.i) else default
 
 
-def do_long(raw, options, tokens, is_pattern):
+def parse_long(raw, options, tokens, is_pattern):
     try:
         i = raw.index('=')
         raw, value = raw[:i], raw[i + 1:]
@@ -321,7 +323,7 @@ def do_long(raw, options, tokens, is_pattern):
     return opt
 
 
-def do_shorts(raw, options, tokens, is_pattern):
+def parse_shorts(raw, options, tokens, is_pattern):
     parsed = []
     while raw != '':
         opt = [o for o in options if o.short and o.short.startswith(raw[0])]
@@ -359,17 +361,8 @@ def parse_pattern(source, options):
     return Required(*result)
 
 
-# Usage string grammar:
-#   EXPR ::= SEQ ("|" SEQ)*
-#   SEQ  ::= (ATOM ["..."])*
-#   ATOM ::= LONG | SHORTS (plural!) | ARG | "[" EXPR "]" | "(" EXPR ")"
-#
-# Note [] behavior:
-#   [-a -b] is equivalent to [-a] [-b], not [(-a -b)]
-# This is why all these parse_ functions return lists.
-
 def parse_expr(tokens, options):
-    """EXPR ::= SEQ ('|' SEQ)*"""
+    """expr ::= seq , ( '|' seq )* ;"""
     seq = parse_seq(tokens, options)
 
     if tokens.current() != '|':
@@ -389,7 +382,7 @@ def parse_expr(tokens, options):
 
 
 def parse_seq(tokens, options):
-    """SEQ ::= (ATOM ['...'])*"""
+    """seq ::= ( seq [ '...' ] )* ;"""
     result = []
     while True:
         if tokens.current() is None or tokens.current() in [']', ')', '|']:
@@ -408,8 +401,8 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """ATOM ::= '(' EXPR ')' | '[' EXPR ']' | '[options]'
-              | LONG | SHORTS | ARGUMENT | COMMAND
+    """atom ::= '(' expr ')' | '[' expr ']' | '[options]'
+            | long | shorts | argument | command ;
     """
     token = tokens.move()
     result = []
@@ -432,9 +425,9 @@ def parse_atom(tokens, options):
     elif token == '--':
         raise DocoptError("'--' in usage string is not supported")
     elif token.startswith('--'):
-        return [do_long(token[2:], options, tokens, is_pattern=True)]
+        return [parse_long(token[2:], options, tokens, is_pattern=True)]
     elif token.startswith('-'):
-        return do_shorts(token[1:], options, tokens, is_pattern=True)
+        return parse_shorts(token[1:], options, tokens, is_pattern=True)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(token)]
     else:
@@ -453,9 +446,9 @@ def parse_args(source, options):
             parsed += [Argument(None, v) for v in tokens]
             break
         elif token.startswith('--'):
-            parsed += [do_long(token[2:], options, tokens, is_pattern=False)]
+            parsed += [parse_long(token[2:], options, tokens, is_pattern=False)]
         elif token.startswith('-') and token != '-':
-            parsed += do_shorts(token[1:], options, tokens, is_pattern=False)
+            parsed += parse_shorts(token[1:], options, tokens, is_pattern=False)
         else:
             parsed.append(Argument(None, token))
     return parsed
