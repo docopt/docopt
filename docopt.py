@@ -266,11 +266,16 @@ class TokenStream(object):
     def move(self, default=None):
         return self.s.pop(0) if len(self.s) else default
 
+    def unmove(self, token):
+        self.s = [token] + self.s
+        return self
+
     def current(self, default=None):
         return self.s[0] if len(self.s) else default
 
 
-def parse_long(raw, options, tokens, is_pattern):
+def parse_long(tokens, options, is_pattern):
+    raw = tokens.move()
     try:
         i = raw.index('=')
         raw, value = raw[:i], raw[i + 1:]
@@ -303,11 +308,11 @@ def parse_long(raw, options, tokens, is_pattern):
                              opt.name)
         raise DocoptExit('%s must not have an argument' % opt.name)
     opt.value = value or True
-    return opt
+    return [opt]
 
 
-def parse_shorts(raw, options, tokens, is_pattern):
-    raw = raw[1:]
+def parse_shorts(tokens, options, is_pattern):
+    raw = tokens.move()[1:]
     parsed = []
     while raw != '':
         opt = [o for o in options
@@ -377,7 +382,7 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """atom ::= '(' expr ')' | '[' expr ']' | '[options]'
+    """atom ::= '(' expr ')' | '[' expr ']' | '[options]' | '--'
             | long | shorts | argument | command ;
     """
     token = tokens.move()
@@ -399,9 +404,9 @@ def parse_atom(tokens, options):
     elif token == '--':
         return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
-        return [parse_long(token, options, tokens, is_pattern=True)]
+        return parse_long(tokens.unmove(token), options, is_pattern=True)
     elif token.startswith('-'):
-        return parse_shorts(token, options, tokens, is_pattern=True)
+        return parse_shorts(tokens.unmove(token), options, is_pattern=True)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(token)]
     else:
@@ -418,9 +423,9 @@ def parse_args(source, options):
             parsed += [Argument(None, v) for v in tokens]
             break
         elif token.startswith('--'):
-            parsed += [parse_long(token, options, tokens, is_pattern=False)]
+            parsed += parse_long(tokens.unmove(token), options, is_pattern=False)
         elif token.startswith('-') and token != '-':
-            parsed += parse_shorts(token, options, tokens, is_pattern=False)
+            parsed += parse_shorts(tokens.unmove(token), options, is_pattern=False)
         else:
             parsed.append(Argument(None, token))
     return parsed
