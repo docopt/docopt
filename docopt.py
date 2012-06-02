@@ -105,8 +105,8 @@ class Pattern(object):
 
 class Argument(Pattern):
 
-    def __init__(self, meta, value=None):
-        self.meta = meta
+    def __init__(self, name, value=None):
+        self.name = name
         self.value = value
 
     def match(self, left, collected=None):
@@ -116,25 +116,24 @@ class Argument(Pattern):
             return False, left, collected
         left.remove(args[0])
         if type(self.value) is not list:
-            return True, left, collected + [Argument(self.meta, args[0].value)]
-        same_meta = [a for a in collected
-                     if type(a) is Argument and a.meta == self.meta]
-        if len(same_meta):
-            same_meta[0].value += [args[0].value]
+            return True, left, collected + [Argument(self.name, args[0].value)]
+        same_name = [a for a in collected
+                     if type(a) is Argument and a.name == self.name]
+        if len(same_name):
+            same_name[0].value += [args[0].value]
             return True, left, collected
         else:
-            return True, left, collected + [Argument(self.meta,
+            return True, left, collected + [Argument(self.name,
                                                      [args[0].value])]
 
     def __repr__(self):
-        return 'Argument(%r, %r)' % (self.meta, self.value)
+        return 'Argument(%r, %r)' % (self.name, self.value)
 
 
 class Command(Pattern):
 
     def __init__(self, name, value=False):
         self.name = name
-        self.meta = name  # XXX HACK
         self.value = value
 
     def match(self, left, collected=None):
@@ -376,7 +375,7 @@ def parse_seq(tokens, options):
     """seq ::= ( seq [ '...' ] )* ;"""
     result = []
     while True:
-        if tokens.current() is None or tokens.current() in [']', ')', '|']:
+        if tokens.current() in [None, ']', ')', '|']:
             break
 
         atom = parse_atom(tokens, options)
@@ -477,17 +476,16 @@ class Dict(dict):
 
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
-    DocoptExit.usage = docopt.usage = printable_usage(doc)
-    options = parse_doc_options(doc)
-    argv = parse_args(argv, options=options)
-    overlapped = options + [o for o in argv if type(o) is Option]
-    extras(help, version, overlapped, doc)
-    formal_pattern = parse_pattern(formal_usage(docopt.usage), options=options)
+    DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
+    pot_options = parse_doc_options(doc)
+    argv = parse_args(argv, options=pot_options)
+    options = [o for o in argv if type(o) is Option]
+    extras(help, version, options, doc)
+    formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
     pot_arguments = [a for a in formal_pattern.flat
-                     if type(a) is Argument or type(a) is Command]
-    matched, left, collected = formal_pattern.fix().match(argv)
+                     if type(a) in [Argument, Command]]
+    matched, left, arguments = formal_pattern.fix().match(argv)
     if matched and left == []:  # better message if left?
-        return Dict(list(dict((o.name, o.value) for o in overlapped).items()) +
-                    list(dict((a.meta, a.value) for a in
-                              pot_arguments + collected).items()))
+        return Dict((a.name, a.value) for a in
+                    (pot_options + options + pot_arguments + arguments))
     raise DocoptExit()
