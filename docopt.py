@@ -140,7 +140,7 @@ class Command(Pattern):
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         args = [l for l in left if type(l) is Argument]
-        if not len(args):
+        if not len(args) or args[0].value != self.name:
             return False, left, collected
         left.remove(args[0])
         return True, left, collected + [Command(self.name, True)]

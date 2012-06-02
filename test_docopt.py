@@ -72,8 +72,12 @@ def test_any_options():
 def test_commands():
     assert docopt('Usage: prog add', 'add') == {'add': True}
     assert docopt('Usage: prog [add]', '') == {'add': False}
+    assert docopt('Usage: prog [add]', 'add') == {'add': True}
     assert docopt('Usage: prog (add|rm)', 'add') == {'add': True, 'rm': False}
     assert docopt('Usage: prog (add|rm)', 'rm') == {'add': False, 'rm': True}
+    assert docopt('Usage: prog a b', 'a b') == {'a': True, 'b': True}
+    with raises(DocoptExit):
+        assert docopt('Usage: prog a b', 'b a')
 
 
 def test_parse_doc_options():
@@ -189,6 +193,8 @@ def test_command_match():
     assert Command('c').match([Option('x'), Option('a'),
                                Argument(None, 'c')]) == (
             True, [Option('x'), Option('a')], [Command('c', True)])
+    assert Either(Command('add', False), Command('rm', False)).match(
+            [Argument(None, 'rm')]) == (True, [], [Command('rm', True)])
 
 
 def test_brackets_match():
