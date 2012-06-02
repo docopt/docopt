@@ -3,7 +3,7 @@ import sys
 import re
 
 
-class DocoptError(Exception):
+class UsageMessageError(Exception):
 
     """Error in construction of usage-message by developer."""
 
@@ -284,12 +284,12 @@ def parse_long(tokens, options, is_pattern):
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         if is_pattern:
-            raise DocoptError('%s in "usage" should be '
+            raise UsageMessageError('%s in "usage" should be '
                               'mentioned in option-description' % raw)
         raise DocoptExit('%s is not recognized' % raw)
     if len(opt) > 1:
         if is_pattern:
-            raise DocoptError('%s in "usage" is not a unique prefix: %s?' %
+            raise UsageMessageError('%s in "usage" is not a unique prefix: %s?' %
                               (raw, ', '.join('%s' % o.long for o in opt)))
         raise DocoptExit('%s is not a unique prefix: %s?' %
                          (raw, ', '.join('%s' % o.long for o in opt)))
@@ -298,13 +298,13 @@ def parse_long(tokens, options, is_pattern):
         if value is None:
             if tokens.current() is None:
                 if is_pattern:
-                    raise DocoptError('%s in "usage" requires argument' %
+                    raise UsageMessageError('%s in "usage" requires argument' %
                                       opt.name)
                 raise DocoptExit('%s requires argument' % opt.name)
             value = tokens.move()
     elif value is not None:
         if is_pattern:
-            raise DocoptError('%s in "usage" must not have an argument' %
+            raise UsageMessageError('%s in "usage" must not have an argument' %
                              opt.name)
         raise DocoptExit('%s must not have an argument' % opt.name)
     opt.value = value or True
@@ -318,11 +318,11 @@ def parse_shorts(tokens, options, is_pattern):
         opt = [o for o in options
                if o.short and o.short.lstrip('-').startswith(raw[0])]
         if len(opt) > 1:
-            raise DocoptError('-%s is specified ambiguously %d times' %
+            raise UsageMessageError('-%s is specified ambiguously %d times' %
                               (raw[0], len(opt)))
         if len(opt) < 1:
             if is_pattern:
-                raise DocoptError('-%s in "usage" should be mentioned '
+                raise UsageMessageError('-%s in "usage" should be mentioned '
                                   'in option-description' % raw[0])
             raise DocoptExit('-%s is not recognized' % raw[0])
         assert len(opt) == 1
@@ -334,7 +334,7 @@ def parse_shorts(tokens, options, is_pattern):
             if raw == '':
                 if tokens.current() is None:
                     if is_pattern:
-                        raise DocoptError('-%s in "usage" requires argument' %
+                        raise UsageMessageError('-%s in "usage" requires argument' %
                                           opt.short[0])
                     raise DocoptExit('-%s requires argument' % opt.short[0])
                 raw = tokens.move()
@@ -390,7 +390,7 @@ def parse_atom(tokens, options):
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
         if tokens.move() != ')':
-            raise DocoptError("Unmatched '('")
+            raise UsageMessageError("Unmatched '('")
         return result
     elif token == '[':
         if tokens.current() == 'options':
@@ -399,7 +399,7 @@ def parse_atom(tokens, options):
         else:
             result = [Optional(*parse_expr(tokens, options))]
         if tokens.move() != ']':
-            raise DocoptError("Unmatched '['")
+            raise UsageMessageError("Unmatched '['")
         return result
     elif token == '--':
         return []  # allow "usage: prog [-o] [--] <arg>"

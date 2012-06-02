@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from docopt import (docopt, DocoptExit, DocoptError,
+from docopt import (docopt, DocoptExit, UsageMessageError,
                     Option, Argument, Command,
                     Required, Optional, Either, OneOrMore, AnyOptions,
                     parse_args, parse_pattern,
@@ -360,35 +360,35 @@ def test_pattern_fix_identities_2():
 
 
 def test_long_options_error_handling():
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog --non-existent')
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog --ver\n\n--version\n--verbose')
     with raises(DocoptExit):
         docopt('''Usage: prog [--version --verbose]\n\n
                   --version\n--verbose''', '--ver')
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog --long\n\n--long ARG')
     with raises(DocoptExit):
         docopt('Usage: prog --long ARG\n\n--long ARG', '--long')
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog --long=ARG\n\n--long')
     with raises(DocoptExit):
         docopt('Usage: prog --long\n\n--long', '--long=ARG')
 
 
 def test_short_options_error_handling():
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog -x\n\n-x  this\n-x  that')
 
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog -x')
     with raises(DocoptExit):
         docopt('Usage: prog', '-x')
 
-    with raises(DocoptError):
+    with raises(UsageMessageError):
         docopt('Usage: prog -o\n\n-o ARG')
     with raises(DocoptExit):
         docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
