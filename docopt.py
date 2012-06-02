@@ -151,10 +151,10 @@ class Command(Pattern):
 
 class Option(Pattern):
 
-    def __init__(self, short=None, long=None, value=False, parse=None):
-        self.short = short
-        self.long = long
-        self.value = value
+    def __init__(self, short=None, long=None, argcount=0, value=False):
+        assert argcount in (0, 1)
+        self.short, self.long = short, long
+        self.argcount, self.value = argcount, value
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -167,19 +167,12 @@ class Option(Pattern):
         return (left != left_), left_, collected
 
     @property
-    def is_flag(self):
-        if self.short:
-            return not self.short.endswith(':')
-        if self.long:
-            return not self.long.endswith('=')
-
-    @property
     def name(self):
-        return ('--' + self.long.rstrip('=') if self.long
-                else '-' + self.short.rstrip(':'))
+        return self.long or self.short
 
     def __repr__(self):
-        return 'Option(%r, %r, %r)' % (self.short, self.long, self.value)
+        return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
+                                           self.argcount, self.value)
 
 
 class AnyOptions(Pattern):
@@ -253,23 +246,20 @@ class Either(Pattern):
 
 
 def option(full_description):
-    is_flag = True
-    short, long, value = None, None, False
+    short, long, argcount, value = None, None, 0, False
     options, _, description = full_description.strip().partition('  ')
     options = options.replace(',', ' ').replace('=', ' ')
     for s in options.split():
         if s.startswith('--'):
-            long = s.lstrip('-')
+            long = s
         elif s.startswith('-'):
-            short = s.lstrip('-')
+            short = s
         else:
-            is_flag = False
-    if not is_flag:
+            argcount = 1
+    if argcount:
         matched = re.findall('\[default: (.*)\]', description, flags=re.I)
         value = matched[0] if matched else False
-        short = short + ':' if short else None
-        long = long + '=' if long else None
-    return Option(short, long, value)
+    return Option(short, long, argcount, value)
 
 
 class TokenStream(object):
@@ -293,7 +283,7 @@ def parse_long(raw, options, tokens, is_pattern):
         raw, value = raw[:i], raw[i + 1:]
     except ValueError:
         value = None
-    opt = [o for o in options if o.long and o.long.startswith(raw)]
+    opt = [o for o in options if o.long and o.long.lstrip('-').startswith(raw)]
     if len(opt) < 1:
         if is_pattern:
             raise DocoptError('--%s in "usage" should be '
@@ -306,7 +296,7 @@ def parse_long(raw, options, tokens, is_pattern):
         raise DocoptExit('--%s is not a unique prefix: %s?' %
                          (raw, ', '.join('--%s' % o.long for o in opt)))
     opt = copy(opt[0])
-    if not opt.is_flag:
+    if opt.argcount == 1:
         if value is None:
             if tokens.current() is None:
                 if is_pattern:
@@ -326,7 +316,8 @@ def parse_long(raw, options, tokens, is_pattern):
 def parse_shorts(raw, options, tokens, is_pattern):
     parsed = []
     while raw != '':
-        opt = [o for o in options if o.short and o.short.startswith(raw[0])]
+        opt = [o for o in options
+               if o.short and o.short.lstrip('-').startswith(raw[0])]
         if len(opt) > 1:
             raise DocoptError('-%s is specified ambiguously %d times' %
                               (raw[0], len(opt)))
@@ -338,7 +329,7 @@ def parse_shorts(raw, options, tokens, is_pattern):
         assert len(opt) == 1
         opt = copy(opt[0])
         raw = raw[1:]
-        if opt.is_flag:
+        if opt.argcount == 0:
             value = True
         else:
             if raw == '':
@@ -471,11 +462,11 @@ def formal_usage(printable_usage):
 
 
 def extras(help, version, options, doc):
-    if help and any((o.short == 'h' or o.long == 'help') and o.value
+    if help and any((o.short == '-h' or o.long == '--help') and o.value
                     for o in options):
         print(doc.strip())
         exit()
-    if version and any(o.long == 'version' and o.value for o in options):
+    if version and any(o.long == '--version' and o.value for o in options):
         print(version)
         exit()
 
