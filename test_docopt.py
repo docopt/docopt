@@ -1,8 +1,9 @@
 from __future__ import with_statement
-from docopt import (Option, docopt, parse_args, Argument, Either, Required,
-                    Optional, AnyOptions, parse_pattern, OneOrMore,
-                    parse_doc_options, option, DocoptExit, DocoptError,
-                    printable_usage, formal_usage, Command
+from docopt import (docopt, DocoptExit, DocoptError,
+                    Option, Argument, Command,
+                    Required, Optional, Either, OneOrMore, AnyOptions,
+                    parse_args, parse_pattern,
+                    parse_doc_options, option, printable_usage, formal_usage
                    )
 from pytest import raises
 
