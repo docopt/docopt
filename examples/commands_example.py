@@ -4,6 +4,7 @@ Usage:
   commands_example.py ship move (up|down|left|right) [--fast]
   commands_example.py ship shoot <x> <y>
   commands_example.py mine (set|remove) <x> <y>
+  commands_example.py (-h | --help)
 
 Options:
   -h --help  Show help screen.
