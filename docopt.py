@@ -276,37 +276,38 @@ def parse_long(raw, options, tokens, is_pattern):
         raw, value = raw[:i], raw[i + 1:]
     except ValueError:
         value = None
-    opt = [o for o in options if o.long and o.long.lstrip('-').startswith(raw)]
+    opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         if is_pattern:
-            raise DocoptError('--%s in "usage" should be '
+            raise DocoptError('%s in "usage" should be '
                               'mentioned in option-description' % raw)
-        raise DocoptExit('--%s is not recognized' % raw)
+        raise DocoptExit('%s is not recognized' % raw)
     if len(opt) > 1:
         if is_pattern:
-            raise DocoptError('--%s in "usage" is not a unique prefix: %s?' %
-                              (raw, ', '.join('--%s' % o.long for o in opt)))
-        raise DocoptExit('--%s is not a unique prefix: %s?' %
-                         (raw, ', '.join('--%s' % o.long for o in opt)))
+            raise DocoptError('%s in "usage" is not a unique prefix: %s?' %
+                              (raw, ', '.join('%s' % o.long for o in opt)))
+        raise DocoptExit('%s is not a unique prefix: %s?' %
+                         (raw, ', '.join('%s' % o.long for o in opt)))
     opt = copy(opt[0])
     if opt.argcount == 1:
         if value is None:
             if tokens.current() is None:
                 if is_pattern:
-                    raise DocoptError('--%s in "usage" requires argument' %
+                    raise DocoptError('%s in "usage" requires argument' %
                                       opt.name)
-                raise DocoptExit('--%s requires argument' % opt.name)
+                raise DocoptExit('%s requires argument' % opt.name)
             value = tokens.move()
     elif value is not None:
         if is_pattern:
-            raise DocoptError('--%s in "usage" must not have an argument' %
+            raise DocoptError('%s in "usage" must not have an argument' %
                              opt.name)
-        raise DocoptExit('--%s must not have an argument' % opt.name)
+        raise DocoptExit('%s must not have an argument' % opt.name)
     opt.value = value or True
     return opt
 
 
 def parse_shorts(raw, options, tokens, is_pattern):
+    raw = raw[1:]
     parsed = []
     while raw != '':
         opt = [o for o in options
@@ -398,9 +399,9 @@ def parse_atom(tokens, options):
     elif token == '--':
         return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
-        return [parse_long(token[2:], options, tokens, is_pattern=True)]
+        return [parse_long(token, options, tokens, is_pattern=True)]
     elif token.startswith('-'):
-        return parse_shorts(token[1:], options, tokens, is_pattern=True)
+        return parse_shorts(token, options, tokens, is_pattern=True)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(token)]
     else:
@@ -417,9 +418,9 @@ def parse_args(source, options):
             parsed += [Argument(None, v) for v in tokens]
             break
         elif token.startswith('--'):
-            parsed += [parse_long(token[2:], options, tokens, is_pattern=False)]
+            parsed += [parse_long(token, options, tokens, is_pattern=False)]
         elif token.startswith('-') and token != '-':
-            parsed += parse_shorts(token[1:], options, tokens, is_pattern=False)
+            parsed += parse_shorts(token, options, tokens, is_pattern=False)
         else:
             parsed.append(Argument(None, token))
     return parsed
