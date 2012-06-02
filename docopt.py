@@ -343,6 +343,7 @@ def parse_shorts(raw, options, tokens, is_pattern):
         parsed += [opt]
     return parsed
 
+
 def parse_pattern(source, options):
     tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
     tokens = TokenStream(tokens)
@@ -361,32 +362,23 @@ def parse_expr(tokens, options):
     if len(seq) > 1:
         seq = [Required(*seq)]
     result = seq
-    while tokens.current() is not None and tokens.current() == '|':
+    while tokens.current() == '|':
         tokens.move()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
 
-    if len(result) == 1:
-        return result
-    return [Either(*result)]
+    return result if len(result) == 1 else [Either(*result)]
 
 
 def parse_seq(tokens, options):
-    """seq ::= ( seq [ '...' ] )* ;"""
+    """seq ::= ( atom [ '...' ] )* ;"""
     result = []
-    while True:
-        if tokens.current() in [None, ']', ')', '|']:
-            break
-
+    while tokens.current() not in [None, ']', ')', '|']:
         atom = parse_atom(tokens, options)
-
         if tokens.current() == '...':
+            atom = [OneOrMore(*atom)]
             tokens.move()
-            atom, = atom
-            atom = [OneOrMore(atom)]
-
         result += atom
-
     return result
 
 
@@ -398,8 +390,7 @@ def parse_atom(tokens, options):
     result = []
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
-        token = tokens.move()
-        if token != ')':
+        if tokens.move() != ')':
             raise DocoptError("Unmatched '('")
         return result
     elif token == '[':
@@ -408,8 +399,7 @@ def parse_atom(tokens, options):
             tokens.move()
         else:
             result = [Optional(*parse_expr(tokens, options))]
-        token = tokens.move()
-        if token != ']':
+        if tokens.move() != ']':
             raise DocoptError("Unmatched '['")
         return result
     elif token == '--':
@@ -456,8 +446,7 @@ def printable_usage(doc):
 
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
-    prog = pu[0]
-    return ' '.join('|' if s == prog else s for s in pu[1:])
+    return ' '.join('|' if s == pu[0] else s for s in pu[1:])
 
 
 def extras(help, version, options, doc):
