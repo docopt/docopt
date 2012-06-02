@@ -2,7 +2,7 @@ from __future__ import with_statement
 from docopt import (Option, docopt, parse_args, Argument, Either, Required,
                     Optional, AnyOptions, parse_pattern, OneOrMore,
                     parse_doc_options, option, DocoptExit, DocoptError,
-                    printable_usage, formal_usage
+                    printable_usage, formal_usage, Command
                    )
 from pytest import raises
 
@@ -60,13 +60,20 @@ def test_docopt():
 
 
 def test_any_options():
-    doc = '''Usage: prog [options] a
+    doc = '''Usage: prog [options] A
 
     -q  Be quiet
     -v  Be verbose.'''
-    assert docopt(doc, 'arg') == {'a': 'arg', '-v': False, '-q': False}
-    assert docopt(doc, '-v arg') == {'a': 'arg', '-v': True, '-q': False}
-    assert docopt(doc, '-q arg') == {'a': 'arg', '-v': False, '-q': True}
+    assert docopt(doc, 'arg') == {'A': 'arg', '-v': False, '-q': False}
+    assert docopt(doc, '-v arg') == {'A': 'arg', '-v': True, '-q': False}
+    assert docopt(doc, '-q arg') == {'A': 'arg', '-v': False, '-q': True}
+
+
+def test_commands():
+    assert docopt('Usage: prog add', 'add') == {'add': True}
+    assert docopt('Usage: prog [add]', '') == {'add': False}
+    assert docopt('Usage: prog (add|rm)', 'add') == {'add': True, 'rm': False}
+    assert docopt('Usage: prog (add|rm)', 'rm') == {'add': False, 'rm': True}
 
 
 def test_parse_doc_options():
@@ -150,6 +157,10 @@ def test_pattern():
                 Option('v', 'verbose', True),
                 Optional(AnyOptions()))
 
+    assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
+    assert parse_pattern('<add>', options=o) == Required(Argument('<add>'))
+    assert parse_pattern('add', options=o) == Required(Command('add'))
+
 
 def test_option_match():
     assert Option('a').match([Option('a')]) == (True, [], [])
@@ -169,6 +180,15 @@ def test_argument_match():
             == (True, [Option('x'), Option('a')], [Argument('N', 5)])
     assert Argument('N').match([Argument(None, 9), Argument(None, 0)]) == (
             True, [Argument(None, 0)], [Argument('N', 9)])
+
+
+def test_command_match():
+    assert Command('c').match([Argument(None, 'c')]) == (
+            True, [], [Command('c', True)])
+    assert Command('c').match([Option('x')]) == (False, [Option('x')], [])
+    assert Command('c').match([Option('x'), Option('a'),
+                               Argument(None, 'c')]) == (
+            True, [Option('x'), Option('a')], [Command('c', True)])
 
 
 def test_brackets_match():

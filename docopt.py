@@ -130,6 +130,25 @@ class Argument(Pattern):
         return 'Argument(%r, %r)' % (self.meta, self.value)
 
 
+class Command(Pattern):
+
+    def __init__(self, name, value=False):
+        self.name = name
+        self.meta = name  # XXX HACK
+        self.value = value
+
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        args = [l for l in left if type(l) is Argument]
+        if not len(args):
+            return False, left, collected
+        left.remove(args[0])
+        return True, left, collected + [Command(self.name, True)]
+
+    def __repr__(self):
+        return 'Command(%r, %r)' % (self.name, self.value)
+
+
 class Option(Pattern):
 
     def __init__(self, short=None, long=None, value=False, parse=None):
@@ -389,9 +408,8 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """ATOM ::=
-        LONG | SHORTS (plural!) | ANYOPTIONS
-        | ARG | '[' EXPR ']' | '(' EXPR ')'
+    """ATOM ::= '(' EXPR ')' | '[' EXPR ']' | '[options]'
+              | LONG | SHORTS | ARGUMENT | COMMAND
     """
     token = tokens.move()
     result = []
@@ -417,8 +435,10 @@ def parse_atom(tokens, options):
         return [do_long(token[2:], options, tokens, is_pattern=True)]
     elif token.startswith('-'):
         return do_shorts(token[1:], options, tokens, is_pattern=True)
-    else:
+    elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(token)]
+    else:
+        return [Command(token)]
 
 
 def parse_args(source, options):
@@ -479,7 +499,8 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     overlapped = options + [o for o in argv if type(o) is Option]
     extras(help, version, overlapped, doc)
     formal_pattern = parse_pattern(formal_usage(docopt.usage), options=options)
-    pot_arguments = [a for a in formal_pattern.flat if type(a) is Argument]
+    pot_arguments = [a for a in formal_pattern.flat
+                     if type(a) is Argument or type(a) is Command]
     matched, left, collected = formal_pattern.fix().match(argv)
     if matched and left == []:  # better message if left?
         return Dict(list(dict((o.name, o.value) for o in overlapped).items()) +
