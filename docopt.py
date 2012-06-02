@@ -257,8 +257,11 @@ def option(full_description):
 
 class TokenStream(object):
 
-    def __init__(self, source):
+    error = None
+
+    def __init__(self, source, error):
         self.s = source.split() if type(source) is str else source
+        self.error = error
 
     def __iter__(self):
         return iter(self.s)
@@ -274,7 +277,7 @@ class TokenStream(object):
         return self.s[0] if len(self.s) else default
 
 
-def parse_long(tokens, options, is_pattern):
+def parse_long(tokens, options):
     raw = tokens.move()
     try:
         i = raw.index('=')
@@ -283,48 +286,33 @@ def parse_long(tokens, options, is_pattern):
         value = None
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-        if is_pattern:
-            raise UsageMessageError('%s in "usage" should be '
-                              'mentioned in option-description' % raw)
-        raise DocoptExit('%s is not recognized' % raw)
+        raise tokens.error('%s is not recognized' % raw)
     if len(opt) > 1:
-        if is_pattern:
-            raise UsageMessageError('%s in "usage" is not a unique prefix: %s?' %
-                              (raw, ', '.join('%s' % o.long for o in opt)))
-        raise DocoptExit('%s is not a unique prefix: %s?' %
+        raise tokens.error('%s is not a unique prefix: %s?' %
                          (raw, ', '.join('%s' % o.long for o in opt)))
     opt = copy(opt[0])
     if opt.argcount == 1:
         if value is None:
             if tokens.current() is None:
-                if is_pattern:
-                    raise UsageMessageError('%s in "usage" requires argument' %
-                                      opt.name)
-                raise DocoptExit('%s requires argument' % opt.name)
+                raise tokens.error('%s requires argument' % opt.name)
             value = tokens.move()
     elif value is not None:
-        if is_pattern:
-            raise UsageMessageError('%s in "usage" must not have an argument' %
-                             opt.name)
-        raise DocoptExit('%s must not have an argument' % opt.name)
+        raise tokens.error('%s must not have an argument' % opt.name)
     opt.value = value or True
     return [opt]
 
 
-def parse_shorts(tokens, options, is_pattern):
+def parse_shorts(tokens, options):
     raw = tokens.move()[1:]
     parsed = []
     while raw != '':
         opt = [o for o in options
                if o.short and o.short.lstrip('-').startswith(raw[0])]
         if len(opt) > 1:
-            raise UsageMessageError('-%s is specified ambiguously %d times' %
+            raise tokens.error('-%s is specified ambiguously %d times' %
                               (raw[0], len(opt)))
         if len(opt) < 1:
-            if is_pattern:
-                raise UsageMessageError('-%s in "usage" should be mentioned '
-                                  'in option-description' % raw[0])
-            raise DocoptExit('-%s is not recognized' % raw[0])
+            raise tokens.error('-%s is not recognized' % raw[0])
         assert len(opt) == 1
         opt = copy(opt[0])
         raw = raw[1:]
@@ -333,10 +321,7 @@ def parse_shorts(tokens, options, is_pattern):
         else:
             if raw == '':
                 if tokens.current() is None:
-                    if is_pattern:
-                        raise UsageMessageError('-%s in "usage" requires argument' %
-                                          opt.short[0])
-                    raise DocoptExit('-%s requires argument' % opt.short[0])
+                    raise tokens.error('-%s requires argument' % opt.short[0])
                 raw = tokens.move()
             value, raw = raw, ''
         opt.value = value
@@ -345,7 +330,8 @@ def parse_shorts(tokens, options, is_pattern):
 
 
 def parse_pattern(source, options):
-    tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source))
+    tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
+                         UsageMessageError)
     result = parse_expr(tokens, options)
     assert tokens.current() is None
     return Required(*result)
@@ -390,7 +376,7 @@ def parse_atom(tokens, options):
     if token == '(':
         result = [Required(*parse_expr(tokens, options))]
         if tokens.move() != ')':
-            raise UsageMessageError("Unmatched '('")
+            raise tokens.error("Unmatched '('")
         return result
     elif token == '[':
         if tokens.current() == 'options':
@@ -399,14 +385,14 @@ def parse_atom(tokens, options):
         else:
             result = [Optional(*parse_expr(tokens, options))]
         if tokens.move() != ']':
-            raise UsageMessageError("Unmatched '['")
+            raise tokens.error("Unmatched '['")
         return result
     elif token == '--':
         return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
-        return parse_long(tokens.unmove(token), options, is_pattern=True)
+        return parse_long(tokens.unmove(token), options)
     elif token.startswith('-'):
-        return parse_shorts(tokens.unmove(token), options, is_pattern=True)
+        return parse_shorts(tokens.unmove(token), options)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(token)]
     else:
@@ -414,7 +400,7 @@ def parse_atom(tokens, options):
 
 
 def parse_args(source, options):
-    tokens = TokenStream(source)
+    tokens = TokenStream(source, DocoptExit)
     options = copy(options)
     parsed = []
     while tokens.current() is not None:
@@ -423,9 +409,9 @@ def parse_args(source, options):
             parsed += [Argument(None, v) for v in tokens]
             break
         elif token.startswith('--'):
-            parsed += parse_long(tokens.unmove(token), options, is_pattern=False)
+            parsed += parse_long(tokens.unmove(token), options)
         elif token.startswith('-') and token != '-':
-            parsed += parse_shorts(tokens.unmove(token), options, is_pattern=False)
+            parsed += parse_shorts(tokens.unmove(token), options)
         else:
             parsed.append(Argument(None, token))
     return parsed
