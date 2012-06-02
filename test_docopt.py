@@ -286,7 +286,7 @@ def test_pattern_any_option():
 
 def test_pattern_either():
     assert Option('a').either == Either(Required(Option('a')))
-    assert Argument('a').either == Either(Required(Argument('a')))
+    assert Argument('A').either == Either(Required(Argument('A')))
     assert Required(Either(Option('a'), Option('b')), Option('c')).either == \
             Either(Required(Option('a'), Option('c')),
                    Required(Option('b'), Option('c')))
@@ -297,16 +297,16 @@ def test_pattern_either():
             Either(Required(Option('x')),
                    Required(Option('y')),
                    Required(Option('z')))
-    assert OneOrMore(Argument('n'), Argument('m')).either == \
-            Either(Required(Argument('n'), Argument('m'),
-                            Argument('n'), Argument('m')))
+    assert OneOrMore(Argument('N'), Argument('M')).either == \
+            Either(Required(Argument('N'), Argument('M'),
+                            Argument('N'), Argument('M')))
 
 
 def test_pattern_fix_list_arguments():
     assert Option('a').fix_list_arguments() == Option('a')
-    assert Argument('n', None).fix_list_arguments() == Argument('n', None)
-    assert Required(Argument('n'), Argument('n')).fix_list_arguments() == \
-            Required(Argument('n', []), Argument('n', []))
+    assert Argument('N', None).fix_list_arguments() == Argument('N', None)
+    assert Required(Argument('N'), Argument('N')).fix_list_arguments() == \
+            Required(Argument('N', []), Argument('N', []))
     assert Either(Argument('N'),
                         OneOrMore(Argument('N'))).fix() == \
            Either(Argument('N', []),
@@ -314,12 +314,12 @@ def test_pattern_fix_list_arguments():
 
 
 def test_set():
-    assert Argument('n') == Argument('n')
-    assert set([Argument('n'), Argument('n')]) == set([Argument('n')])
+    assert Argument('N') == Argument('N')
+    assert set([Argument('N'), Argument('N')]) == set([Argument('N')])
 
 
 def test_pattern_fix_identities_1():
-    pattern = Required(Argument('n'), Argument('n'))
+    pattern = Required(Argument('N'), Argument('N'))
     assert pattern.children[0] == pattern.children[1]
     assert pattern.children[0] is not pattern.children[1]
     pattern.fix_identities()
@@ -327,7 +327,7 @@ def test_pattern_fix_identities_1():
 
 
 def test_pattern_fix_identities_2():
-    pattern = Required(Optional(Argument('x'), Argument('n')), Argument('n'))
+    pattern = Required(Optional(Argument('X'), Argument('N')), Argument('N'))
     assert pattern.children[0].children[1] == pattern.children[1]
     assert pattern.children[0].children[1] is not pattern.children[1]
     pattern.fix_identities()
@@ -349,9 +349,9 @@ def test_long_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog --long ARG\n\n--long ARG', '--long')
     with raises(DocoptError):
-        docopt('Usage: prog --long=arg\n\n--long')
+        docopt('Usage: prog --long=ARG\n\n--long')
     with raises(DocoptExit):
-        docopt('Usage: prog --long\n\n--long', '--long=arg')
+        docopt('Usage: prog --long\n\n--long', '--long=ARG')
 
 
 def test_short_options_error_handling():

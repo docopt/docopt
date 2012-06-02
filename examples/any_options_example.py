@@ -1,7 +1,7 @@
 """Example of program which use [options] shortcut in pattern
 
 Usage:
-  any_options_example.py [options]
+  any_options_example.py [options] PATH
 
 Options:
   -h --help                show this help message and exit
