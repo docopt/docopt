@@ -100,7 +100,7 @@ def test_printable_and_formal_usage():
     assert printable_usage('uSaGe: prog ARG\n\t \t\n bla') == "uSaGe: prog ARG"
 
 
-def test_parse():
+def test_parse_args():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert parse_args('', options=o) == []
     assert parse_args('-h', options=o) == [Option('h', None, True)]
@@ -123,7 +123,7 @@ def test_parse():
              Argument(None, '-v')]
 
 
-def test_pattern():
+def test_parse_pattern():
     o = [Option('h'), Option('v', 'verbose'), Option('f:', 'file=')]
     assert parse_pattern('[ -h ]', options=o) == \
                Required(Optional(Option('h', None, True)))
@@ -261,8 +261,8 @@ def test_one_or_more_match():
 #           [Option('a'), Argument(None, 1), Option('x'),
 #            Option('a'), Argument(None, 2)]) == \
 #                    (True, [Option('x')], [Argument('N', 1), Argument('N', 2)])
-    assert OneOrMore(Optional(Argument('N'))).match([Argument(None, 9)])
-#                   (True, [], [Argument('N', 9)])
+    assert OneOrMore(Optional(Argument('N'))).match([Argument(None, 9)]) == \
+                    (True, [], [Argument('N', 9)])
 
 
 def test_list_argument_match():
@@ -300,14 +300,14 @@ def test_basic_pattern_matching():
                                         Argument(None, 5)], [])
 
 def test_pattern_any_option():
-    pattern = AnyOptions()
-    assert pattern.match([Option('a')]) == (True, [], [])
-    assert pattern.match([Option('b')]) == (True, [], [])
-    assert pattern.match([Option('l', 'long')]) == (True, [], [])
-    assert pattern.match([Option(None, 'long')]) == (True, [], [])
-    assert pattern.match([Option('a'), Option('b')]) == (True, [], [])
-    assert pattern.match([Option('a'), Option(None, 'long')]) == (True, [], [])
-    assert not pattern.match([Argument('N')])[0]
+    assert AnyOptions().match([Option('a')]) == (True, [], [])
+    assert AnyOptions().match([Option('b')]) == (True, [], [])
+    assert AnyOptions().match([Option('l', 'long')]) == (True, [], [])
+    assert AnyOptions().match([Option(None, 'long')]) == (True, [], [])
+    assert AnyOptions().match([Option('a'), Option('b')]) == (True, [], [])
+    assert AnyOptions().match([Option('a'),
+                               Option(None, 'long')]) == (True, [], [])
+    assert not AnyOptions().match([Argument('N')])[0]
 
 
 def test_pattern_either():
@@ -396,5 +396,4 @@ def test_short_options_error_handling():
 
 def test_empty_pattern():
     # See https://github.com/halst/docopt/issues/9
-    doc = '''usage: prog'''
-    docopt(doc, '')
+    docopt('usage: prog', '')
