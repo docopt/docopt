@@ -29,9 +29,6 @@ class Pattern(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def __ne__(self, other):
-        return repr(self) == repr(other)
-
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join(repr(a) for a in self.children))
@@ -231,16 +228,13 @@ class Either(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-
         outcomes = []
         for p in self.children:
             matched, _, _ = outcome = p.match(copy(left), copy(collected))
             if matched:
                 outcomes.append(outcome)
-
         if outcomes:
             return min(outcomes, key=lambda outcome: len(outcome[1]))
-
         return False, left, collected
 
 
@@ -263,17 +257,17 @@ def option(full_description):
 
 class TokenStream(object):
 
-    def __init__(self, iterable):
-        self.i = iterable
+    def __init__(self, source):
+        self.s = source.split() if type(source) is str else source
 
     def __iter__(self):
-        return iter(self.i)
+        return iter(self.s)
 
     def move(self, default=None):
-        return self.i.pop(0) if len(self.i) else default
+        return self.s.pop(0) if len(self.s) else default
 
     def current(self, default=None):
-        return self.i[0] if len(self.i) else default
+        return self.s[0] if len(self.s) else default
 
 
 def parse_long(raw, options, tokens, is_pattern):
@@ -345,8 +339,7 @@ def parse_shorts(raw, options, tokens, is_pattern):
 
 
 def parse_pattern(source, options):
-    tokens = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source).split()
-    tokens = TokenStream(tokens)
+    tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source))
     result = parse_expr(tokens, options)
     assert tokens.current() is None
     return Required(*result)
@@ -415,8 +408,6 @@ def parse_atom(tokens, options):
 
 
 def parse_args(source, options):
-    if type(source) is str:
-        source = source.split()
     tokens = TokenStream(source)
     options = copy(options)
     parsed = []
@@ -440,8 +431,7 @@ def parse_doc_options(doc):
 
 def printable_usage(doc):
     return re.split(r'\n\s*\n',
-                    ''.join(re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)[1:])
-                   )[0].strip()
+            ''.join(re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)[1:]))[0].strip()
 
 
 def formal_usage(printable_usage):
@@ -450,8 +440,7 @@ def formal_usage(printable_usage):
 
 
 def extras(help, version, options, doc):
-    if help and any((o.short == '-h' or o.long == '--help') and o.value
-                    for o in options):
+    if help and any((o.name in ('-h', '--help')) and o.value for o in options):
         print(doc.strip())
         exit()
     if version and any(o.long == '--version' and o.value for o in options):
