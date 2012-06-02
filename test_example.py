@@ -31,3 +31,6 @@ def test_docopt():
 
     with raises(SystemExit):
         docopt(__doc__, '--hel')
+
+    #with raises(SystemExit):
+    #    docopt(__doc__, 'help')  XXX Maybe help command?
