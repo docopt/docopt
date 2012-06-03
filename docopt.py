@@ -238,9 +238,9 @@ class Either(Pattern):
         return False, left, collected
 
 
-def option(description):
+def option(option_description):
     short, long, argcount, value = None, None, 0, False
-    options, _, description = description.strip().partition('  ')
+    options, _, description = option_description.strip().partition('  ')
     options = options.replace(',', ' ').replace('=', ' ')
     for s in options.split():
         if s.startswith('--'):
@@ -303,7 +303,6 @@ def parse_shorts(tokens, options):
                               (raw[0], len(opt)))
         if len(opt) < 1:
             raise tokens.error('-%s is not recognized' % raw[0])
-        assert len(opt) == 1
         opt = copy(opt[0])
         raw = raw[1:]
         if opt.argcount == 0:
@@ -357,7 +356,7 @@ def parse_seq(tokens, options):
 
 def parse_atom(tokens, options):
     """atom ::= '(' expr ')' | '[' expr ']' | '[' 'options' ']' | '--'
-            | long | shorts | argument | command ;
+             | long | shorts | argument | command ;
     """
     token = tokens.current()
     result = []
