@@ -238,9 +238,9 @@ class Either(Pattern):
         return False, left, collected
 
 
-def option(full_description):
+def option(description):
     short, long, argcount, value = None, None, 0, False
-    options, _, description = full_description.strip().partition('  ')
+    options, _, description = description.strip().partition('  ')
     options = options.replace(',', ' ').replace('=', ' ')
     for s in options.split():
         if s.startswith('--'):
@@ -257,8 +257,6 @@ def option(full_description):
 
 class TokenStream(object):
 
-    error = None
-
     def __init__(self, source, error):
         self.s = source.split() if type(source) is str else source
         self.error = error
@@ -269,21 +267,13 @@ class TokenStream(object):
     def move(self, default=None):
         return self.s.pop(0) if len(self.s) else default
 
-    def unmove(self, token):
-        self.s = [token] + self.s
-        return self
-
     def current(self, default=None):
         return self.s[0] if len(self.s) else default
 
 
 def parse_long(tokens, options):
-    raw = tokens.move()
-    try:
-        i = raw.index('=')
-        raw, value = raw[:i], raw[i + 1:]
-    except ValueError:
-        value = None
+    raw, eq, value = tokens.move().partition('=')
+    value = None if eq == value == '' else value
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         raise tokens.error('%s is not recognized' % raw)
@@ -344,15 +334,13 @@ def parse_expr(tokens, options):
     if tokens.current() != '|':
         return seq
 
-    if len(seq) > 1:
-        seq = [Required(*seq)]
-    result = seq
+    result = [Required(*seq)] if len(seq) > 1 else seq
     while tokens.current() == '|':
         tokens.move()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
 
-    return result if len(result) == 1 else [Either(*result)]
+    return [Either(*result)] if len(result) > 1 else result
 
 
 def parse_seq(tokens, options):
@@ -368,17 +356,19 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """atom ::= '(' expr ')' | '[' expr ']' | '[options]' | '--'
+    """atom ::= '(' expr ')' | '[' expr ']' | '[' 'options' ']' | '--'
             | long | shorts | argument | command ;
     """
-    token = tokens.move()
+    token = tokens.current()
     result = []
     if token == '(':
+        tokens.move()
         result = [Required(*parse_expr(tokens, options))]
         if tokens.move() != ')':
             raise tokens.error("Unmatched '('")
         return result
     elif token == '[':
+        tokens.move()
         if tokens.current() == 'options':
             result = [Optional(AnyOptions())]
             tokens.move()
@@ -388,15 +378,16 @@ def parse_atom(tokens, options):
             raise tokens.error("Unmatched '['")
         return result
     elif token == '--':
+        tokens.move()
         return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
-        return parse_long(tokens.unmove(token), options)
+        return parse_long(tokens, options)
     elif token.startswith('-'):
-        return parse_shorts(tokens.unmove(token), options)
+        return parse_shorts(tokens, options)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
-        return [Argument(token)]
+        return [Argument(tokens.move())]
     else:
-        return [Command(token)]
+        return [Command(tokens.move())]
 
 
 def parse_args(source, options):
@@ -404,16 +395,16 @@ def parse_args(source, options):
     options = copy(options)
     parsed = []
     while tokens.current() is not None:
-        token = tokens.move()
-        if token == '--':
+        if tokens.current() == '--':
+            tokens.move()
             parsed += [Argument(None, v) for v in tokens]
             break
-        elif token.startswith('--'):
-            parsed += parse_long(tokens.unmove(token), options)
-        elif token.startswith('-') and token != '-':
-            parsed += parse_shorts(tokens.unmove(token), options)
+        elif tokens.current().startswith('--'):
+            parsed += parse_long(tokens, options)
+        elif tokens.current().startswith('-') and tokens.current() != '-':
+            parsed += parse_shorts(tokens, options)
         else:
-            parsed.append(Argument(None, token))
+            parsed.append(Argument(None, tokens.move()))
     return parsed
 
 
