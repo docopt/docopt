@@ -50,14 +50,6 @@ def test_option_name():
     assert Option(None, '--help').name == '--help'
 
 
-def test_docopt():
-    doc = '''Usage: prog [-v] A
-
-    -v  Be verbose.'''
-    assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
-    assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
-
-
 def test_any_options():
     doc = '''Usage: prog [options] A
 
@@ -408,3 +400,42 @@ def test_allow_double_underscore_in_pattern():
 
 def test_allow_empty_pattern():
     docopt('usage: prog', '') == {}
+
+
+def test_docopt():
+    doc = '''Usage: prog [-v] A
+
+    -v  Be verbose.'''
+    assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
+    assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
+
+    doc = """Usage: prog [-vqr] [FILE]
+              prog INPUT OUTPUT
+              prog --help
+
+    Options:
+      -v  print status messages
+      -q  report only file names
+      -r  show all occurrences of the same error
+      --help
+
+    """
+    a = docopt(doc, '-v file.py')
+    assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                 'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
+
+    a = docopt(doc, '-v')
+    assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                 'FILE': None, 'INPUT': None, 'OUTPUT': None}
+
+    with raises(DocoptExit):  # does not match
+        docopt(doc, '-v input.py output.py')
+
+    with raises(DocoptExit):
+        docopt(doc, '--fake')
+
+    with raises(SystemExit):
+        docopt(doc, '--hel')
+
+    #with raises(SystemExit):
+    #    docopt(doc, 'help')  XXX Maybe help command?
