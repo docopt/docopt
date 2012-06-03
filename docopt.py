@@ -322,7 +322,8 @@ def parse_pattern(source, options):
     tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
                          UsageMessageError)
     result = parse_expr(tokens, options)
-    assert tokens.current() is None
+    if tokens.current() is not None:
+        raise tokens.error('unexpected ending: %r' % ' '.join(tokens.s))
     return Required(*result)
 
 

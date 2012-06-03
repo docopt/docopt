@@ -196,7 +196,7 @@ def test_command_match():
             [Argument(None, 'rm')]) == (True, [], [Command('rm', True)])
 
 
-def test_brackets_match():
+def test_optional_match():
     assert Optional(Option('-a')).match([Option('-a')]) == (True, [], [])
     assert Optional(Option('-a')).match([]) == (True, [], [])
     assert Optional(Option('-a')).match([Option('-x')]) == (
@@ -211,7 +211,7 @@ def test_brackets_match():
             True, [], [Argument('N', 9)])
 
 
-def test_parens_match():
+def test_required_match():
     assert Required(Option('-a')).match([Option('-a')]) == (True, [], [])
     assert Required(Option('-a')).match([]) == (False, [], [])
     assert Required(Option('-a')).match([Option('-x')]) == (
@@ -392,6 +392,13 @@ def test_short_options_error_handling():
         docopt('Usage: prog -o\n\n-o ARG')
     with raises(DocoptExit):
         docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
+
+
+def test_matching_paren():
+    with raises(UsageMessageError):
+        docopt('Usage: prog [a [b]')
+    with raises(UsageMessageError):
+        docopt('Usage: prog [a [b] ] c )')
 
 
 def test_allow_double_underscore_in_pattern():
