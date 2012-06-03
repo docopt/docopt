@@ -152,6 +152,23 @@ class Option(Pattern):
         self.short, self.long = short, long
         self.argcount, self.value = argcount, value
 
+    @classmethod
+    def parse(class_, option_description):
+        short, long, argcount, value = None, None, 0, False
+        options, _, description = option_description.strip().partition('  ')
+        options = options.replace(',', ' ').replace('=', ' ')
+        for s in options.split():
+            if s.startswith('--'):
+                long = s
+            elif s.startswith('-'):
+                short = s
+            else:
+                argcount = 1
+        if argcount:
+            matched = re.findall('\[default: (.*)\]', description, flags=re.I)
+            value = matched[0] if matched else False
+        return class_(short, long, argcount, value)
+
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         left_ = []
@@ -236,23 +253,6 @@ class Either(Pattern):
         if outcomes:
             return min(outcomes, key=lambda outcome: len(outcome[1]))
         return False, left, collected
-
-
-def option(option_description):
-    short, long, argcount, value = None, None, 0, False
-    options, _, description = option_description.strip().partition('  ')
-    options = options.replace(',', ' ').replace('=', ' ')
-    for s in options.split():
-        if s.startswith('--'):
-            long = s
-        elif s.startswith('-'):
-            short = s
-        else:
-            argcount = 1
-    if argcount:
-        matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-        value = matched[0] if matched else False
-    return Option(short, long, argcount, value)
 
 
 class TokenStream(object):
@@ -409,7 +409,7 @@ def parse_args(source, options):
 
 
 def parse_doc_options(doc):
-    return [option('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
+    return [Option.parse('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
 
 
 def printable_usage(doc):

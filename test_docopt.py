@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, UsageMessageError,
                     Option, Argument, Command,
                     Required, Optional, Either, OneOrMore, AnyOptions,
                     parse_args, parse_pattern,
-                    parse_doc_options, option, printable_usage, formal_usage
+                    parse_doc_options, printable_usage, formal_usage
                    )
 from pytest import raises
 
@@ -15,32 +15,32 @@ def test_pattern_flat():
 
 
 def test_option():
-    assert option('-h') == Option('-h', None)
-    assert option('--help') == Option(None, '--help')
-    assert option('-h --help') == Option('-h', '--help')
-    assert option('-h, --help') == Option('-h', '--help')
+    assert Option.parse('-h') == Option('-h', None)
+    assert Option.parse('--help') == Option(None, '--help')
+    assert Option.parse('-h --help') == Option('-h', '--help')
+    assert Option.parse('-h, --help') == Option('-h', '--help')
 
-    assert option('-h TOPIC') == Option('-h', None, 1)
-    assert option('--help TOPIC') == Option(None, '--help', 1)
-    assert option('-h TOPIC --help TOPIC') == Option('-h', '--help', 1)
-    assert option('-h TOPIC, --help TOPIC') == Option('-h', '--help', 1)
-    assert option('-h TOPIC, --help=TOPIC') == Option('-h', '--help', 1)
+    assert Option.parse('-h TOPIC') == Option('-h', None, 1)
+    assert Option.parse('--help TOPIC') == Option(None, '--help', 1)
+    assert Option.parse('-h TOPIC --help TOPIC') == Option('-h', '--help', 1)
+    assert Option.parse('-h TOPIC, --help TOPIC') == Option('-h', '--help', 1)
+    assert Option.parse('-h TOPIC, --help=TOPIC') == Option('-h', '--help', 1)
 
-    assert option('-h  Description...') == Option('-h', None)
-    assert option('-h --help  Description...') == Option('-h', '--help')
-    assert option('-h TOPIC  Description...') == Option('-h', None, 1)
+    assert Option.parse('-h  Description...') == Option('-h', None)
+    assert Option.parse('-h --help  Description...') == Option('-h', '--help')
+    assert Option.parse('-h TOPIC  Description...') == Option('-h', None, 1)
 
-    assert option('    -h') == Option('-h', None)
+    assert Option.parse('    -h') == Option('-h', None)
 
-    assert option('-h TOPIC  Descripton... [default: 2]') == \
+    assert Option.parse('-h TOPIC  Descripton... [default: 2]') == \
                Option('-h', None, 1, '2')
-    assert option('-h TOPIC  Descripton... [default: topic-1]') == \
+    assert Option.parse('-h TOPIC  Descripton... [default: topic-1]') == \
                Option('-h', None, 1, 'topic-1')
-    assert option('--help=TOPIC  ... [default: 3.14]') == \
+    assert Option.parse('--help=TOPIC  ... [default: 3.14]') == \
                Option(None, '--help', 1, '3.14')
-    assert option('-h, --help=DIR  ... [default: ./]') == \
+    assert Option.parse('-h, --help=DIR  ... [default: ./]') == \
                Option('-h', '--help', 1, "./")
-    assert option('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
+    assert Option.parse('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
                Option('-h', None, 1, '2')
 
 
