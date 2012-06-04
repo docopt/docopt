@@ -1,4 +1,4 @@
-"""Example of program which use [options] shortcut in pattern
+"""Example of program which uses [options] shortcut in pattern.
 
 Usage:
   any_options_example.py [options] <port>
