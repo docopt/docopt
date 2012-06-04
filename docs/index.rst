@@ -1,119 +1,55 @@
-.. docopt documentation master file, created by
-   sphinx-quickstart on Mon Apr 23 17:33:34 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-   Welcome to docopt's documentation!
-   ==================================
-   Contents:
-   .. toctree::
-   :maxdepth: 2
-   Indices and tables
-   ==================
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`
-
-
-``docopt``---pythonic argument parser, that will make you smile
+``docopt`` creates *beautiful* command-line interfaces
 ===============================================================================
 
-.. note:: since version 0.2 ``docopt`` parses both options and arguments, and
-   is better than ever, however that lead to some API incompatibility with 0.1
-   line.
+.. note:: New in version 0.3.0: (sub)commands support, ``[options]`` shortcut.
+
+.. warning:: Incompatible change in 0.3.0: ``docopt`` function returns a dict.
 
 Isn't it awesome how ``optparse`` and ``argparse`` generate help and
 usage-messages based on your code?!
 
 Hell no!  You know what's awesome?  It's when the option parser *is* generated
-based on the usage-message that you write in a docstring!  This way
+based on the beautiful usage-message that you write in a docstring!  This way
 you don't need to write this stupid repeatable parser-code, and instead can
-write a beautiful usage-message (*the way you want it*), which adds readability
-to your code.
+write only the usage-message---*the way you want it*.
 
-Imagine you are writing a program and thinking to allow it's usage as follows::
+``docopt`` helps you create most beautiful command-line interfaces *easily*::
 
-    Usage: prog [-vqrh] [FILE ...]
-           prog (--left | --right) CORRECTION FILE
+    """Naval Fate.
 
-Using ``argparse`` you would end up writing something like this::
-
-    import argparse
-    import sys
-
-
-    def process_arguments():
-        parser = argparse.ArgumentParser(
-                description='Process FILE and optionally apply correction to '
-                            'either left-hand side or right-hand side.')
-        parser.add_argument('correction', metavar='CORRECTION', nargs='*',
-                            help='correction angle, needs FILE, --left or '
-                                 '--right to be present')
-        parser.add_argument('file', metavar='FILE', nargs='?',
-                            help='optional input file')
-        parser.add_argument('-v', dest='v', action='store_true',
-                            help='verbose mode')
-        parser.add_argument('-q', dest='q', action='store_true',
-                            help='quiet mode')
-        parser.add_argument('-r', dest='r', action='store_true',
-                            help='make report')
-        left_or_right = parser.add_mutually_exclusive_group(required=False)
-        left_or_right.add_argument('--left', dest='left', action='store_true',
-                            help='use left-hand side')
-        left_or_right.add_argument('--right', dest='right', action='store_true',
-                            help='use right-hand side')
-        arguments = parser.parse_args()
-        if (arguments.correction and not (arguments.left or arguments.right)
-                and not arguments.file):
-            sys.stderr.write('correction angle, needs FILE, --left or --right '
-                             'to be present')
-            parser.print_help()
-        return arguments
-
-
-    if __name__ == '__main__':
-        arguments = process_arguments()
-
-While ``docopt`` allows you to write an awesome, readable, pythonic code
-like *that*::
-
-    """Usage: prog [-vqrh] [FILE ...]
-              prog (--left | --right) CORRECTION FILE
-
-    Process FILE and optionally apply correction to either left-hand side or
-    right-hand side.
-
-    Arguments:
-      FILE        optional input file
-      CORRECTION  correction angle, needs FILE, --left or --right to be present
+    Usage:
+      naval_fate.py ship new <name>...
+      naval_fate.py ship [<name>] move <x> <y> [--speed=<kn>]
+      naval_fate.py ship shoot <x> <y>
+      naval_fate.py mine (set|remove) <x> <y> [--moored|--drifting]
+      naval_fate.py -h | --help
+      naval_fate.py --version
 
     Options:
-      -h --help
-      -v       verbose mode
-      -q       quiet mode
-      -r       make report
-      --left   use left-hand side
-      --right  use right-hand side
+      -h --help     Show this screen.
+      --version     Show version.
+      --speed=<kn>  Speed in knots [default: 10].
+      --moored      Mored (anchored) mine.
+      --drifting    Drifting mine.
 
     """
     from docopt import docopt
 
 
     if __name__ == '__main__':
-        options, arguments = docopt(__doc__)  # parse arguments based on docstring above
+        arguments = docopt(__doc__, version='Naval Fate 2.0')
+        print(arguments)
 
-Almost magic! The option parser is generated based on docstring above, that you
+
+Beat that! The option parser is generated based on docstring above, that you
 pass to ``docopt`` function.  ``docopt`` parses the usage-pattern
-(``"Usage: ..."``) and options-description (lines starting with dash ``-``) and
-ensures that program invocation matches the ussage-pattern; it parses both
-options and arguments based on that. The basic idea is that
+(``"Usage: ..."``) and option-descriptions (lines starting with dash ``-``) and
+ensures that program invocation matches the ussage-pattern; it parses
+options, arguments and commands based on that. The basic idea is that
 *a good usage-message has all necessary information in it to make a parser*.
 
-Using ``docopt`` you stay DRY and follow
-`pep257 <http://www.python.org/dev/peps/pep-0257/>`_ at the same time:
-
-    The docstring of a script (a stand-alone program) should be usable as its
-    "usage" message, printed when the script is invoked with incorrect or
-    missing arguments (or perhaps with a "-h" option, for "help").
+Even `pep257 <http://www.python.org/dev/peps/pep-0257/>`_ recommends putting
+usage-message in the module docstrings.
 
 Installation
 ===============================================================================
@@ -171,35 +107,33 @@ API
   e.g. ``"2.1.0rc1"``.
 
 .. note:: when ``docopt`` is set to automatically handle ``-h``, ``--help`` and
-   ``--version`` options, you still need to mention them in ``doc`` for your
-   users to know about them.
+   ``--version`` options, you still need to mention them in ``doc``.
+   Also for your users to know about them.
 
-The **return** value is a tuple ``options, arguments``, where:
+The **return** value is just dictionary with options, arguments and commands,
+with keys spelled exactly like in usage-message
+(long versions of options are given priority). For example, if you invoke
+the top example as::
 
-- ``options`` is a namespace with option values:
-    - leading dashes (``-``) are stripped: ``--path => options.path``
-    - longer variant is given precedence: ``-v --verbose => options.verbose``
-    - characters not allowed in names are substituted by underscore (``_``):
-      ``--print-out => options.print_out``,
+    naval_fate.py ship Guardian move 100 150 --speed=15
 
-- ``arguments`` is a namespace with argument values:
-    - leading/trailing lower/greater-than signes (used by one convention) are
-      stripped:
-      ``<output> => arguments.output``
-    - upper-case words (used by another convention) are lowered:
-      ``PATH => arguments.path``
-    - characters not allowed in names are substituted by underscore (``_``):
-      ``<correction-angle> => arguments.correction_angle``,
-      ``HOST:PORT => arguments.host_port``
+the return dictionary will be::
+
+     {'--drifting': False,    'mine': False,
+      '--help': False,        'move': True,
+      '--moored': False,      'new': False,
+      '--speed': '15',        'remove': False,
+      '--version': False,     'set': False,
+      '<name>': ['Guardian'], 'ship': True,
+      '<x>': '100',           'shoot': False,
+      '<y>': '150'}
+
+This turns out to be the most straight-forward, unambiguous and readable
+format possible.  You can instantly see that ``args['<name>']`` is an
+argument, ``args['--speed']`` is an options, and ``args['move']`` is a command.
 
 Usage-message format
 ===============================================================================
-
-The main idea behind ``docopt`` is that a good usage-message (that describes
-options and arguments unambiguously) is enough to generate a parser.
-
-Here are the simple rules (that you probably already follow) for your
-usage-message to be parsable.
 
 Usage-message consists of 2 parts:
 
@@ -215,14 +149,14 @@ Usage-message consists of 2 parts:
     --quiet      print less text
     --verbose    print more text
 
-Their format is described below; other text is ignored. You can also
-`take a look at more examples <https://github.com/halst/docopt/tree/master/examples>`_.
+Their format is described below; other text is ignored. Also, take a look at
+`our beautiful examples <https://github.com/halst/docopt/tree/master/examples>`_.
 
 Usage-pattern format
 -------------------------------------------------------------------------------
 
 **Usage-pattern** is a substring of ``doc`` that starts with
-``usage:`` (not case-sensitive) and ends with *visibly* empty line.
+``usage:`` (case-*in*\sensitive) and ends with *visibly* empty line.
 Minimum example::
 
     """Usage: my_program.py
@@ -240,45 +174,48 @@ exclusive patterns::
 
 Each pattern can consist of following elements:
 
-- **Arguments** are specified as either upper-case words, e.g.
+- **<arguments>**, **ARGUMENTS**. Arguments are specified as either
+  upper-case words, e.g.
   ``my_program.py CONTENT-PATH``
-  or words surrounded by greater/less-than signs:
+  or words surrounded by angular brackets:
   ``my_program.py <content-path>``.
-- **Options** are words started with dash (``-``), e.g. ``--output``, ``-o``.
+- **--options**.
+  Options are words started with dash (``-``), e.g. ``--output``, ``-o``.
   You can "stack" several of one-letter options, e.g. ``-oiv`` which will
   be same as ``-o -i -v``. Options can have arguments, e.g. ``--input=FILE`` or
   ``-i FILE`` or even ``-iFILE``. However it is important that you specify
-  all options-descriptions (see next section) to avoid ambiguity.
-- **Optional** things. If option or argument is optional (not required),
-  put it in brackets, e.g. ``my_program.py [-hvqo FILE]``
-- **Required** things. If option or argument is required (not optional),
-  don't put it in squared brackets: ``my_program.py --path=PATH FILE``.
-  (Although "required options" might be not a good idea for your users).
-- **Mutualy exclussive** things. Use horisontal bar (``|``) to specify
-  mutually exclussive things, and group them with parenthesis (``()``):
-  ``my_program.py (--clockwise | --counter-clockwise) TIME``. You can
-  group with brackets (``[]``) to specify that neither of mutually exclussive
-  things are required: ``my_program.py [--left | --right]``.
-- **One or more** things. To specify that arbitrary number of repeating
-  things could be accepted use ellipsis (``...``), e.g.
+  all option-descriptions (see next section).
+- **commands** are words that do *not* follow the described above conventions
+  of ``--options`` or ``<arguments>`` or ``ARGUMENTS``.
+
+Use the following operators to specify patterns:
+
+- **[ ]** (brackets) **optional** elements.
+  e.g.: ``my_program.py [-hvqo FILE]``
+- **( )** (parens) **required** elements.
+  All elements that are *not* put in **[ ]** are also required,
+  e.g.: ``my_program.py --path=<path> <file>...`` is same as
+  ``my_program.py (--path=<path> <file>...)``.
+  (Note, "required options" might be not a good idea for your users).
+- **|** (pipe) **mutualy exclussive** elements. Group them using **( )** if
+  one of the mutually exclussive elements is required:
+  ``my_program.py (--clockwise | --counter-clockwise) TIME``. Group them using
+  **[ ]** if none of the mutually-exclusive elements are required:
+  ``my_program.py [--left | --right]``.
+- **...** (ellipsis) **one or more** elements. To specify that arbitrary
+  number of repeating elements could be accepted use ellipsis (``...``), e.g.
   ``my_program.py FILE ...`` means one or more ``FILE``-s are accepted.
-  If you want to accept zero or more things, use brackets, e.g.:
+  If you want to accept zero or more elements, use brackets, e.g.:
   ``my_program.py [FILE ...]``. Ellipsis works as unary operator on
   expression to the left.
-- **Any options** shortcut ``[options]`` (case sensitive).
+- **[options]** (case sensitive) shortcut for any options.
   You can use it if you want to specify that usage
   pattern could be provided with any options defined below in
-  options-description section and do not want to enumerate them all in pattern.
-
-  .. note::
-    It is preferable that you use ``[options]`` shortcut only for command line
-    interfaces which allow huge number of options to appear in single usage
-    pattern, otherwise it's more advisable to enumerate allowed options pattern
-    to provide better user experience.
+  option-descriptions and do not want to enumerate them all in pattern.
 
 If your usage-patterns allow to match same-named argument several times,
 parser will put matched values into a list, e.g. in case pattern is
-``my-program.py FILE FILE`` then ``arguments.file`` will be a list; in case
+``my-program.py FILE FILE`` then ``args['FILE']`` will be a list; in case
 pattern is ``my-program.py FILE...`` it will also be a list.
 
 
@@ -298,7 +235,7 @@ ussage-patterns, their short/long versions (if any), and default values
       -o FILE     # GOOD
     Other: --bad  # BAD, line does not start with dash "-"
 
-- To specify that an option has an argument, put a word describing that
+- To specify that option has an argument, put a word describing that
   argument after space (or equals ``=`` sign) as shown below.
   You can use comma if you want to separate options. In the example below both
   lines are valid, however you are recommended to stick to a single style. ::
@@ -325,6 +262,28 @@ ussage-patterns, their short/long versions (if any), and default values
 Development
 ===============================================================================
 
-``docopt`` lives on `github <http://github.com/halst/docopt>`_. Feel free to
-contribute, make pull requrests, report bugs, suggest ideas and discuss
-``docopt`` in "issues". You can also drop me a line at vladimir@keleshev.com.
+``docopt`` lives on `github <http://github.com/halst/docopt>`_.
+
+We would *love* to hear what you think about ``docopt`` on our
+`issues page <http://github.com/halst/docopt/issues>`_.
+
+Contribute, make pull requrests, report bugs, suggest ideas and discuss
+``docopt``. You can also drop a line directly to vladimir@keleshev.com.
+
+Changelog
+===============================================================================
+
+``docopt`` follows `semantic versioning <http://semver.org>`_.  First release
+with stable API will be 1.0 (soon).  Until then you are encouraged
+to specify explicitly the version in your dependency tools, e.g.::
+
+    pip install docopt==0.3.0
+
+- 0.3.0 Support for (sub)commands like ``git remote add``.
+  Introduce ``[options]`` shortcut for any options.
+  **Incompatible changes**: ``docopt`` returns dictionary.
+- 0.2.0 Usage-pattern matching. Positional arguments parsing based on usage
+  patterns.
+  **Incompatible changes**: ``docopt`` returns namespace (for arguments),
+  not list. Usage-pattern is formalized.
+- 0.1.0 Initial release. Options-parsing only (based on options-description).
