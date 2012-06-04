@@ -323,7 +323,7 @@ def parse_pattern(source, options):
                          UsageMessageError)
     result = parse_expr(tokens, options)
     if tokens.current() is not None:
-        raise tokens.error('unexpected ending: %r' % ' '.join(tokens.s))
+        raise tokens.error('unexpected ending: %r' % ' '.join(tokens))
     return Required(*result)
 
 
