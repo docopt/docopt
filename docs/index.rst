@@ -270,6 +270,21 @@ We would *love* to hear what you think about ``docopt`` on our
 Contribute, make pull requrests, report bugs, suggest ideas and discuss
 ``docopt``. You can also drop a line directly to vladimir@keleshev.com.
 
+Porting ``docopt`` to other languages
+===============================================================================
+
+We think ``docopt`` is so good, we want to share it beyound the Python
+community!
+
+Help developing `Ruby port <http://github.com/halst/docopt.rb>`_, or
+create port for your favorite language!  You are encouraged to use
+Python version as reference implementation.  Language-agnostic test-suite
+is on it's way to be developed.
+
+Porting discussion is on
+`issues page <http://github.com/halst/docopt/issues>`_.
+
+
 Changelog
 ===============================================================================
 
