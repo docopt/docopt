@@ -96,19 +96,21 @@ API
 
 - ``help``, by default ``True``, specifies whether the parser should
   automatically print the usage-message (supplied as ``doc``) and terminate,
-  in case ``-h`` or ``--help`` options are encountered. If you want to handle
-  ``-h`` or ``--help`` options manually (as all other options), set
+  in case ``-h`` or ``--help`` option is encountered (options should exist
+  and mentioned the same way as other options). If you want to handle
+  ``-h`` or ``--help`` options manually (as other options), set
   ``help=False``.
 
 - ``version``, by default ``None``, is an optional argument that specifies the
-  version of your program. If supplied, then, if parser encounters
+  version of your program. If supplied, then, (assuming ``--version`` option
+  exist) when parser encounters
   ``--version`` option, it will print the supplied version and terminate.
   ``version`` could be any printable object, but most likely a string,
   e.g. ``"2.1.0rc1"``.
 
 .. note:: when ``docopt`` is set to automatically handle ``-h``, ``--help`` and
-   ``--version`` options, you still need to mention them in ``doc``.
-   Also for your users to know about them.
+   ``--version`` options, you still need to mention them in ``doc`` for
+   this to work. Also for your users to know about them.
 
 The **return** value is just dictionary with options, arguments and commands,
 with keys spelled exactly like in usage-message
