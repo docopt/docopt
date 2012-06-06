@@ -151,6 +151,7 @@ class Option(Pattern):
         assert argcount in (0, 1)
         self.short, self.long = short, long
         self.argcount, self.value = argcount, value
+        self.value = None if value == False and argcount else value  # HACK
 
     @classmethod
     def parse(class_, option_description):
@@ -166,7 +167,7 @@ class Option(Pattern):
                 argcount = 1
         if argcount:
             matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-            value = matched[0] if matched else False
+            value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
     def match(self, left, collected=None):
@@ -443,9 +444,9 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     options = [o for o in argv if type(o) is Option]
     extras(help, version, options, doc)
     formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
+    matched, left, arguments = formal_pattern.fix().match(argv)
     pot_arguments = [a for a in formal_pattern.flat
                      if type(a) in [Argument, Command]]
-    matched, left, arguments = formal_pattern.fix().match(argv)
     if matched and left == []:  # better message if left?
         return Dict((a.name, a.value) for a in
                     (pot_options + options + pot_arguments + arguments))

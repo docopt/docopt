@@ -439,3 +439,19 @@ def test_docopt():
 
     #with raises(SystemExit):
     #    docopt(doc, 'help')  XXX Maybe help command?
+
+
+def test_bug_not_list_argument_if_nothing_matched():
+    d = 'usage: prog [NAME [NAME ...]]'
+    assert docopt(d, 'a b') == {'NAME': ['a', 'b']}
+    assert docopt(d, '') == {'NAME': []}
+
+
+def test_option_arguments_default_to_none():
+    d = """usage: prog [options]
+
+    -a        Add
+    -m <msg>  Message
+
+    """
+    assert docopt(d, '-a') == {'-m': None, '-a': True}
