@@ -256,20 +256,17 @@ class Either(Pattern):
         return False, left, collected
 
 
-class TokenStream(object):
+class TokenStream(list):
 
     def __init__(self, source, error):
-        self.s = source.split() if type(source) is str else source
+        self += source.split() if type(source) is str else source
         self.error = error
 
-    def __iter__(self):
-        return iter(self.s)
+    def move(self):
+        return self.pop(0) if len(self) else None
 
-    def move(self, default=None):
-        return self.s.pop(0) if len(self.s) else default
-
-    def current(self, default=None):
-        return self.s[0] if len(self.s) else default
+    def current(self):
+        return self[0] if len(self) else None
 
 
 def parse_long(tokens, options):
