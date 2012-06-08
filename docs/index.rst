@@ -59,7 +59,7 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
     pip install docopt
 
 Alternatively, you can just drop ``docopt.py`` file into your project---it is
-self-contained. `Get source on github <http://github.com/halst/docopt>`_.
+self-contained. `Get source on github <http://github.com/docopt/docopt>`_.
 
 ``docopt`` is tested with Python 2.5, 2.6, 2.7, 3.1, 3.2.
 
@@ -152,7 +152,7 @@ Usage-message consists of 2 parts:
     --verbose    print more text
 
 Their format is described below; other text is ignored. Also, take a look at
-`our beautiful examples <https://github.com/halst/docopt/tree/master/examples>`_.
+`our beautiful examples <https://github.com/docopt/docopt/tree/master/examples>`_.
 
 Usage-pattern format
 -------------------------------------------------------------------------------
@@ -265,10 +265,10 @@ ussage-patterns, their short/long versions (if any), and default values
 Development
 ===============================================================================
 
-``docopt`` lives on `github <http://github.com/halst/docopt>`_.
+``docopt`` lives on `github <http://github.com/docopt/docopt>`_.
 
 We would *love* to hear what you think about ``docopt`` on our
-`issues page <http://github.com/halst/docopt/issues>`_.
+`issues page <http://github.com/docopt/docopt/issues>`_.
 
 Contribute, make pull requrests, report bugs, suggest ideas and discuss
 ``docopt``. You can also drop a line directly to vladimir@keleshev.com.
