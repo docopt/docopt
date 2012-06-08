@@ -143,7 +143,7 @@ Usage-message consists of 2 parts:
 
     Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
-- Option-description, e.g.::
+- Option-descriptions, e.g.::
 
     -h --help    show this
     -s --sorted  sorted output
@@ -158,7 +158,7 @@ Usage-pattern format
 -------------------------------------------------------------------------------
 
 **Usage-pattern** is a substring of ``doc`` that starts with
-``usage:`` (case-*in*\sensitive) and ends with an *visibly* empty line.
+``usage:`` (case-*in*\sensitive) and ends with a *visibly* empty line.
 Minimum example::
 
     """Usage: my_program.py
@@ -176,7 +176,7 @@ exclusive patterns::
 
 Each pattern can consist of the following elements:
 
-- **<arguments>**, **ARGUMENTS**. The arguments are specified as either
+- **<arguments>**, **ARGUMENTS**. Arguments are specified as either
   upper-case words, e.g.
   ``my_program.py CONTENT-PATH``
   or words surrounded by angular brackets:
@@ -186,7 +186,7 @@ Each pattern can consist of the following elements:
   You can "stack" several of one-letter options, e.g. ``-oiv`` which will
   be the same as ``-o -i -v``. The options can have arguments, e.g. ``--input=FILE`` or
   ``-i FILE`` or even ``-iFILE``. However it is important that you specify
-  all the option descriptions (see next section).
+  all the option-descriptions (see next section).
 - **commands** are words that do *not* follow the described above conventions
   of ``--options`` or ``<arguments>`` or ``ARGUMENTS``.
 
@@ -212,7 +212,7 @@ Use the following operators to specify patterns:
   expression to the left.
 - **[options]** (case sensitive) shortcut for any options.
   You can use it if you want to specify that the usage
-  pattern could be provided with any options defined below in the 
+  pattern could be provided with any options defined below in the
   option-descriptions and do not want to enumerate them all in pattern.
 
 If your usage-patterns allow to match the same-named argument several times,
@@ -221,16 +221,16 @@ parser, will put the matched values into a list, e.g. in case the pattern is
 pattern is ``my-program.py FILE...`` it will also be a list.
 
 
-Options description format
+Option-descriptions format
 -------------------------------------------------------------------------------
 
-**Options description** is a list of options that you put below your
+**Option-descriptions** consist of a list of options that you put below your
 ussage-patterns.  It is required to list all the options that are in
 ussage-patterns, their short/long versions (if any), and default values
 (if any).
 
 - Every line in ``doc`` that starts with ``-`` or ``--`` (not counting spaces)
-  is treated as an option description, e.g.::
+  is treated as an option-description, e.g.::
 
     Options:
       --verbose   # GOOD
@@ -238,7 +238,8 @@ ussage-patterns, their short/long versions (if any), and default values
     Other: --bad  # BAD, line does not start with dash "-"
 
 - To specify that option has an argument, put a word describing that
-  argument after space (or equals ``=`` sign) as shown below.
+  argument after space (or equals ``=`` sign) as shown below. Follow
+  either <angular-brackets> or UPPER-CASE convention for options' arguments.
   You can use comma if you want to separate options. In the example below, both
   lines are valid, however you are recommended to stick to a single style. ::
 
@@ -254,7 +255,7 @@ ussage-patterns, their short/long versions (if any), and default values
     --stdout  Use stdout.  # GOOD, 2 spaces
 
 - If you want to set a default value for an option with an argument, put it
-  into the options description, in form ``[default: <my-default-value>]``.
+  into the option-description, in form ``[default: <my-default-value>]``.
   ::
 
     --coefficient=K  The K coefficient [default: 2.95]
@@ -278,20 +279,21 @@ Porting ``docopt`` to other languages
 We think ``docopt`` is so good, we want to share it beyound the Python
 community!
 
-Help develop `Ruby port <http://github.com/halst/docopt.rb>`_, or
+Help develop `Ruby port <http://github.com/docopt/docopt.rb>`_,
+`CoffeeScript port <http://github.com/docopt/docopt.coffee>`_ or
 create a port for your favorite language! You are encouraged to use the
 Python version as a reference implementation. A Language-agnostic test suite
-is on its way to be developed.
+is bundled with `Python implementation <http://github.com/docopt/docopt>`_.
 
 Porting discussion is on
-`issues page <http://github.com/halst/docopt/issues>`_.
+`issues page <http://github.com/docopt/docopt/issues>`_.
 
 
 Changelog
 ===============================================================================
 
-``docopt`` follows `semantic versioning <http://semver.org>`_.  The first release
-with stable API will be 1.0 (soon).  Until then, you are encouraged
+``docopt`` follows `semantic versioning <http://semver.org>`_.  The first
+release with stable API will be 1.0 (soon).  Until then, you are encouraged
 to specify explicitly the version in your dependency tools, e.g.::
 
     pip install docopt==0.3.0
