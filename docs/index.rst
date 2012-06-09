@@ -29,7 +29,7 @@ write only the usage-message---*the way you want it*.
       -h --help     Show this screen.
       --version     Show version.
       --speed=<kn>  Speed in knots [default: 10].
-      --moored      Mored (anchored) mine.
+      --moored      Moored (anchored) mine.
       --drifting    Drifting mine.
 
     """
