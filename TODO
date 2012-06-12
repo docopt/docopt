@@ -1,4 +1,4 @@
-* support - and -- as commands.
-  * modify calculator_example.py to use -
-* add lang-agnostic tests for DocoptLanguageError
+* add lang-agnostic tests
+  * for DocoptLanguageError
+  * for '-' and '--'
 * maybe: arbitrary no of short/long aliases for options
