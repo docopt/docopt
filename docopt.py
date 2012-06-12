@@ -386,12 +386,9 @@ def parse_atom(tokens, options):
         if tokens.move() != ']':
             raise tokens.error("Unmatched '['")
         return result
-    elif token == '--':
-        tokens.move()
-        return []  # allow "usage: prog [-o] [--] <arg>"
-    elif token.startswith('--'):
+    elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
-    elif token.startswith('-'):  # XXX what if '-'?
+    elif token.startswith('-') and token not in ('-', '--'):
         return parse_shorts(tokens, options)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(tokens.move())]
@@ -405,12 +402,10 @@ def parse_args(source, options):
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
-            tokens.move()
-            parsed += [Argument(None, v) for v in tokens]
-            break
+            return parsed + [Argument(None, v) for v in tokens]
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
-        elif tokens.current().startswith('-') and tokens.current() != '-':
+        elif tokens.current().startswith('-'):
             parsed += parse_shorts(tokens, options)
         else:
             parsed.append(Argument(None, tokens.move()))

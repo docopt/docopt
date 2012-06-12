@@ -111,6 +111,7 @@ def test_parse_args():
     assert parse_args('-h arg -- -v', options=o) == \
             [Option('-h', None, 0, True),
              Argument(None, 'arg'),
+             Argument(None, '--'),
              Argument(None, '-v')]
 
 
@@ -395,13 +396,21 @@ def test_matching_paren():
         docopt('Usage: prog [a [b] ] c )')
 
 
-def test_allow_double_underscore_in_pattern():
-    docopt('usage: prog [-o] [--] <arg>\n\n-o',
-           '-- -o') == {'-o': False, '<arg>': '-o'}
+def test_allow_double_underscore():
+    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
+                  '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
+    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
+                  '-o 1') == {'-o': True, '<arg>': '1', '--': False}
+    with raises(DocoptExit):
+        docopt('usage: prog [-o] <arg>\n\n-o', '-- -o')  # '--' not allowed
+
+
+def test_allow_single_underscore():
+    pass
 
 
 def test_allow_empty_pattern():
-    docopt('usage: prog', '') == {}
+    assert docopt('usage: prog', '') == {}
 
 
 def test_docopt():
