@@ -25,6 +25,7 @@ $ prog -a
 $ prog -x
 "user-error"
 
+
 r"""Usage: prog [options]
 
 --all  All.
@@ -551,6 +552,40 @@ $ prog ship Guardian move 150 300 --speed=20
  "set": false,
  "ship": true,
  "shoot": false}
+
+
+r"""usage: prog --hello
+
+"""
+$ prog --hello
+{"--hello": true}
+
+
+r"""usage: prog [--hello=<world>]
+
+"""
+$ prog
+{"--hello": null}
+
+$ prog --hello wrld
+{"--hello": "wrld"}
+
+
+r"""usage: prog [-o]
+
+"""
+$ prog
+{"-o": false}
+
+$ prog -o
+{"-o": true}
+
+
+r"""usage: prog [-opr]
+
+"""
+$ prog -op
+{"-o": true, "-p": true, "-r": false}
 
 '''
 import sys, json
