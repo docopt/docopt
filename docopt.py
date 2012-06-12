@@ -422,8 +422,12 @@ def parse_doc_options(doc):
 
 
 def printable_usage(doc):
-    return re.split(r'\n\s*\n',
-            ''.join(re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)[1:]))[0].strip()
+    usage_split = re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)
+    if len(usage_split) < 3:
+        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
+    if len(usage_split) > 3:
+        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
+    return re.split(r'\n\s*\n', ''.join(usage_split[1:]))[0].strip()
 
 
 def formal_usage(printable_usage):

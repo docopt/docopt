@@ -468,3 +468,10 @@ def test_options_without_description():
     assert docopt('usage: prog [-o]', '-o') == {'-o': True}
     assert docopt('usage: prog [-opr]',
                   '-op') == {'-o': True, '-p': True, '-r': False}
+
+
+def test_language_errors():
+    with raises(DocoptLanguageError):
+        docopt('no usage with colon here')
+    with raises(DocoptLanguageError):
+        docopt('usage: here \n\n and again usage: here')
