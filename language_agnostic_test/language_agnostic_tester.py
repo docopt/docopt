@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 '''
 
 r"""Usage: prog
@@ -556,8 +557,8 @@ import sys, json
 from subprocess import Popen, PIPE, STDOUT
 
 
-testee = (sys.argv[1] if len(sys.argv) == 2
-          else exit('Usage: docopt_tester.py ./path/to/executable/testee'))
+testee = (sys.argv[1] if len(sys.argv) == 2 else
+        exit('Usage: language_agnostic_tester.py ./path/to/executable/testee'))
 summary = ''
 
 
