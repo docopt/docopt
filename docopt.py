@@ -424,7 +424,7 @@ def extras(help, version, options, doc):
     if help and any((o.name in ('-h', '--help')) and o.value for o in options):
         print(doc.strip())
         exit()
-    if version and any(o.long == '--version' and o.value for o in options):
+    if version and any(o.name == '--version' and o.value for o in options):
         print(version)
         exit()
 
@@ -437,14 +437,14 @@ class Dict(dict):
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
     pot_options = parse_doc_options(doc)
-    argv = parse_args(argv, options=pot_options)
-    options = [o for o in argv if type(o) is Option]
-    extras(help, version, options, doc)
     formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
+    argv = parse_args(argv, options=pot_options)
+    extras(help, version, argv, doc)
     matched, left, arguments = formal_pattern.fix().match(argv)
-    pot_arguments = [a for a in formal_pattern.flat
-                     if type(a) in [Argument, Command]]
     if matched and left == []:  # better message if left?
+        options = [o for o in argv if type(o) is Option]
+        pot_arguments = [a for a in formal_pattern.flat
+                         if type(a) in [Argument, Command]]
         return Dict((a.name, a.value) for a in
                     (pot_options + options + pot_arguments + arguments))
     raise DocoptExit()

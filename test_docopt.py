@@ -353,6 +353,8 @@ def test_pattern_fix_identities_2():
 
 def test_long_options_error_handling():
     with raises(UsageMessageError):
+        docopt('Usage: prog --non-existent', '--non-existent')
+    with raises(UsageMessageError):
         docopt('Usage: prog --non-existent')
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
@@ -455,3 +457,7 @@ def test_option_arguments_default_to_none():
 
     """
     assert docopt(d, '-a') == {'-m': None, '-a': True}
+
+
+#def test_options_without_description():
+#    assert docopt('usage: prog --hello', '--hello') == {'--hello': True}
