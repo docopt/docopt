@@ -3,7 +3,7 @@ import sys
 import re
 
 
-class UsageMessageError(Exception):
+class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
 
@@ -329,7 +329,7 @@ def parse_shorts(tokens, options):
 
 def parse_pattern(source, options):
     tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
-                         UsageMessageError)
+                         DocoptLanguageError)
     result = parse_expr(tokens, options)
     if tokens.current() is not None:
         raise tokens.error('unexpected ending: %r' % ' '.join(tokens))

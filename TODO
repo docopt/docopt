@@ -1,4 +1,3 @@
-rename: UsageMessageError -> DocoptLanguageError
 support - and -- as commands.
   modify calculator_example.py to use -
 fix tests
