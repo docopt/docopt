@@ -478,6 +478,10 @@ def test_options_without_description():
     assert docopt('usage: prog [-o]', '-o') == {'-o': True}
     assert docopt('usage: prog [-opr]',
                   '-op') == {'-o': True, '-p': True, '-r': False}
+    assert docopt('usage: git [-v | --verbose]',
+                  '-v') == {'-v': True, '--verbose': False}
+    assert docopt('usage: git remote [-v | --verbose]',
+            'remote -v') == {'remote': True, '-v': True, '--verbose': False}
 
 
 def test_language_errors():

@@ -311,6 +311,7 @@ def parse_shorts(tokens, options):
                 o = Option('-' + raw[0], None)
                 options.append(o)
                 parsed.append(o)
+                raw = raw[1:]
                 continue
         opt = copy(opt[0])
         raw = raw[1:]
