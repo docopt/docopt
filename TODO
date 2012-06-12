@@ -3,5 +3,4 @@ support - and -- as commands.
   modify calculator_example.py to use -
 fix tests
 mv all tests to tests/folder
-make option description optional
 maybe: arbitrary no of short/long aliases for options

@@ -274,7 +274,12 @@ def parse_long(tokens, options):
     value = None if eq == value == '' else value
     opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-        raise tokens.error('%s is not recognized' % raw)
+        if tokens.error is DocoptExit:
+            raise tokens.error('%s is not recognized' % raw)
+        else:
+            o = Option(None, raw, (1 if eq == '=' else 0))
+            options.append(o)
+            return [o]
     if len(opt) > 1:
         raise tokens.error('%s is not a unique prefix: %s?' %
                          (raw, ', '.join('%s' % o.long for o in opt)))
@@ -300,7 +305,13 @@ def parse_shorts(tokens, options):
             raise tokens.error('-%s is specified ambiguously %d times' %
                               (raw[0], len(opt)))
         if len(opt) < 1:
-            raise tokens.error('-%s is not recognized' % raw[0])
+            if tokens.error is DocoptExit:
+                raise tokens.error('-%s is not recognized' % raw[0])
+            else:
+                o = Option('-' + raw[0], None)
+                options.append(o)
+                parsed.append(o)
+                continue
         opt = copy(opt[0])
         raw = raw[1:]
         if opt.argcount == 0:
@@ -312,7 +323,7 @@ def parse_shorts(tokens, options):
                 raw = tokens.move()
             value, raw = raw, ''
         opt.value = value
-        parsed += [opt]
+        parsed.append(opt)
     return parsed
 
 
@@ -380,7 +391,7 @@ def parse_atom(tokens, options):
         return []  # allow "usage: prog [-o] [--] <arg>"
     elif token.startswith('--'):
         return parse_long(tokens, options)
-    elif token.startswith('-'):
+    elif token.startswith('-'):  # XXX what if '-'?
         return parse_shorts(tokens, options)
     elif token.startswith('<') and token.endswith('>') or token.isupper():
         return [Argument(tokens.move())]

@@ -352,10 +352,10 @@ def test_pattern_fix_identities_2():
 
 
 def test_long_options_error_handling():
-    with raises(UsageMessageError):
-        docopt('Usage: prog --non-existent', '--non-existent')
-    with raises(UsageMessageError):
-        docopt('Usage: prog --non-existent')
+#    with raises(UsageMessageError):
+#        docopt('Usage: prog --non-existent', '--non-existent')
+#    with raises(UsageMessageError):
+#        docopt('Usage: prog --non-existent')
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(UsageMessageError):
@@ -377,8 +377,8 @@ def test_short_options_error_handling():
     with raises(UsageMessageError):
         docopt('Usage: prog -x\n\n-x  this\n-x  that')
 
-    with raises(UsageMessageError):
-        docopt('Usage: prog -x')
+#    with raises(UsageMessageError):
+#        docopt('Usage: prog -x')
     with raises(DocoptExit):
         docopt('Usage: prog', '-x')
 
@@ -459,5 +459,12 @@ def test_option_arguments_default_to_none():
     assert docopt(d, '-a') == {'-m': None, '-a': True}
 
 
-#def test_options_without_description():
-#    assert docopt('usage: prog --hello', '--hello') == {'--hello': True}
+def test_options_without_description():
+    assert docopt('usage: prog --hello', '--hello') == {'--hello': True}
+    assert docopt('usage: prog [--hello=<world>]') == {'--hello': None}
+    assert docopt('usage: prog [--hello=<world>]',
+                  '--hello wrld') == {'--hello': 'wrld'}
+    assert docopt('usage: prog [-o]') == {'-o': False}
+    assert docopt('usage: prog [-o]', '-o') == {'-o': True}
+    assert docopt('usage: prog [-opr]',
+                  '-op') == {'-o': True, '-p': True, '-r': False}
