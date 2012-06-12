@@ -405,7 +405,7 @@ def parse_args(source, options):
             return parsed + [Argument(None, v) for v in tokens]
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
-        elif tokens.current().startswith('-'):
+        elif tokens.current().startswith('-') and tokens.current() != '-':
             parsed += parse_shorts(tokens, options)
         else:
             parsed.append(Argument(None, tokens.move()))

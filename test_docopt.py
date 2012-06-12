@@ -406,7 +406,8 @@ def test_allow_double_underscore():
 
 
 def test_allow_single_underscore():
-    pass
+    assert docopt('usage: prog [-]', '-') == {'-': True}
+    assert docopt('usage: prog [-]', '') == {'-': False}
 
 
 def test_allow_empty_pattern():
