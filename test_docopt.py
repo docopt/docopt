@@ -471,10 +471,10 @@ def test_option_arguments_default_to_none():
 
 def test_options_without_description():
     assert docopt('usage: prog --hello', '--hello') == {'--hello': True}
-    assert docopt('usage: prog [--hello=<world>]') == {'--hello': None}
+    assert docopt('usage: prog [--hello=<world>]', '') == {'--hello': None}
     assert docopt('usage: prog [--hello=<world>]',
                   '--hello wrld') == {'--hello': 'wrld'}
-    assert docopt('usage: prog [-o]') == {'-o': False}
+    assert docopt('usage: prog [-o]', '') == {'-o': False}
     assert docopt('usage: prog [-o]', '-o') == {'-o': True}
     assert docopt('usage: prog [-opr]',
                   '-op') == {'-o': True, '-p': True, '-r': False}
