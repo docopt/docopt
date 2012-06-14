@@ -1,4 +1,7 @@
 * add lang-agnostic tests
   * for DocoptLanguageError
   * for '-' and '--'
-* maybe: arbitrary no of short/long aliases for options
+* maybe: arbitrary number of short/long aliases for options
+* default list arguments like [default: 1 2 3] => ['1', '2', '3']
+* default values for positinal arguments like:
+  <path>  Path to files. [default ./]
