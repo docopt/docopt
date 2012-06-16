@@ -147,15 +147,15 @@ Help message consists of 2 parts:
 
 - Usage pattern, e.g.::
 
-      Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+        Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
 - Option descriptions, e.g.::
 
-      -h --help    show this
-      -s --sorted  sorted output
-      -o FILE      specify output file [default: ./test.txt]
-      --quiet      print less text
-      --verbose    print more text
+        -h --help    show this
+        -s --sorted  sorted output
+        -o FILE      specify output file [default: ./test.txt]
+        --quiet      print less text
+        --verbose    print more text
 
 Their format is described below; other text is ignored.
 Also, take a look at the
