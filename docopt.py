@@ -338,18 +338,15 @@ def parse_pattern(source, options):
 
 
 def parse_expr(tokens, options):
-    """expr ::= seq , ( '|' seq )* ;"""
+    """expr ::= seq ( '|' seq )* ;"""
     seq = parse_seq(tokens, options)
-
     if tokens.current() != '|':
         return seq
-
     result = [Required(*seq)] if len(seq) > 1 else seq
     while tokens.current() == '|':
         tokens.move()
         seq = parse_seq(tokens, options)
         result += [Required(*seq)] if len(seq) > 1 else seq
-
     return [Either(*result)] if len(result) > 1 else result
 
 
@@ -366,7 +363,7 @@ def parse_seq(tokens, options):
 
 
 def parse_atom(tokens, options):
-    """atom ::= '(' expr ')' | '[' expr ']' | '[' 'options' ']' | '--'
+    """atom ::= '(' expr ')' | '[' expr ']' | 'options'
              | long | shorts | argument | command ;
     """
     token = tokens.current()
@@ -379,14 +376,13 @@ def parse_atom(tokens, options):
         return result
     elif token == '[':
         tokens.move()
-        if tokens.current() == 'options':
-            result = [Optional(AnyOptions())]
-            tokens.move()
-        else:
-            result = [Optional(*parse_expr(tokens, options))]
+        result = [Optional(*parse_expr(tokens, options))]
         if tokens.move() != ']':
             raise tokens.error("Unmatched '['")
         return result
+    elif token == 'options':
+        tokens.move()
+        return [AnyOptions()]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
