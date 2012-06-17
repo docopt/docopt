@@ -147,15 +147,15 @@ Help message consists of 2 parts:
 
 - Usage pattern, e.g.::
 
-    Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+        Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
 - Option descriptions, e.g.::
 
-    -h --help    show this
-    -s --sorted  sorted output
-    -o FILE      specify output file [default: ./test.txt]
-    --quiet      print less text
-    --verbose    print more text
+        -h --help    show this
+        -s --sorted  sorted output
+        -o FILE      specify output file [default: ./test.txt]
+        --quiet      print less text
+        --verbose    print more text
 
 Their format is described below; other text is ignored.
 Also, take a look at the
@@ -259,10 +259,10 @@ The rules are as follows:
 - Every line in `doc` that starts with `-` or `--` (not counting spaces)
   is treated as an option description, e.g.:
 
-    Options:
-      --verbose   # GOOD
-      -o FILE     # GOOD
-    Other: --bad  # BAD, line does not start with dash "-"
+        Options:
+          --verbose   # GOOD
+          -o FILE     # GOOD
+        Other: --bad  # BAD, line does not start with dash "-"
 
 - To specify that option has an argument, put a word describing that
   argument after space (or equals "`=`" sign) as shown below. Follow
@@ -270,23 +270,23 @@ The rules are as follows:
   You can use comma if you want to separate options. In the example below, both
   lines are valid, however you are recommended to stick to a single style. :
 
-    -o FILE --output=FILE       # without comma, with "=" sign
-    -i <file>, --input <file>   # with comma, wihtout "=" sing
+        -o FILE --output=FILE       # without comma, with "=" sign
+        -i <file>, --input <file>   # with comma, wihtout "=" sing
 
 - Use two spaces to separate options with their informal description.
 
-    --verbose More text.   # BAD, will be treated as if verbose option had
-                           # an argument "More", so use 2 spaces instead
-    -q        Quit.        # GOOD
-    -o FILE   Output file. # GOOD
-    --stdout  Use stdout.  # GOOD, 2 spaces
+        --verbose More text.   # BAD, will be treated as if verbose option had
+                               # an argument "More", so use 2 spaces instead
+        -q        Quit.        # GOOD
+        -o FILE   Output file. # GOOD
+        --stdout  Use stdout.  # GOOD, 2 spaces
 
 - If you want to set a default value for an option with an argument, put it
   into the option-description, in form `[default: <my-default-value>]`.
 
-    --coefficient=K  The K coefficient [default: 2.95]
-    --output=FILE    Output file [default: test.txt]
-    --directory=DIR  Some directory [default: ./]
+        --coefficient=K  The K coefficient [default: 2.95]
+        --output=FILE    Output file [default: test.txt]
+        --directory=DIR  Some directory [default: ./]
 
 Development
 ===============================================================================
@@ -303,9 +303,9 @@ Porting `docopt` to other languages
 We think `docopt` is so good, we want to share it beyound the Python
 community!
 
-Help develop `Ruby port <http://github.com/docopt/docopt.rb>`_,
-`CoffeeScript port <http://github.com/docopt/docopt.coffee>`_,
-`Lua port <http://github.com/docopt/docopt.lua>`_ or
+Help develop [Ruby port](http://github.com/docopt/docopt.rb),
+[CoffeeScript port](http://github.com/docopt/docopt.coffee),
+[Lua port](http://github.com/docopt/docopt.lua) or
 create a port for your favorite language! You are encouraged to use the
 Python version as a reference implementation. A Language-agnostic test suite
 is bundled with [Python implementation](http://github.com/docopt/docopt>).
