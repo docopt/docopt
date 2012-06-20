@@ -1,4 +1,3 @@
-from copy import copy
 import sys
 import re
 
@@ -111,7 +110,8 @@ class Argument(Pattern):
         args = [l for l in left if type(l) is Argument]
         if not len(args):
             return False, left, collected
-        left.remove(args[0])
+        pos = left.index(args[0])
+        left = left[:pos] + left[pos+1:]
         if type(self.value) is not list:
             return True, left, collected + [Argument(self.name, args[0].value)]
         same_name = [a for a in collected
@@ -138,7 +138,8 @@ class Command(Pattern):
         args = [l for l in left if type(l) is Argument]
         if not len(args) or args[0].value != self.name:
             return False, left, collected
-        left.remove(args[0])
+        pos = left.index(args[0])
+        left = left[:pos] + left[pos+1:]
         return True, left, collected + [Command(self.name, True)]
 
     def __repr__(self):
@@ -201,8 +202,8 @@ class Required(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        l = copy(left)
-        c = copy(collected)
+        l = left
+        c = collected
         for p in self.children:
             matched, l, c = p.match(l, c)
             if not matched:
@@ -214,7 +215,6 @@ class Optional(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left = copy(left)
         for p in self.children:
             m, left, collected = p.match(left, collected)
         return True, left, collected
@@ -225,8 +225,8 @@ class OneOrMore(Pattern):
     def match(self, left, collected=None):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
-        l = copy(left)
-        c = copy(collected)
+        l = left
+        c = collected
         l_ = None
         matched = True
         times = 0
@@ -236,7 +236,7 @@ class OneOrMore(Pattern):
             times += 1 if matched else 0
             if l_ == l:
                 break
-            l_ = copy(l)
+            l_ = l
         if times >= 1:
             return True, l, c
         return False, left, collected
@@ -248,7 +248,7 @@ class Either(Pattern):
         collected = [] if collected is None else collected
         outcomes = []
         for p in self.children:
-            matched, _, _ = outcome = p.match(copy(left), copy(collected))
+            matched, _, _ = outcome = p.match(left, collected)
             if matched:
                 outcomes.append(outcome)
         if outcomes:
@@ -283,7 +283,8 @@ def parse_long(tokens, options):
     if len(opt) > 1:
         raise tokens.error('%s is not a unique prefix: %s?' %
                          (raw, ', '.join('%s' % o.long for o in opt)))
-    opt = copy(opt[0])
+    o = opt[0]
+    opt = Option(o.short, o.long, o.argcount, o.value)
     if opt.argcount == 1:
         if value is None:
             if tokens.current() is None:
@@ -313,7 +314,8 @@ def parse_shorts(tokens, options):
                 parsed.append(o)
                 raw = raw[1:]
                 continue
-        opt = copy(opt[0])
+        o = opt[0]
+        opt = Option(o.short, o.long, o.argcount, o.value)
         raw = raw[1:]
         if opt.argcount == 0:
             value = True
@@ -395,7 +397,6 @@ def parse_atom(tokens, options):
 
 def parse_args(source, options):
     tokens = TokenStream(source, DocoptExit)
-    options = copy(options)
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
