@@ -163,6 +163,8 @@ class Option(Pattern):
                 long = s
             elif s.startswith('-'):
                 short = s
+            elif s in {'[',']'}:
+                continue
             else:
                 argcount = 1
         if argcount:
