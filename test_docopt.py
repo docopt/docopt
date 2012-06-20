@@ -32,6 +32,12 @@ def test_option():
 
     assert Option.parse('    -h') == Option('-h', None)
 
+    assert Option.parse('-h [ --help ] TOPIC') == Option('-h', '--help', 1)
+    assert Option.parse('-h [ --help ]') == Option('-h', '--help', 0)
+    assert Option.parse('-h [ --help ]  Description...') == Option('-h', '--help', 0)
+    assert Option.parse('-h [ --help ] TOPIC  Description...') == Option('-h', '--help', 1)
+    assert Option.parse('-h [ --help ] TOPIC  Description... [default: topic-1]') == Option('-h', '--help', 1, 'topic-1')
+
     assert Option.parse('-h TOPIC  Descripton... [default: 2]') == \
                Option('-h', None, 1, '2')
     assert Option.parse('-h TOPIC  Descripton... [default: topic-1]') == \
