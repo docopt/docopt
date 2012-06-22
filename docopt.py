@@ -424,7 +424,8 @@ def printable_usage(doc):
 
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
-    return ' '.join('|' if s == pu[0] else s for s in pu[1:])
+
+    return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
 
 def extras(help, version, options, doc):
