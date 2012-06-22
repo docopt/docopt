@@ -148,15 +148,15 @@ class Command(Pattern):
 
 class Option(Pattern):
 
-    def __init__(self, short=None, long=None, argcount=0, value=False):
+    def __init__(self, short=None, long=None, argcount=0, value=0):
         assert argcount in (0, 1)
         self.short, self.long = short, long
         self.argcount, self.value = argcount, value
-        self.value = None if value == False and argcount else value  # HACK
+        self.value = None if value == 0 and argcount else value  # HACK
 
     @classmethod
     def parse(class_, option_description):
-        short, long, argcount, value = None, None, 0, False
+        short, long, argcount, value = None, None, 0, 0
         options, _, description = option_description.strip().partition('  ')
         options = options.replace(',', ' ').replace('=', ' ')
         for s in options.split():
@@ -407,6 +407,17 @@ def parse_args(source, options):
             parsed += parse_shorts(tokens, options)
         else:
             parsed.append(Argument(None, tokens.move()))
+    # Process options, and wherever there are duplicate options, if their
+    # argcount is 0 and their value is truthy, change the value to the sum of
+    # all such duplicates. This allows us to use the same option multiple times
+    # to increment a counter, similar to ssh and rsync's -v option. This is to
+    # address github.com/docopt/docopt/issues/30.
+    options = [o for o in parsed if isinstance(o, Option)]
+    for opt in options:
+        if isinstance(opt, Option):
+            if opt.argcount == 0:
+                if opt.value:
+                    opt.value = len([o for o in options if o.short == opt.short and o.long == opt.long])
     return parsed
 
 

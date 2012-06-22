@@ -587,6 +587,18 @@ r"""usage: prog [-opr]
 $ prog -op
 {"-o": true, "-p": true, "-r": false}
 
+
+r"""usage: prog [-v | --verbose] [-d | --debug]
+
+Options:
+    -v, --verbose  Increase verbosity
+    -d, --debug  Increase debug level
+
+
+"""
+$ prog -vv -d --verbose
+{"--debug": 1, "--verbose": 3}
+
 '''
 import sys, json
 from subprocess import Popen, PIPE, STDOUT
