@@ -425,14 +425,7 @@ def printable_usage(doc):
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
 
-    if len(pu) > 1:
-        for i, v in reversed(list(enumerate(pu[:-1]))):
-            if pu[i] == pu[0] == pu[i + 1]:
-                pu.insert(i + 1, '()')
-        if pu[-1] == pu[0]:
-            pu.append('()')
-
-    return ' '.join('|' if s == pu[0] else s for s in pu[1:])
+    return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
 
 def extras(help, version, options, doc):
