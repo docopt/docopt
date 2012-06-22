@@ -592,14 +592,18 @@ import sys, json
 from subprocess import Popen, PIPE, STDOUT
 
 
-testee = (sys.argv[1] if len(sys.argv) == 2 else
-        exit('Usage: language_agnostic_tester.py ./path/to/executable/testee'))
+testee = (sys.argv[1] if len(sys.argv) >= 2 else
+        exit('Usage: language_agnostic_tester.py ./path/to/executable/testee [ID ...]'))
+ids = [int(x) for x in sys.argv[2:]] if len(sys.argv) > 2 else None
 summary = ''
 
-
+index = 0
 for fixture in __doc__.split('r"""'):
     doc, _, body = fixture.partition('"""')
     for case in body.split('$')[1:]:
+        index += 1
+        if ids is not None and index not in ids:
+            continue
         argv, _, expect = case.strip().partition('\n')
         prog, _, argv = argv.strip().partition(' ')
         assert prog == 'prog', repr(prog)
@@ -611,14 +615,14 @@ for fixture in __doc__.split('r"""'):
             py_expect = json.loads(expect)
         except:
             summary += 'J'
-            print ' BAD JSON '.center(79, '=')
+            print (' %d: BAD JSON ' % index).center(79, '=')
             print 'result>', result
             print 'expect>', expect
             continue
         if py_result == py_expect:
             summary += '.'
         else:
-            print ' FAILED '.center(79, '=')
+            print (' %d: FAILED ' % index).center(79, '=')
             print 'r"""%s"""' % doc
             print '$ prog %s\n' % argv
             print 'result>', result
