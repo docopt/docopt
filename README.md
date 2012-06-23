@@ -239,7 +239,9 @@ Use the following constructs to specify patterns:
 If your usage patterns allow to match the same-named argument several times,
 parser will put the matched values into a list, e.g. in case the pattern is
 `my-program.py FILE FILE` then `args['FILE']` will be a list; in case the
-pattern is `my-program.py FILE...` it will also be a list.
+pattern is `my-program.py FILE...` it will also be a list. Note, even if
+there is another pattern `my-program.py --foo FILE` with only one argument,
+the return value will still be a list.
 
 
 Option descriptions format
