@@ -87,7 +87,7 @@ def test_printable_and_formal_usage():
 
     prog is a program."""
     assert printable_usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
-    assert formal_usage(printable_usage(doc)) == "[-hv] ARG | N M"
+    assert formal_usage(printable_usage(doc)) == "( [-hv] ARG ) | ( N M )"
     assert printable_usage('uSaGe: prog ARG\n\t \t\n bla') == "uSaGe: prog ARG"
 
 
@@ -489,3 +489,14 @@ def test_language_errors():
         docopt('no usage with colon here')
     with raises(DocoptLanguageError):
         docopt('usage: here \n\n and again usage: here')
+
+
+def test_bug():
+    assert docopt('usage: prog',
+                  '') == {}
+    assert docopt('usage: prog \n prog <a> <b>',
+                  '1 2') == {'<a>': '1', '<b>': '2'}
+    assert docopt('usage: prog \n prog <a> <b>',
+                  '') == {'<a>': None, '<b>': None}
+    assert docopt('usage: prog <a> <b> \n prog',
+                  '') == {'<a>': None, '<b>': None}
