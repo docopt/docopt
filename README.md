@@ -46,7 +46,7 @@ if __name__ == '__main__':
 Beat that! The option parser is generated based on the docstring above that is
 passed to `docopt` function.  `docopt` parses the usage pattern
 (`"Usage: ..."`) and option descriptions (lines starting with dash "`-`") and
-ensures that the program invocation matches the ussage pattern; it parses
+ensures that the program invocation matches the usage pattern; it parses
 options, arguments and commands based on that. The basic idea is that
 *a good help message has all necessary information in it to make a parser*.
 
@@ -246,7 +246,7 @@ Option descriptions format
 -------------------------------------------------------------------------------
 
 **Option descriptions** consist of a list of options that you put below your
-ussage patterns.
+usage patterns.
 
 It is necessary to list option descriptions in order to specify:
 
