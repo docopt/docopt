@@ -98,19 +98,17 @@ arguments = docopt(doc, argv=sys.argv[1:], help=True, version=None)
   passed to your program (`sys.argv[1:]`). You can supply it with the list of
   strings (similar to `sys.argv`) e.g. `['--verbose', '-o', 'hai.txt']`.
 
-- `help`, by default `True`, specifies whether the parser should
-  automatically print the help message (supplied as `doc`) and terminate,
-  in case `-h` or `--help` option is encountered (options should exist
-  in usage pattern, more on that below). If you want to handle
-  `-h` or `--help` options manually (as other options), set
-  `help=False`.
+- `help`, by default `1`, specifies whether the parser should automatically
+  print the help message (supplied as `doc`) and terminate, in case `-h` or
+  `--help` option is encountered (options should exist in usage pattern, more on
+  that below). If you want to handle `-h` or `--help` options manually (as other
+  options), set `help=False`.
 
-- `version`, by default `None`, is an optional argument that specifies the
-  version of your program. If supplied, then, (assuming `--version` option
-  is mentioned in usage pattern) when parser encounters the
-  `--version` option, it will print the supplied version and terminate.
-  `version` could be any printable object, but most likely a string,
-  e.g. `"2.1.0rc1"`.
+- `version`, by default `0`, is an optional argument that specifies the version
+  of your program. If supplied, then, (assuming `--version` option is mentioned
+  in usage pattern) when parser encounters the `--version` option, it will print
+  the supplied version and terminate. `version` could be any printable object,
+  but most likely a string, e.g. `"2.1.0rc1"`.
 
 Note, when `docopt` is set to automatically handle `-h`, `--help` and
 `--version` options, you still need to mention them in usage pattern for
@@ -126,11 +124,11 @@ the top example as::
 the return dictionary will be::
 
 ```python
-{'--drifting': False,    'mine': False,
- '--help': False,        'move': True,
- '--moored': False,      'new': False,
+{'--drifting': 0,        'mine': False,
+ '--help': 0,            'move': True,
+ '--moored': 0,          'new': False,
  '--speed': '15',        'remove': False,
- '--version': False,     'set': False,
+ '--version': 0,         'set': False,
  '<name>': ['Guardian'], 'ship': True,
  '<x>': '100',           'shoot': False,
  '<y>': '150'}
