@@ -2,6 +2,13 @@ import sys
 import re
 
 
+#Python 3 Compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -259,7 +266,7 @@ class Either(Pattern):
 class TokenStream(list):
 
     def __init__(self, source, error):
-        self += source.split() if type(source) is str else source
+        self += source.split() if isinstance(source, basestring) else source
         self.error = error
 
     def move(self):
