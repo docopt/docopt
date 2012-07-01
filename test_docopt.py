@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command,
                     Required, Optional, Either, OneOrMore, AnyOptions,
                     parse_args, parse_pattern,
-                    parse_doc_options, printable_usage, formal_usage
+                    parse_doc_descriptors, printable_usage, formal_usage
                    )
 from pytest import raises
 
@@ -14,34 +14,63 @@ def test_pattern_flat():
                             [Argument('N'), Option('-a'), Argument('M')]
 
 
+#Convenience function for option / argument defaults
+def descriptor_parse(s, argument=False):
+    return parse_doc_descriptors(s)[argument]
+
+
 def test_option():
-    assert Option.parse('-h') == Option('-h', None)
-    assert Option.parse('--help') == Option(None, '--help')
-    assert Option.parse('-h --help') == Option('-h', '--help')
-    assert Option.parse('-h, --help') == Option('-h', '--help')
 
-    assert Option.parse('-h TOPIC') == Option('-h', None, 1)
-    assert Option.parse('--help TOPIC') == Option(None, '--help', 1)
-    assert Option.parse('-h TOPIC --help TOPIC') == Option('-h', '--help', 1)
-    assert Option.parse('-h TOPIC, --help TOPIC') == Option('-h', '--help', 1)
-    assert Option.parse('-h TOPIC, --help=TOPIC') == Option('-h', '--help', 1)
+    assert descriptor_parse('-h') == [Option('-h', None)]
+    assert descriptor_parse('--help') == [Option(None, '--help')]
+    assert descriptor_parse('-h --help') == [Option('-h', '--help')]
+    assert descriptor_parse('-h, --help') == [Option('-h', '--help')]
 
-    assert Option.parse('-h  Description...') == Option('-h', None)
-    assert Option.parse('-h --help  Description...') == Option('-h', '--help')
-    assert Option.parse('-h TOPIC  Description...') == Option('-h', None, 1)
+    assert descriptor_parse('-h TOPIC') == [Option('-h', None, 1)]
+    assert descriptor_parse('--help TOPIC') == [Option(None, '--help', 1)]
+    assert descriptor_parse('-h TOPIC --help TOPIC') == [Option('-h', '--help', 1)]
+    assert descriptor_parse('-h TOPIC, --help TOPIC') == [Option('-h', '--help', 1)]
+    assert descriptor_parse('-h TOPIC, --help=TOPIC') == [Option('-h', '--help', 1)]
 
-    assert Option.parse('    -h') == Option('-h', None)
+    assert descriptor_parse('-h  Description...') == [Option('-h', None)]
+    assert descriptor_parse('-h --help  Description...') == [Option('-h', '--help')]
+    assert descriptor_parse('-h TOPIC  Description...') == [Option('-h', None, 1)]
 
-    assert Option.parse('-h TOPIC  Descripton... [default: 2]') == \
-               Option('-h', None, 1, '2')
-    assert Option.parse('-h TOPIC  Descripton... [default: topic-1]') == \
-               Option('-h', None, 1, 'topic-1')
-    assert Option.parse('--help=TOPIC  ... [default: 3.14]') == \
-               Option(None, '--help', 1, '3.14')
-    assert Option.parse('-h, --help=DIR  ... [default: ./]') == \
-               Option('-h', '--help', 1, "./")
-    assert Option.parse('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
-               Option('-h', None, 1, '2')
+    assert descriptor_parse('    -h') == [Option('-h', None)]
+
+    assert descriptor_parse('-h TOPIC  Descripton... [default: 2]') == \
+               [Option('-h', None, 1, '2')]
+    assert descriptor_parse('-h TOPIC  Descripton... [default: topic-1]') == \
+               [Option('-h', None, 1, 'topic-1')]
+    assert descriptor_parse('--help=TOPIC  ... [default: 3.14]') == \
+               [Option(None, '--help', 1, '3.14')]
+    assert descriptor_parse('-h, --help=DIR  ... [default: ./]') == \
+               [Option('-h', '--help', 1, "./")]
+    assert descriptor_parse('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
+               [Option('-h', None, 1, '2')]
+
+
+def test_argument_defaults():
+    assert descriptor_parse('<arg>', True) == []
+    assert descriptor_parse('<arg>  Description ', True) == []
+    assert descriptor_parse('<arg>  Desc... [dEfAuLt: Hello World]', True) == \
+        [Argument('<arg>', 'Hello World')]
+    assert descriptor_parse('<arg> <arg2>', True) == []
+    assert descriptor_parse('<arg> <arg2>  [default: 5]', True) == \
+        [Argument('<arg>', '5'), Argument('<arg2>', '5')]
+    assert descriptor_parse('<arg>, <arg2>  [default: 5]', True) == \
+        [Argument('<arg>', '5'), Argument('<arg2>', '5')]
+    assert descriptor_parse('SPEED  Desc1\nDesc2[default: 5]', True) == \
+        [Argument('SPEED', '5')]
+
+
+def test_multiple_defaults():
+    assert parse_doc_descriptors('-h TOPIC\n<speed>  [default: 5]') == \
+        ([Option('-h', None, 1)], [Argument('<speed>', '5')])
+    assert parse_doc_descriptors('ARG1  Desc\n--speed=<kn>\nARG2  Desc') == \
+        ([Option(None, '--speed', 1)], [])
+    assert parse_doc_descriptors('PATH  [default: ./]\n--verbose') == \
+        ([Option(None, '--verbose')], [Argument('PATH', './')])
 
 
 def test_option_name():
@@ -75,7 +104,7 @@ def test_parse_doc_options():
     doc = '''-h, --help  Print help message.
     -o FILE     Output file.
     --verbose   Verbose mode.'''
-    assert parse_doc_options(doc) == [Option('-h', '--help'),
+    assert descriptor_parse(doc) == [Option('-h', '--help'),
                                       Option('-o', None, 1),
                                       Option(None, '--verbose')]
 

@@ -587,6 +587,43 @@ r"""usage: prog [-opr]
 $ prog -op
 {"-o": true, "-p": true, "-r": false}
 
+
+r"""Dictionary
+
+Usage:
+  prog [options] <word> [<language>]
+
+Arguments:
+  <word>        The word to lookup
+  <language>    The language to use [default: English]
+
+Options:
+  -h --help     Help
+  --verbose
+
+"""
+$ prog PROGRAMMING
+{"--help": false,
+ "--verbose": false,
+ "<word>": "PROGRAMMING",
+ "<language>": "English"}
+
+$ prog BONJOUR FRENCH
+{"--help": false,
+ "--verbose": false,
+ "<word>": "BONJOUR",
+ "<language>": "FRENCH"}
+
+r"""usage: prog [PATH]
+
+PATH  Directory to use [default: ./]
+
+"""
+$ prog
+{"PATH": "./"}
+
+$ prog "Some Folder"
+{"PATH": "Some Folder"}
 '''
 import sys, json
 from subprocess import Popen, PIPE, STDOUT
