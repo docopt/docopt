@@ -112,6 +112,24 @@ class Argument(Pattern):
         self.name = name
         self.value = value
 
+    @classmethod
+    def parse(class_, terms, description='', default=None):
+        if default is None:
+            return []
+        args = []
+
+        for i, s in enumerate(terms):
+            if (s.startswith('<') and s.endswith('>')) or s.isupper():
+                args.append(class_(s, default))
+            elif s == '...':
+                continue
+            elif i != 0:
+                raise DocoptLanguageError("Invalid argument name \"%s\"" % s)
+            else:
+                return []
+
+        return args
+
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         args = [l for l in left if type(l) is Argument]
@@ -162,11 +180,9 @@ class Option(Pattern):
         self.value = None if value == False and argcount else value  # HACK
 
     @classmethod
-    def parse(class_, option_description):
+    def parse(class_, terms, description='', default=None):
         short, long, argcount, value = None, None, 0, False
-        options, _, description = option_description.strip().partition('  ')
-        options = options.replace(',', ' ').replace('=', ' ')
-        for s in options.split():
+        for s in terms:
             if s.startswith('--'):
                 long = s
             elif s.startswith('-'):
@@ -174,9 +190,8 @@ class Option(Pattern):
             else:
                 argcount = 1
         if argcount:
-            matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-            value = matched[0] if matched else None
-        return class_(short, long, argcount, value)
+            value = default
+        return [class_(short, long, argcount, value)]
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -417,8 +432,75 @@ def parse_args(source, options):
     return parsed
 
 
-def parse_doc_options(doc):
-    return [Option.parse('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
+def parse_doc_descriptors(doc):
+    options = []
+    arguments = []
+
+    sections = re.split(r'(?mi)(^\s*[a-z]+:|\n\s*(?=\n))', doc)
+
+    #Group headers with content
+    sections = [''] + sections
+    sections = zip(sections[0::2], sections[1::2])
+
+    for header, content in sections:
+        if header.strip().lower() == 'usage:':
+            #Ignore text within a usage section
+            continue
+        else:
+            #Split by option descriptors
+            option_descriptors = re.split(r'(?m)^\s*-', content)
+            option_descriptors = (option_descriptors[0:1]
+                + ['-' + x for x in option_descriptors[1:]])
+
+            #Split each option descriptor by argument descriptors
+            descriptors = []
+            for item in option_descriptors:
+                lines = item.split('\n')
+                descriptor = ['']
+                for line in lines:
+                    line = line.lstrip()
+                    arg = line.replace(',', ' ').split()
+                    if not arg:
+                        continue
+                    else:
+                        arg = arg[0]
+                    if arg.startswith('<') and arg.endswith('>') or arg.isupper():
+                        descriptor.append('')
+                    descriptor[-1] += '\n' + line
+                descriptors.append(descriptor)
+
+            #Flatten list of lists
+            descriptors = [item for sublist in descriptors for item in sublist]
+
+            #Parse each descriptor
+            for descriptor in descriptors:
+                #Partition descriptor
+                terms, description = '', ''
+                parts = re.split(r'  |\t', descriptor, 1)
+
+                #Set terms
+                terms = parts[0].strip()
+                terms = terms.replace(',', ' ').replace('=', ' ')
+                terms = terms.split()
+
+                if not terms:
+                    continue
+
+                #Set description
+                if len(parts) > 1:
+                    description = parts[1]
+
+                #Find any default arguments
+                default = re.findall('(?i)\[default: (.*)\]', description)
+                default = default[0] if default else None
+
+                #Call correct parser
+                if terms[0].startswith('-'):
+                    options += Option.parse(terms, description, default)
+                else:
+                    arguments += Argument.parse(terms, description, default)
+
+    return options, arguments
 
 
 def printable_usage(doc):
@@ -452,7 +534,7 @@ class Dict(dict):
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
-    pot_options = parse_doc_options(doc)
+    pot_options, def_arguments = parse_doc_descriptors(doc)
     formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
     argv = parse_args(argv, options=pot_options)
     extras(help, version, argv, doc)
@@ -461,6 +543,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
         options = [o for o in argv if type(o) is Option]
         pot_arguments = [a for a in formal_pattern.flat
                          if type(a) in [Argument, Command]]
+        pot_arguments += def_arguments
         return Dict((a.name, a.value) for a in
                     (pot_options + options + pot_arguments + arguments))
     raise DocoptExit()
