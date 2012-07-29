@@ -187,14 +187,14 @@ class Option(Pattern):
                 left_.append(l)
         if not match:
             return False, left, collected
-        if type(self.value) is not int:
-            return True, left_, collected + match
         same_name = [a for a in collected if a.name == self.name]
-        if len(same_name):
-            same_name[0].value += 1#match[0].value
+        if type(self.value) is int:
+            if not same_name:
+                match[0].value = 1
+                return True, left_, collected + match
+            same_name[0].value += 1
             return True, left_, collected
-        else:
-            return True, left_, collected + match
+        return True, left_, collected + match
 
     @property
     def name(self):

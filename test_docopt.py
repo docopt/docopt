@@ -521,6 +521,7 @@ def test_count_multiple_flags():
     assert docopt('usage: prog [-vv]', '-vv') == {'-v': 2}
     with raises(DocoptExit):
         assert docopt('usage: prog [-vv]', '-vvv')
+    assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
 
     #assert docopt('usage: prog [go]', 'go') == {'go': True}
     #assert docopt('usage: prog [go go]', '') == {'go': 0}

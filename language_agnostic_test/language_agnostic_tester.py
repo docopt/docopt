@@ -597,6 +597,61 @@ $ prog --aa
 $ prog --a
 "user-error"  # not a unique prefix
 
+#
+# Counting number of flags
+#
+
+r"""Usage: prog -v
+
+"""
+$ prog -v
+{"-v": true}
+
+r"""Usage: prog [-v -v]
+
+"""
+$ prog
+{"-v": 0}
+
+$ prog -v
+{"-v": 1}
+
+$ prog -vv
+{"-v": 2}
+
+r"""Usage: prog -v ...
+
+"""
+$ prog
+"user-error"
+
+$ prog -v
+{"-v": 1}
+
+$ prog -vv
+{"-v": 2}
+
+$ prog -vvvvvv
+{"-v": 6}
+
+r"""Usage: prog [-v | -vv | -vvv]
+
+This one is probably most readable user-friednly variant.
+
+"""
+$ prog
+{"-v": 0}
+
+$ prog -v
+{"-v": 1}
+
+$ prog -vv
+{"-v": 2}
+
+$ prog -vvvv
+"user-error"
+
+
 '''
 import sys, json, re
 from subprocess import Popen, PIPE, STDOUT
