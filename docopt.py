@@ -2,7 +2,7 @@ import sys
 import re
 
 
-#Python 3 Compatibility
+# Python 3 Compatibility
 try:
     basestring
 except NameError:
@@ -180,13 +180,14 @@ class Option(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left_ = []
+        left_, collected_ = [], []
         for l in left:
-            # if this is so greedy, how to handle OneOrMore then?
-            if not (type(l) is Option and
+            if (collected_ == [] and type(l) is Option and
                     (self.short, self.long) == (l.short, l.long)):
+                collected_.append(l)
+            else:
                 left_.append(l)
-        return (left != left_), left_, collected
+        return (left != left_), left_, collected + collected_
 
     @property
     def name(self):
@@ -201,8 +202,9 @@ class AnyOptions(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left_ = [l for l in left if not type(l) == Option]
-        return (left != left_), left_, collected
+        left_ = [l for l in left if type(l) != Option]
+        collected_ = [l for l in left if type(l) == Option]
+        return (left != left_), left_, collected + collected_
 
 
 class Required(Pattern):
@@ -299,7 +301,7 @@ def parse_long(tokens, options):
             value = tokens.move()
     elif value is not None:
         raise tokens.error('%s must not have an argument' % opt.name)
-    opt.value = value or True
+    opt.value = value or True #(True if tokens.error is DocoptExit else False)
     return [opt]
 
 
@@ -325,7 +327,7 @@ def parse_shorts(tokens, options):
         opt = Option(o.short, o.long, o.argcount, o.value)
         raw = raw[1:]
         if opt.argcount == 0:
-            value = True
+            value = True #if tokens.error is DocoptExit else False
         else:
             if raw == '':
                 if tokens.current() is None:
@@ -402,7 +404,7 @@ def parse_atom(tokens, options):
         return [Command(tokens.move())]
 
 
-def parse_args(source, options):
+def parse_argv(source, options):
     tokens = TokenStream(source, DocoptExit)
     parsed = []
     while tokens.current() is not None:
@@ -453,14 +455,13 @@ class Dict(dict):
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
     pot_options = parse_doc_options(doc)
-    formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
-    argv = parse_args(argv, options=pot_options)
+    pattern = parse_pattern(formal_usage(usage), options=pot_options)
+    argv = parse_argv(argv, options=pot_options)
     extras(help, version, argv, doc)
-    matched, left, arguments = formal_pattern.fix().match(argv)
-    if matched and left == []:  # better message if left?
-        options = [o for o in argv if type(o) is Option]
-        pot_arguments = [a for a in formal_pattern.flat
+    matched, left, collected = pattern.fix().match(argv)
+    if matched and left == []:  # better error message if left?
+        pot_arguments = [a for a in pattern.flat
                          if type(a) in [Argument, Command]]
         return Dict((a.name, a.value) for a in
-                    (pot_options + options + pot_arguments + arguments))
+                    (pot_options + pot_arguments + collected))
     raise DocoptExit()
