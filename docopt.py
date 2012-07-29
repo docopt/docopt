@@ -371,18 +371,13 @@ def parse_atom(tokens, options):
     """
     token = tokens.current()
     result = []
-    if token == '(':
+    if token in '([':
         tokens.move()
-        result = [Required(*parse_expr(tokens, options))]
-        if tokens.move() != ')':
-            raise tokens.error("Unmatched '('")
-        return result
-    elif token == '[':
-        tokens.move()
-        result = [Optional(*parse_expr(tokens, options))]
-        if tokens.move() != ']':
-            raise tokens.error("Unmatched '['")
-        return result
+        matching, pattern = {'(': [')', Required], '[': [']', Optional]}[token]
+        result = pattern(*parse_expr(tokens, options))
+        if tokens.move() != matching:
+            raise tokens.error("unmatched '%s'" % token)
+        return [result]
     elif token == 'options':
         tokens.move()
         return options
