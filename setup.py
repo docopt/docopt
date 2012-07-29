@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name = "docopt",
-    version = "0.4.1",
+    version = "0.4.2",
     author = "Vladimir Keleshev",
     author_email = "vladimir@keleshev.com",
     description = "Pythonic argument parser, that will make you smile",

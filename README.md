@@ -1,10 +1,12 @@
 `docopt` creates *beautiful* command-line interfaces
 ===============================================================================
 
-> New in version 0.4.0:
+> New in version 0.4.2:
 >
->    - option descriptions become optional,
->    - support for "`--`" and "`-`" commands.
+> Fixed bugs
+> [#34](https://github.com/docopt/docopt/issues/34)
+> [#39](https://github.com/docopt/docopt/issues/39)
+> [#40](https://github.com/docopt/docopt/issues/40).
 
 Isn't it awesome how `optparse` and `argparse` generate help messages
 based on your code?!
@@ -323,8 +325,9 @@ Changelog
 release with stable API will be 1.0 (soon).  Until then, you are encouraged
 to specify explicitly the version in your dependency tools, e.g.:
 
-    pip install docopt==0.4.0
+    pip install docopt==0.4.2
 
+- 0.4.2 Bugfix release.
 - 0.4.0 Option descriptions become optional,
   support for "`--`" and "`-`" commands.
 - 0.3.0 Support for (sub)commands like `git remote add`.
