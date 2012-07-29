@@ -362,8 +362,6 @@ def test_long_options_error_handling():
 #        docopt('Usage: prog --non-existent')
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
-    with raises(DocoptLanguageError):
-        docopt('Usage: prog --ver\n\n--version\n--verbose')
     with raises(DocoptExit):
         docopt('''Usage: prog [--version --verbose]\n\n
                   --version\n--verbose''', '--ver')
@@ -503,3 +501,10 @@ def test_bug():
                   '') == {'<a>': None, '<b>': None}
     assert docopt('usage: prog <a> <b> \n prog',
                   '') == {'<a>': None, '<b>': None}
+
+
+def test_issue40():
+    with raises(SystemExit):  # i.e. shows help
+        docopt('usage: prog --help-commands | --help', '--help')
+    assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
+                                                           '--aa': True}

@@ -281,7 +281,9 @@ class TokenStream(list):
 def parse_long(tokens, options):
     raw, eq, value = tokens.move().partition('=')
     value = None if eq == value == '' else value
-    opt = [o for o in options if o.long and o.long.startswith(raw)]
+    opt = [o for o in options if o.long and o.long == raw]
+    if tokens.error is DocoptExit and opt == []:
+        opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         if tokens.error is DocoptExit:
             raise tokens.error('%s is not recognized' % raw)

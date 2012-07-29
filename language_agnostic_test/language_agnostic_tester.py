@@ -587,10 +587,22 @@ r"""usage: prog [-opr]
 $ prog -op
 {"-o": true, "-p": true, "-r": false}
 
+
+r"""usage: prog --aabb | --aa
+
+"""
+$ prog --aa
+{"--aabb": false, "--aa": true}
+
+$ prog --a
+"user-error"  # not a unique prefix
+
 '''
-import sys, json
+import sys, json, re
 from subprocess import Popen, PIPE, STDOUT
 
+# remove comments
+__doc__ = re.sub('#.*$', '', __doc__, flags=re.M)
 
 testee = (sys.argv[1] if len(sys.argv) >= 2 else
         exit('Usage: language_agnostic_tester.py ./path/to/executable/testee [ID ...]'))
