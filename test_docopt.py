@@ -118,21 +118,21 @@ def test_parse_argv():
 def test_parse_pattern():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
     assert parse_pattern('[ -h ]', options=o) == \
-               Required(Optional(Option('-h', None, 0, True)))
+               Required(Optional(Option('-h')))
     assert parse_pattern('[ ARG ... ]', options=o) == \
                Required(Optional(OneOrMore(Argument('ARG'))))
     assert parse_pattern('[ -h | -v ]', options=o) == \
-               Required(Optional(Either(Option('-h', None, 0, True),
-                                Option('-v', '--verbose', 0, True))))
-    assert parse_pattern('( -h | -v [ --file f.txt ] )', options=o) == \
+               Required(Optional(Either(Option('-h'),
+                                Option('-v', '--verbose'))))
+    assert parse_pattern('( -h | -v [ --file <f> ] )', options=o) == \
                Required(Required(
-                   Either(Option('-h', None, 0, True),
-                          Required(Option('-v', '--verbose', 0, True),
-                               Optional(Option('-f', '--file', 1, 'f.txt'))))))
-    assert parse_pattern('(-h|-v[--file=f.txt]N...)', options=o) == \
-               Required(Required(Either(Option('-h', None, 0, True),
-                              Required(Option('-v', '--verbose', 0, True),
-                                  Optional(Option('-f', '--file', 1, 'f.txt')),
+                   Either(Option('-h'),
+                          Required(Option('-v', '--verbose'),
+                               Optional(Option('-f', '--file', 1, None))))))
+    assert parse_pattern('(-h|-v[--file=<f>]N...)', options=o) == \
+               Required(Required(Either(Option('-h'),
+                              Required(Option('-v', '--verbose'),
+                                  Optional(Option('-f', '--file', 1, None)),
                                      OneOrMore(Argument('N'))))))
     assert parse_pattern('(N [M | (K | L)] | O P)', options=[]) == \
                Required(Required(Either(
@@ -142,7 +142,7 @@ def test_parse_pattern():
                                                             Argument('L')))))),
                    Required(Argument('O'), Argument('P')))))
     assert parse_pattern('[ -h ] [N]', options=o) == \
-               Required(Optional(Option('-h', None, 0, True)),
+               Required(Optional(Option('-h')),
                         Optional(Argument('N')))
     assert parse_pattern('[options]', options=o) == Required(
                 Optional(AnyOptions()))
@@ -150,7 +150,7 @@ def test_parse_pattern():
                 Optional(AnyOptions()),
                 Argument('A'))
     assert parse_pattern('-v [options]', options=o) == Required(
-                Option('-v', '--verbose', 0, True),
+                Option('-v', '--verbose'),
                 Optional(AnyOptions()))
 
     assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
@@ -508,3 +508,8 @@ def test_issue40():
         docopt('usage: prog --help-commands | --help', '--help')
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
                                                            '--aa': True}
+
+def test_experimental():
+    assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
+    assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
+            {'--file': None}

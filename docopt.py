@@ -303,7 +303,10 @@ def parse_long(tokens, options):
             value = tokens.move()
     elif value is not None:
         raise tokens.error('%s must not have an argument' % opt.name)
-    opt.value = value or True #(True if tokens.error is DocoptExit else False)
+    if tokens.error is DocoptExit:
+        opt.value = value or True
+    else:
+        opt.value = None if value else False
     return [opt]
 
 
@@ -329,7 +332,7 @@ def parse_shorts(tokens, options):
         opt = Option(o.short, o.long, o.argcount, o.value)
         raw = raw[1:]
         if opt.argcount == 0:
-            value = True #if tokens.error is DocoptExit else False
+            value = True if tokens.error is DocoptExit else False
         else:
             if raw == '':
                 if tokens.current() is None:
@@ -456,14 +459,12 @@ class Dict(dict):
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
-    pot_options = parse_doc_options(doc)
-    pattern = parse_pattern(formal_usage(usage), options=pot_options)
-    argv = parse_argv(argv, options=pot_options)
+    options = parse_doc_options(doc)
+    pattern = parse_pattern(formal_usage(usage), options)
+    argv = parse_argv(argv, options)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        pot_arguments = [a for a in pattern.flat
-                         if type(a) in [Argument, Command]]
         return Dict((a.name, a.value) for a in
-                    (pot_options + pot_arguments + collected))
+                    (options + pattern.flat + collected))
     raise DocoptExit()
