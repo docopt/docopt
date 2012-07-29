@@ -59,15 +59,11 @@ class Pattern(object):
         """Find arguments that should accumulate values and fix them."""
         either = [list(c.children) for c in self.either.children]
         for case in either:
-            case = [c for c in case if case.count(c) > 1]
-            for a in [e for e in case if type(e) == Argument]:
-                a.value = []
-            for o in [e for e in case if type(e) == Option]:
-                if o.argcount == 0:
-                    o.value = 0
-                else:
-                    pass
-                    #a.value = []
+            for e in [c for c in case if case.count(c) > 1]:
+                if type(e) is Argument or type(e) is Option and e.argcount:
+                    e.value = []
+                if type(e) is Command or type(e) is Option and e.argcount == 0:
+                    e.value = 0
         return self
 
     @property
@@ -104,6 +100,27 @@ class Pattern(object):
                     ret.append(children)
             return Either(*[Required(*e) for e in ret])
 
+    def match(self, left, collected=None):
+        collected = [] if collected is None else collected
+        pos, match = self.single_match(left)
+        if match is None:
+            return False, left, collected
+        left_ = left[:pos] + left[pos+1:]
+        same_name = [a for a in collected if a.name == self.name]
+        if type(self.value) is int:
+            if not same_name:
+                match.value = 1
+                return True, left_, collected + [match]
+            same_name[0].value += 1
+            return True, left_, collected
+        if type(self.value) is list:
+            if not same_name:
+                match.value = [match.value]
+                return True, left_, collected + [match]
+            same_name[0].value += [match.value]
+            return True, left_, collected
+        return True, left_, collected + [match]
+
 
 class Argument(Pattern):
 
@@ -111,44 +128,30 @@ class Argument(Pattern):
         self.name = name
         self.value = value
 
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        args = [l for l in left if type(l) is Argument]
-        if not args:
-            return False, left, collected
-        pos = left.index(args[0])
-        left = left[:pos] + left[pos+1:]
-        if type(self.value) is not list:
-            return True, left, collected + [Argument(self.name, args[0].value)]
-        same_name = [a for a in collected if a.name == self.name]
-        if len(same_name):
-            same_name[0].value += [args[0].value]
-            return True, left, collected
-        else:
-            return True, left, collected + [Argument(self.name,
-                                                     [args[0].value])]
+    def single_match(self, left):
+        for n, p in enumerate(left):
+            if type(p) is Argument:
+                return n, Argument(self.name, p.value)
+        return None, None
 
     def __repr__(self):
-        return 'Argument(%r, %r)' % (self.name, self.value)
+        return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
 
 
-class Command(Pattern):
+class Command(Argument):
 
     def __init__(self, name, value=False):
         self.name = name
         self.value = value
 
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        args = [l for l in left if type(l) is Argument]
-        if not len(args) or args[0].value != self.name:
-            return False, left, collected
-        pos = left.index(args[0])
-        left = left[:pos] + left[pos+1:]
-        return True, left, collected + [Command(self.name, True)]
-
-    def __repr__(self):
-        return 'Command(%r, %r)' % (self.name, self.value)
+    def single_match(self, left):
+        for n, p in enumerate(left):
+            if type(p) is Argument:
+                if p.value == self.name:
+                    return n, Command(self.name, True)
+                else:
+                    break
+        return None, None
 
 
 class Option(Pattern):
@@ -176,25 +179,11 @@ class Option(Pattern):
             value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        left_ = []
-        match = []
-        for l in left:
-            if (match == [] and self.name == l.name):
-                match = [l]
-            else:
-                left_.append(l)
-        if not match:
-            return False, left, collected
-        same_name = [a for a in collected if a.name == self.name]
-        if type(self.value) is int:
-            if not same_name:
-                match[0].value = 1
-                return True, left_, collected + match
-            same_name[0].value += 1
-            return True, left_, collected
-        return True, left_, collected + match
+    def single_match(self, left):
+        for n, p in enumerate(left):
+            if self.name == p.name:
+                return n, p
+        return None, None
 
     @property
     def name(self):

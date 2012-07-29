@@ -264,17 +264,17 @@ def test_one_or_more_match():
 
 def test_list_argument_match():
     assert Required(Argument('N'), Argument('N')).fix().match(
-            [Argument(None, 1), Argument(None, 2)]) == \
-                    (True, [], [Argument('N', [1, 2])])
+            [Argument(None, '1'), Argument(None, '2')]) == \
+                    (True, [], [Argument('N', ['1', '2'])])
     assert OneOrMore(Argument('N')).fix().match(
-            [Argument(None, 1), Argument(None, 2), Argument(None, 3)]) == \
-                    (True, [], [Argument('N', [1, 2, 3])])
+          [Argument(None, '1'), Argument(None, '2'), Argument(None, '3')]) == \
+                    (True, [], [Argument('N', ['1', '2', '3'])])
     assert Required(Argument('N'), OneOrMore(Argument('N'))).fix().match(
-            [Argument(None, 1), Argument(None, 2), Argument(None, 3)]) == \
-                    (True, [], [Argument('N', [1, 2, 3])])
+          [Argument(None, '1'), Argument(None, '2'), Argument(None, '3')]) == \
+                    (True, [], [Argument('N', ['1', '2', '3'])])
     assert Required(Argument('N'), Required(Argument('N'))).fix().match(
-            [Argument(None, 1), Argument(None, 2)]) == \
-                    (True, [], [Argument('N', [1, 2])])
+            [Argument(None, '1'), Argument(None, '2')]) == \
+                    (True, [], [Argument('N', ['1', '2'])])
 
 
 def test_basic_pattern_matching():
@@ -522,8 +522,27 @@ def test_count_multiple_flags():
     with raises(DocoptExit):
         assert docopt('usage: prog [-vv]', '-vvv')
     assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
+    assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
 
-    #assert docopt('usage: prog [go]', 'go') == {'go': True}
-    #assert docopt('usage: prog [go go]', '') == {'go': 0}
-    #assert docopt('usage: prog [go go]', 'go') == {'go': 1}
-    #assert docopt('usage: prog [go go]', 'go go') == {'go': 2}
+
+def test_count_multiple_commands():
+    assert docopt('usage: prog [go]', 'go') == {'go': True}
+    assert docopt('usage: prog [go go]', '') == {'go': 0}
+    assert docopt('usage: prog [go go]', 'go') == {'go': 1}
+    assert docopt('usage: prog [go go]', 'go go') == {'go': 2}
+    with raises(DocoptExit):
+        assert docopt('usage: prog [go go]', 'go go go')
+    assert docopt('usage: prog go...', 'go go go go go') == {'go': 5}
+
+
+def test_accumulate_multiple_options():
+    assert docopt('usage: prog --long=<arg> ...', '--long one') == \
+            {'--long': ['one']}
+    assert docopt('usage: prog --long=<arg> ...', '--long one --long two') == \
+            {'--long': ['one', 'two']}
+
+
+def test_multiple_different_elements():
+    assert docopt('usage: prog (go <direction> --speed=<km/h>)...',
+                  'go left --speed=5  go right --speed=9') == \
+            {'go': 2, '<direction>': ['left', 'right'], '--speed': ['5', '9']}
