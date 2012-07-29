@@ -512,3 +512,17 @@ def test_issue34_unicode_strings():
                 {'-o': False, '<a>': None}
     except SyntaxError:
         pass  # Python 3
+
+
+def test_count_multiple_flags():
+    assert docopt('usage: prog [-v]', '-v') == {'-v': True}
+    assert docopt('usage: prog [-vv]', '') == {'-v': 0}
+    assert docopt('usage: prog [-vv]', '-v') == {'-v': 1}
+    assert docopt('usage: prog [-vv]', '-vv') == {'-v': 2}
+    with raises(DocoptExit):
+        assert docopt('usage: prog [-vv]', '-vvv')
+
+    #assert docopt('usage: prog [go]', 'go') == {'go': True}
+    #assert docopt('usage: prog [go go]', '') == {'go': 0}
+    #assert docopt('usage: prog [go go]', 'go') == {'go': 1}
+    #assert docopt('usage: prog [go go]', 'go go') == {'go': 2}

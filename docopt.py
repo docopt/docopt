@@ -62,6 +62,12 @@ class Pattern(object):
             case = [c for c in case if case.count(c) > 1]
             for a in [e for e in case if type(e) == Argument]:
                 a.value = []
+            for o in [e for e in case if type(e) == Option]:
+                if o.argcount == 0:
+                    o.value = 0
+                else:
+                    pass
+                    #a.value = []
         return self
 
     @property
@@ -114,8 +120,7 @@ class Argument(Pattern):
         left = left[:pos] + left[pos+1:]
         if type(self.value) is not list:
             return True, left, collected + [Argument(self.name, args[0].value)]
-        same_name = [a for a in collected
-                     if type(a) is Argument and a.name == self.name]
+        same_name = [a for a in collected if a.name == self.name]
         if len(same_name):
             same_name[0].value += [args[0].value]
             return True, left, collected
@@ -173,14 +178,23 @@ class Option(Pattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        left_, collected_ = [], []
+        left_ = []
+        match = []
         for l in left:
-            if (collected_ == [] and type(l) is Option and
-                    (self.short, self.long) == (l.short, l.long)):
-                collected_.append(l)
+            if (match == [] and self.name == l.name):
+                match = [l]
             else:
                 left_.append(l)
-        return (left != left_), left_, collected + collected_
+        if not match:
+            return False, left, collected
+        if type(self.value) is not int:
+            return True, left_, collected + match
+        same_name = [a for a in collected if a.name == self.name]
+        if len(same_name):
+            same_name[0].value += 1#match[0].value
+            return True, left_, collected
+        else:
+            return True, left_, collected + match
 
     @property
     def name(self):
