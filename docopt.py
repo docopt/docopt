@@ -19,24 +19,11 @@ class DocoptExit(SystemExit):
 
 class Pattern(object):
 
-    def __init__(self, *children):
-        self.children = list(children)
-
     def __eq__(self, other):
         return repr(self) == repr(other)
 
     def __hash__(self):
         return hash(repr(self))
-
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__,
-                           ', '.join(repr(a) for a in self.children))
-
-    @property
-    def flat(self):
-        if not hasattr(self, 'children'):
-            return [self]
-        return sum([c.flat for c in self.children], [])
 
     def fix(self):
         self.fix_identities()
@@ -71,34 +58,45 @@ class Pattern(object):
         """Transform pattern into an equivalent, with only top-level Either."""
         # Currently the pattern will not be equivalent, but more "narrow",
         # although good enough to reason about list arguments.
-        if not hasattr(self, 'children'):
-            return Either(Required(self))
-        else:
-            ret = []
-            groups = [[self]]
-            while groups:
-                children = groups.pop(0)
-                types = [type(c) for c in children]
-                if Either in types:
-                    either = [c for c in children if type(c) is Either][0]
-                    children.pop(children.index(either))
-                    for c in either.children:
-                        groups.append([c] + children)
-                elif Required in types:
-                    required = [c for c in children if type(c) is Required][0]
-                    children.pop(children.index(required))
-                    groups.append(list(required.children) + children)
-                elif Optional in types:
-                    optional = [c for c in children if type(c) is Optional][0]
-                    children.pop(children.index(optional))
-                    groups.append(list(optional.children) + children)
-                elif OneOrMore in types:
-                    oneormore = [c for c in children if type(c) is OneOrMore][0]
-                    children.pop(children.index(oneormore))
-                    groups.append(list(oneormore.children) * 2 + children)
-                else:
-                    ret.append(children)
-            return Either(*[Required(*e) for e in ret])
+        ret = []
+        groups = [[self]]
+        while groups:
+            children = groups.pop(0)
+            types = [type(c) for c in children]
+            if Either in types:
+                either = [c for c in children if type(c) is Either][0]
+                children.pop(children.index(either))
+                for c in either.children:
+                    groups.append([c] + children)
+            elif Required in types:
+                required = [c for c in children if type(c) is Required][0]
+                children.pop(children.index(required))
+                groups.append(list(required.children) + children)
+            elif Optional in types:
+                optional = [c for c in children if type(c) is Optional][0]
+                children.pop(children.index(optional))
+                groups.append(list(optional.children) + children)
+            elif OneOrMore in types:
+                oneormore = [c for c in children if type(c) is OneOrMore][0]
+                children.pop(children.index(oneormore))
+                groups.append(list(oneormore.children) * 2 + children)
+            else:
+                ret.append(children)
+        return Either(*[Required(*e) for e in ret])
+
+
+class ChildPattern(Pattern):
+
+    def __init__(self, name, value=None):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
+
+    @property
+    def flat(self):
+        return [self]
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -122,20 +120,27 @@ class Pattern(object):
         return True, left_, collected + [match]
 
 
-class Argument(Pattern):
+class ParrentPattern(Pattern):
 
-    def __init__(self, name, value=None):
-        self.name = name
-        self.value = value
+    def __init__(self, *children):
+        self.children = list(children)
+
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__,
+                           ', '.join(repr(a) for a in self.children))
+
+    @property
+    def flat(self):
+        return sum([c.flat for c in self.children], [])
+
+
+class Argument(ChildPattern):
 
     def single_match(self, left):
         for n, p in enumerate(left):
             if type(p) is Argument:
                 return n, Argument(self.name, p.value)
         return None, None
-
-    def __repr__(self):
-        return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
 
 
 class Command(Argument):
@@ -154,7 +159,7 @@ class Command(Argument):
         return None, None
 
 
-class Option(Pattern):
+class Option(ChildPattern):
 
     def __init__(self, short=None, long=None, argcount=0, value=False):
         assert argcount in (0, 1)
@@ -194,7 +199,7 @@ class Option(Pattern):
                                            self.argcount, self.value)
 
 
-class Required(Pattern):
+class Required(ParrentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -207,7 +212,7 @@ class Required(Pattern):
         return True, l, c
 
 
-class Optional(Pattern):
+class Optional(ParrentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -216,7 +221,7 @@ class Optional(Pattern):
         return True, left, collected
 
 
-class OneOrMore(Pattern):
+class OneOrMore(ParrentPattern):
 
     def match(self, left, collected=None):
         assert len(self.children) == 1
@@ -238,7 +243,7 @@ class OneOrMore(Pattern):
         return False, left, collected
 
 
-class Either(Pattern):
+class Either(ParrentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
