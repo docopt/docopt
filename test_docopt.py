@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command,
-                    Required, Optional, Either, OneOrMore, AnyOptions,
+                    Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern,
                     parse_doc_options, printable_usage, formal_usage
                    )
@@ -145,13 +145,13 @@ def test_parse_pattern():
                Required(Optional(Option('-h')),
                         Optional(Argument('N')))
     assert parse_pattern('[options]', options=o) == Required(
-                Optional(AnyOptions()))
+                Optional(*o))
     assert parse_pattern('[options] A', options=o) == Required(
-                Optional(AnyOptions()),
+                Optional(*o),
                 Argument('A'))
     assert parse_pattern('-v [options]', options=o) == Required(
                 Option('-v', '--verbose'),
-                Optional(AnyOptions()))
+                Optional(*o))
 
     assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
     assert parse_pattern('<add>', options=o) == Required(Argument('<add>'))
@@ -294,15 +294,6 @@ def test_basic_pattern_matching():
                           Argument(None, 9),
                           Argument(None, 5)]) == \
             (False, [Option('-x'), Argument(None, 9), Argument(None, 5)], [])
-
-
-def test_pattern_any_option():
-    assert AnyOptions().match([Option('-a')]) == \
-            (True, [], [Option('-a')])
-    assert AnyOptions().match([Option('-a'), Option('-b')]) == \
-            (True, [], [Option('-a'), Option('-b')])
-    assert AnyOptions().match([Argument('N')]) == \
-            (False, [Argument('N')], [])  # XXX False? For sure?
 
 
 def test_pattern_either():
@@ -509,7 +500,7 @@ def test_issue40():
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
                                                            '--aa': True}
 
-def test_experimental():
+def test_bug_option_argument_should_not_capture_default_value_from_pattern():
     assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
     assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
             {'--file': None}

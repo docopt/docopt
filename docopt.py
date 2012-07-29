@@ -198,15 +198,6 @@ class Option(Pattern):
                                            self.argcount, self.value)
 
 
-class AnyOptions(Pattern):
-
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        left_ = [l for l in left if type(l) != Option]
-        collected_ = [l for l in left if type(l) == Option]
-        return (left != left_), left_, collected + collected_
-
-
 class Required(Pattern):
 
     def match(self, left, collected=None):
@@ -398,7 +389,7 @@ def parse_atom(tokens, options):
         return result
     elif token == 'options':
         tokens.move()
-        return [AnyOptions()]
+        return options
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -439,7 +430,6 @@ def printable_usage(doc):
 
 def formal_usage(printable_usage):
     pu = printable_usage.split()[1:]  # split and drop "usage:"
-
     return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
 
@@ -458,13 +448,12 @@ class Dict(dict):
 
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
-    DocoptExit.usage = docopt.usage = usage = printable_usage(doc)
+    DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
-    pattern = parse_pattern(formal_usage(usage), options)
+    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, options)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in
-                    (options + pattern.flat + collected))
+        return Dict((a.name, a.value) for a in (pattern.flat + collected))
     raise DocoptExit()
