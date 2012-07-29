@@ -105,17 +105,12 @@ class ChildPattern(Pattern):
             return False, left, collected
         left_ = left[:pos] + left[pos+1:]
         same_name = [a for a in collected if a.name == self.name]
-        if type(self.value) is int:
+        if type(self.value) in (int, list):
+            increment = 1 if type(self.value) is int else [match.value]
             if not same_name:
-                match.value = 1
+                match.value = increment
                 return True, left_, collected + [match]
-            same_name[0].value += 1
-            return True, left_, collected
-        if type(self.value) is list:
-            if not same_name:
-                match.value = [match.value]
-                return True, left_, collected + [match]
-            same_name[0].value += [match.value]
+            same_name[0].value += increment
             return True, left_, collected
         return True, left_, collected + [match]
 
