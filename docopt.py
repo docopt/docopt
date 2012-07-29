@@ -2,13 +2,6 @@ import sys
 import re
 
 
-# Python 3 Compatibility
-try:
-    basestring
-except NameError:
-    basestring = str
-
-
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -115,7 +108,7 @@ class Argument(Pattern):
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         args = [l for l in left if type(l) is Argument]
-        if not len(args):
+        if not args:
             return False, left, collected
         pos = left.index(args[0])
         left = left[:pos] + left[pos+1:]
@@ -259,7 +252,7 @@ class Either(Pattern):
 class TokenStream(list):
 
     def __init__(self, source, error):
-        self += source.split() if isinstance(source, basestring) else source
+        self += source.split() if hasattr(source, 'split') else source
         self.error = error
 
     def move(self):

@@ -504,3 +504,11 @@ def test_bug_option_argument_should_not_capture_default_value_from_pattern():
     assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
     assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
             {'--file': None}
+
+
+def test_issue34_unicode_strings():
+    try:
+        assert docopt(eval("u'usage: prog [-o <a>]'"), '') == \
+                {'-o': False, '<a>': None}
+    except SyntaxError:
+        pass  # Python 3
