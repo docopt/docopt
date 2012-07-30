@@ -651,6 +651,62 @@ $ prog -vv
 $ prog -vvvv
 "user-error"
 
+#
+# Counting commands
+#
+
+r"""usage: prog [go]
+
+"""
+$ prog go
+{"go": true}
+
+
+r"""usage: prog [go go]
+
+"""
+$ prog
+{"go": 0}
+
+$ prog go
+{"go": 1}
+
+$ prog go go
+{"go": 2}
+
+$ prog go go go
+"user-error"
+
+r"""usage: prog go...
+
+"""
+$ prog go go go go go
+{"go": 5}
+
+
+#
+# test_accumulate_multiple_options
+#
+
+r"""usage: prog --long=<arg> ...
+
+"""
+$ prog --long one
+{"--long": ["one"]}
+
+$ prog --long one --long two
+{"--long": ["one", "two"]}
+
+
+#
+# test_multiple_different_elements
+#
+
+r"""usage: prog (go <direction> --speed=<km/h>)...
+
+"""
+$ prog go left --speed=5  go right --speed=9
+{"go": 2, "<direction>": ["left", "right"], "--speed": ["5", "9"]}
 
 '''
 import sys, json, re
