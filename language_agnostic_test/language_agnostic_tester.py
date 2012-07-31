@@ -598,6 +598,33 @@ $ prog --a
 "user-error"  # not a unique prefix
 
 #
+# test_bug_option_argument_should_not_capture_default_value_from_pattern
+#
+
+r"""usage: prog [--file=<f>]
+
+"""
+$ prog
+{"--file": null}
+
+
+r"""usage: prog [--file=<f>]
+
+--file <a>
+
+"""
+{"--file": null}
+
+
+r"""Usage: tau [-a <host:port>]
+
+-a, --address <host:port>  TCP address [default: localhost:6283].
+
+"""
+$ prog
+{"--address": "localhost:6283"}
+
+#
 # Counting number of flags
 #
 
@@ -606,6 +633,7 @@ r"""Usage: prog -v
 """
 $ prog -v
 {"-v": true}
+
 
 r"""Usage: prog [-v -v]
 
@@ -618,6 +646,7 @@ $ prog -v
 
 $ prog -vv
 {"-v": 2}
+
 
 r"""Usage: prog -v ...
 
@@ -633,6 +662,7 @@ $ prog -vv
 
 $ prog -vvvvvv
 {"-v": 6}
+
 
 r"""Usage: prog [-v | -vv | -vvv]
 
@@ -650,6 +680,14 @@ $ prog -vv
 
 $ prog -vvvv
 "user-error"
+
+
+r"""usage: prog [--ver --ver]
+
+"""
+$ prog --ver --ver
+{"--ver": 2}
+
 
 #
 # Counting commands

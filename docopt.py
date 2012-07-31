@@ -326,7 +326,10 @@ def parse_shorts(tokens, options):
                     raise tokens.error('-%s requires argument' % opt.short[0])
                 raw = tokens.move()
             value, raw = raw, ''
-        opt.value = value
+        if tokens.error is DocoptExit:
+            opt.value = value
+        else:
+            opt.value = None if value else False
         parsed.append(opt)
     return parsed
 
@@ -446,5 +449,5 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat + collected))
+        return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()

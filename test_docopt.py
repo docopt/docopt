@@ -504,6 +504,12 @@ def test_bug_option_argument_should_not_capture_default_value_from_pattern():
     assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
     assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
             {'--file': None}
+    doc = """Usage: tau [-a <host:port>]
+
+    -a, --address <host:port>  TCP address [default: localhost:6283].
+
+    """
+    assert docopt(doc, '') == {'--address': 'localhost:6283'}
 
 
 def test_issue34_unicode_strings():
@@ -523,6 +529,7 @@ def test_count_multiple_flags():
         assert docopt('usage: prog [-vv]', '-vvv')
     assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
     assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
+    assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
 
 
 def test_count_multiple_commands():
