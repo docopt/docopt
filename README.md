@@ -309,7 +309,8 @@ community!
 
 Help develop [Ruby port](http://github.com/docopt/docopt.rb),
 [CoffeeScript port](http://github.com/docopt/docopt.coffee),
-[Lua port](http://github.com/docopt/docopt.lua) or
+[Lua port](http://github.com/docopt/docopt.lua),
+[PHP port](http://github.com/docopt/docopt.php) or
 create a port for your favorite language! You are encouraged to use the
 Python version as a reference implementation. A Language-agnostic test suite
 is bundled with [Python implementation](http://github.com/docopt/docopt>).
