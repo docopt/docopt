@@ -126,6 +126,8 @@ class ParrentPattern(Pattern):
 
     @property
     def flat(self):
+        for c in self.children:
+            c.parent = self
         return sum([c.flat for c in self.children], [])
 
 
@@ -226,6 +228,20 @@ class OneOrMore(ParrentPattern):
         l_ = None
         matched = True
         times = 0
+
+        subsequent_argc = 0
+        if hasattr(self, 'parent'):
+            for x in self.parent.children[self.parent.children.index(self)+1:]:
+                if not isinstance(x, Argument):
+                    break
+                subsequent_argc += 1
+
+        if subsequent_argc:
+            subsequent = l[-subsequent_argc:]
+            l = l[0:-subsequent_argc]
+        else:
+            subsequent = []
+        
         while matched:
             # could it be that something didn't match but changed l or c?
             matched, l, c = self.children[0].match(l, c)
@@ -233,8 +249,9 @@ class OneOrMore(ParrentPattern):
             if l_ == l:
                 break
             l_ = l
+
         if times >= 1:
-            return True, l, c
+            return True, l + subsequent, c
         return False, left, collected
 
 

@@ -487,6 +487,16 @@ $ prog
 {"NAME": []}
 
 
+r"""usage: prog NAME... FOO
+
+"""
+$ prog foo bar baz
+{"NAME": ["foo", "bar"], "FOO":"baz"}
+
+$ prog foo bar
+{"NAME": ["foo"], "FOO":"bar"}
+
+
 r"""usage: prog (NAME | --foo NAME)
 
 --foo
