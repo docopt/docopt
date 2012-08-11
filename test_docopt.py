@@ -546,3 +546,19 @@ def test_multiple_different_elements():
     assert docopt('usage: prog (go <direction> --speed=<km/h>)...',
                   'go left --speed=5  go right --speed=9') == \
             {'go': 2, '<direction>': ['left', 'right'], '--speed': ['5', '9']}
+
+
+def test_argument_can_follow_repeating_argument():
+    assert docopt('usage: prog <target>... <source>', 'foo bar baz') == \
+            {'<target>':['foo', 'bar'], '<source>': 'baz'}
+
+
+def test_several_arguments_can_follow_repeating_argument():
+    assert docopt('usage: prog <target>... <source> <flerb>', 'foo bar baz qux') == \
+            {'<target>':['foo', 'bar'], '<source>': 'baz', '<flerb>': 'qux'}
+
+
+def test_argument_can_follow_repeating_option():
+    assert docopt('usage: prog --file=<file> ... <target>', '--file=foo --file=bar outdir') == \
+            {'--file':['foo', 'bar'], '<target>': 'outdir'}
+
