@@ -236,7 +236,7 @@ Use the following constructs to specify patterns:
   `stdin` is used instead of a file. To support this add "`[-]`" to
   you usage patterns. "`-`" act as a normal command.
 
-If you pattern allows to match argument-less option (a flag) several times:
+If your pattern allows to match argument-less option (a flag) several times:
 
     Usage: my_program.py [-v | -vv | -vvv]
 
