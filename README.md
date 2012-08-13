@@ -1,12 +1,10 @@
 `docopt` creates *beautiful* command-line interfaces
 ===============================================================================
 
-> New in version 0.4.2:
+> New in version 0.5.0:
 >
-> Fixed bugs
-> [#34](https://github.com/docopt/docopt/issues/34)
-> [#39](https://github.com/docopt/docopt/issues/39)
-> [#40](https://github.com/docopt/docopt/issues/40).
+> Repeatable flags and commands are counted if repeated (a-la ssh `-vvv`).
+> Repeatable options with arguments are accumulated into list.
 
 Isn't it awesome how `optparse` and `argparse` generate help messages
 based on your code?!
@@ -238,12 +236,23 @@ Use the following constructs to specify patterns:
   `stdin` is used instead of a file. To support this add "`[-]`" to
   you usage patterns. "`-`" act as a normal command.
 
-If your usage patterns allow to match the same-named argument several times,
-parser will put the matched values into a list, e.g. in case the pattern is
-`my-program.py FILE FILE` then `args['FILE']` will be a list; in case the
-pattern is `my-program.py FILE...` it will also be a list. Note, even if
-there is another pattern `my-program.py --foo FILE` with only one argument,
-the return value will still be a list.
+If you pattern allows to match argument-less option (a flag) several times:
+
+    Usage: my_program.py [-v | -vv | -vvv]
+
+then number of occurences of the option will be counted. I.e. `args['-v']`
+will be `2` if program was invoked as `my_program -vv`. Same works for
+commands.
+
+If your usage patterns allows to match same-named option with argument
+or positional argument several times, the matched arguments will be
+collected into a list:
+
+    Usage: my_program.py <file> <file> --path=<path>...
+
+I.e. invoked with `my_program.py file1 file2 --path=./here --path=./there`
+the returned dict will contain `args['<file>'] == ['file1', 'file2']` and
+`args['--path'] == ['./here', './there']`.
 
 
 Option descriptions format
@@ -326,8 +335,9 @@ Changelog
 release with stable API will be 1.0 (soon).  Until then, you are encouraged
 to specify explicitly the version in your dependency tools, e.g.:
 
-    pip install docopt==0.4.2
+    pip install docopt==0.5.0
 
+- 0.5.0 Repeated options/commands are counted or accumulated into list.
 - 0.4.2 Bugfix release.
 - 0.4.0 Option descriptions become optional,
   support for "`--`" and "`-`" commands.
