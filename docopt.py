@@ -272,9 +272,6 @@ def parse_long(tokens, options):
     if tokens.error is DocoptExit and opt == []:
         opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-        if tokens.error is DocoptExit:
-            raise tokens.error('%s is not recognized' % raw)
-        else:
             o = Option(None, raw, (1 if eq == '=' else 0))
             options.append(o)
             return [o]
@@ -307,9 +304,6 @@ def parse_shorts(tokens, options):
             raise tokens.error('-%s is specified ambiguously %d times' %
                               (raw[0], len(opt)))
         if len(opt) < 1:
-            if tokens.error is DocoptExit:
-                raise tokens.error('-%s is not recognized' % raw[0])
-            else:
                 o = Option('-' + raw[0], None)
                 options.append(o)
                 parsed.append(o)
@@ -441,13 +435,13 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=sys.argv[1:], help=True, version=None):
+def docopt(doc, argv=sys.argv[1:], help=True, version=None, _delegate=False):
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, options)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
-    if matched and left == []:  # better error message if left?
+    if matched and (_delegate or left == []):  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()
