@@ -5,3 +5,8 @@
 * default list arguments like [default: 1 2 3] => ['1', '2', '3']
 * default values for positinal arguments like:
   <path>  Path to files. [default ./]
+
+Unsupported syntax found in git:
+--exec-path[=<path>]
+-u<mode>
+[(-c | -C | --fixup | --squash) <commit>]
