@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
-                    Option, Argument, Command,
+                    Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern,
                     parse_doc_options, printable_usage, formal_usage
@@ -144,14 +144,18 @@ def test_parse_pattern():
     assert parse_pattern('[ -h ] [N]', options=o) == \
                Required(Optional(Option('-h')),
                         Optional(Argument('N')))
+    tmp = AnyOptions.enabled  # dirty side effects...
+    AnyOptions.enabled = True
     assert parse_pattern('[options]', options=o) == Required(
-                Optional(*o))
+                Optional(AnyOptions()))
     assert parse_pattern('[options] A', options=o) == Required(
-                Optional(*o),
+                Optional(AnyOptions()),
                 Argument('A'))
+    AnyOptions.enabled = False
     assert parse_pattern('-v [options]', options=o) == Required(
                 Option('-v', '--verbose'),
                 Optional(*o))
+    AnyOptions.enabled = tmp
 
     assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
     assert parse_pattern('<add>', options=o) == Required(Argument('<add>'))
@@ -560,3 +564,11 @@ def test_help_shown_only_when_pattern_matched():
         docopt('usage: prog (-h | -x)\n\n.', '-h')
     with raises(DocoptExit):  # error, help is not shown
         docopt('usage: prog (-h | -x)\n\n.', '-x -h')
+
+
+def test_any_options_parameter():
+    with raises(DocoptExit):
+        docopt('usage: prog [options]', '-foo --bar --spam=eggs')
+    assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
+                  _any_options=True) == {'-f': True, '-o': True,
+                                         '--bar': True, '--spam': 'eggs'}
