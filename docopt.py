@@ -446,8 +446,8 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, options)
-    extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
+        extras(help, version, argv, doc)
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()

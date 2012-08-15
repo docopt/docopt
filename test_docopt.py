@@ -553,3 +553,10 @@ def test_multiple_different_elements():
     assert docopt('usage: prog (go <direction> --speed=<km/h>)...',
                   'go left --speed=5  go right --speed=9') == \
             {'go': 2, '<direction>': ['left', 'right'], '--speed': ['5', '9']}
+
+
+def test_help_shown_only_when_pattern_matched():
+    with raises(SystemExit):  # help shown
+        docopt('usage: prog (-h | -x)\n\n.', '-h')
+    with raises(DocoptExit):  # error, help is not shown
+        docopt('usage: prog (-h | -x)\n\n.', '-x -h')
