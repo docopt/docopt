@@ -1,11 +1,18 @@
-"""Subset of git CLI.
+"""
+usage: git [--version] [--exec-path=<path>] [--html-path]
+           [-p|--paginate|--no-pager] [--no-replace-objects]
+           [--bare] [--git-dir=<path>] [--work-tree=<path>]
+           [-c name=value]
+           <command> [options] [<args>...]
+       git [-h | --help]
 
-Usage: git.py [--version] [--exec-path[=<path>]] [--html-path]
-              [-p|--paginate|--no-pager] [--no-replace-objects]
-              [--bare] [--git-dir=<path>] [--work-tree=<path>]
-              [-c name=value]
-              <command> [options] [<args>...]
-       git.py (-h | --help)
+The most commonly used git commands are:
+   add        Add file contents to the index
+   branch     List, create, or delete branches
+   commit     Record changes to the repository
+   push       Update remote refs along with associated objects
+
+See 'git help <command>' for more information on a specific command.
 
 """
 import sys
@@ -23,7 +30,7 @@ if __name__ == '__main__':
 
     # Handle -h|--help manually.
     # Otherwise `subcommand -h` would trigger global help.
-    if args['<command>'] is None and (args.get('-h') or args.get('--help')):
+    if args['<command>'] is None:
         print(__doc__.strip())
         exit()
 
@@ -35,8 +42,10 @@ if __name__ == '__main__':
         # In case subcommand is implemented as python module:
         import git_add
         print(docopt(git_add.__doc__, argv=sub_argv))
-    elif args['<command>'] == 'commit':
+    elif args['<command>'] == 'branch':
         # In case subcommand is a script in some other programming language:
+        exit(call(['python', 'git_branch.py'] + sub_argv))
+    elif args['<command>'] == 'commit':
         exit(call(['python', 'git_commit.py'] + sub_argv))
     elif args['<command>'] == 'push':
         exit(call(['python', 'git_push.py'] + sub_argv))
