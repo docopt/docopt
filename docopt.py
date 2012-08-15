@@ -42,7 +42,7 @@ class Pattern(object):
             else:
                 c.fix_identities(uniq)
 
-    def fix_list_arguments(self):
+    def fix_list_arguments(self):  # XXX bad name
         """Find arguments that should accumulate values and fix them."""
         either = [list(c.children) for c in self.either.children]
         for case in either:
@@ -440,8 +440,9 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, _delegate=False):
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, options)
-    extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and (_delegate or left == []):  # better error message if left?
+        if left == []:
+            extras(help, version, argv, doc)
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()
