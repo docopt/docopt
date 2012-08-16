@@ -559,13 +559,6 @@ def test_multiple_different_elements():
             {'go': 2, '<direction>': ['left', 'right'], '--speed': ['5', '9']}
 
 
-def test_help_shown_only_when_pattern_matched():
-    with raises(SystemExit):  # help shown
-        docopt('usage: prog (-h | -x)\n\n.', '-h')
-    with raises(DocoptExit):  # error, help is not shown
-        docopt('usage: prog (-h | -x)\n\n.', '-x -h')
-
-
 def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
