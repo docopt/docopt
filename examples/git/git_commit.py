@@ -14,10 +14,8 @@ Commit message options
                           reuse and edit message from specified commit
     -C, --reuse-message <commit>
                           reuse message from specified commit
-    --fixup <commit>      use autosquash formatted message to fixup specified
-                          commit
-    --squash <commit>     use autosquash formatted message to squash specified
-                          commit
+    --fixup <commit>      use autosquash formatted message to fixup specified commit
+    --squash <commit>     use autosquash formatted message to squash specified commit
     --reset-author        the commit is authored by me now
                           (used with -C-c/--amend)
     -s, --signoff         add Signed-off-by:

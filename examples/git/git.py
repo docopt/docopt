@@ -12,6 +12,7 @@ The most commonly used git commands are:
    branch     List, create, or delete branches
    commit     Record changes to the repository
    push       Update remote refs along with associated objects
+   remote     Manage set of tracked repositories
 
 See 'git help <command>' for more information on a specific command.
 
@@ -50,6 +51,8 @@ if __name__ == '__main__':
         exit(call(['python', 'git_commit.py'] + sub_argv))
     elif args['<command>'] == 'push':
         exit(call(['python', 'git_push.py'] + sub_argv))
+    elif args['<command>'] == 'remote':
+        exit(call(['python', 'git_remote.py'] + sub_argv))
     elif args['<command>'] == 'help':
         exit(call(['python', 'git.py'] + args['<args>'] + ['--help']))
     else:
