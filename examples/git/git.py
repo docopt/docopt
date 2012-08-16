@@ -1,10 +1,11 @@
+#! /usr/bin/env python
 """
 usage: git [--version] [--exec-path=<path>] [--html-path]
            [-p|--paginate|--no-pager] [--no-replace-objects]
            [--bare] [--git-dir=<path>] [--work-tree=<path>]
            [-c name=value]
            <command> [options] [<args>...]
-       git [-h | --help]
+       git [--help]
 
 The most commonly used git commands are:
    add        Add file contents to the index
@@ -50,6 +51,6 @@ if __name__ == '__main__':
     elif args['<command>'] == 'push':
         exit(call(['python', 'git_push.py'] + sub_argv))
     elif args['<command>'] == 'help':
-        exit(call(['python', 'git.py'] + args['<args>'] + ['-h']))
+        exit(call(['python', 'git.py'] + args['<args>'] + ['--help']))
     else:
         exit("%r is not a git.py command. See 'git help'." % args['<command>'])

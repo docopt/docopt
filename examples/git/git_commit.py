@@ -1,6 +1,4 @@
-"""
-usage: git commit [options] [--] <filepattern>...
-       git commit (-h | --help)
+"""usage: git commit [options] [--] [<filepattern>...]
 
     -h, --help
     -q, --quiet           suppress summary after successful commit
