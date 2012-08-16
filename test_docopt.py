@@ -563,5 +563,9 @@ def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
     assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
-                  _any_options=True) == {'-f': True, '-o': True,
+                  _any_options=True) == {'-f': True, '-o': 2,
                                          '--bar': True, '--spam': 'eggs'}
+    with raises(DocoptExit):
+        docopt('usage: prog [options]', '--foo --bar --bar')
+    assert docopt('usage: prog [options]', '--foo --bar --bar',
+                _any_options=True) == {'--foo': True, '--bar': 2}

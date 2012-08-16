@@ -283,9 +283,13 @@ def parse_long(tokens, options):
     if tokens.error is DocoptExit and opt == []:
         opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
-            o = Option(None, raw, (1 if eq == '=' else 0))
-            options.append(o)
-            return [o]
+        argcount = 1 if eq == '=' else 0
+        if  tokens.error is DocoptExit:
+            o = Option(None, raw, argcount, value if argcount else True)
+        else:
+            o = Option(None, raw, argcount)
+        options.append(o)
+        return [o]
     if len(opt) > 1:
         raise tokens.error('%s is not a unique prefix: %s?' %
                          (raw, ', '.join('%s' % o.long for o in opt)))
@@ -299,7 +303,7 @@ def parse_long(tokens, options):
     elif value is not None:
         raise tokens.error('%s must not have an argument' % opt.name)
     if tokens.error is DocoptExit:
-        opt.value = value or True
+        opt.value = (value or True) if not opt.value else opt.value + 1
     else:
         opt.value = None if value else False
     return [opt]
@@ -313,13 +317,13 @@ def parse_shorts(tokens, options):
                if o.short and o.short.lstrip('-').startswith(raw[0])]
         if len(opt) > 1:
             raise tokens.error('-%s is specified ambiguously %d times' %
-                              (raw[0], len(opt)))
+                               (raw[0], len(opt)))
         if len(opt) < 1:
-                o = Option('-' + raw[0], None)
-                options.append(o)
-                parsed.append(o)
-                raw = raw[1:]
-                continue
+            o = Option('-' + raw[0], None, 0, tokens.error is DocoptExit)
+            options.append(o)
+            parsed.append(o)
+            raw = raw[1:]
+            continue
         o = opt[0]
         opt = Option(o.short, o.long, o.argcount, o.value)
         raw = raw[1:]
@@ -332,7 +336,7 @@ def parse_shorts(tokens, options):
                 raw = tokens.move()
             value, raw = raw, ''
         if tokens.error is DocoptExit:
-            opt.value = value
+            opt.value = value if not opt.value else opt.value + 1
         else:
             opt.value = None if value else False
         parsed.append(opt)
