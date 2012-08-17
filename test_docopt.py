@@ -569,3 +569,7 @@ def test_any_options_parameter():
         docopt('usage: prog [options]', '--foo --bar --bar')
     assert docopt('usage: prog [options]', '--foo --bar --bar',
                 _any_options=True) == {'--foo': True, '--bar': 2}
+    with raises(DocoptExit):
+        docopt('usage: prog [options]', '--long=arg --long=another')
+    assert docopt('usage: prog [options]', '--long=arg --long=another',
+                  _any_options=True) == {'--long': ['arg', 'another']}
