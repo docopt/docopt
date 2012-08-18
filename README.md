@@ -158,8 +158,6 @@ Help message consists of 2 parts:
         --verbose    print more text
 
 Their format is described below; other text is ignored.
-Also, take a look at the
-[beautiful examples](https://github.com/docopt/docopt/tree/master/examples>).
 
 Usage pattern format
 -------------------------------------------------------------------------------
@@ -300,6 +298,15 @@ The rules are as follows:
         --coefficient=K  The K coefficient [default: 2.95]
         --output=FILE    Output file [default: test.txt]
         --directory=DIR  Some directory [default: ./]
+
+Examples
+-------------------------------------------------------------------------------
+
+We have an extensive list of
+[examples](https://github.com/docopt/docopt/tree/master/examples)
+which cover every aspect of functionality of `docopt`.  Try them out,
+read the source if in doubt.
+
 
 Development
 ===============================================================================
