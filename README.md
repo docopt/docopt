@@ -316,7 +316,7 @@ there are great libraries like
 [voluptuous](https://github.com/alecthomas/voluptuous)
 which make validating data a breeze.  Take a look at
 [validation_example.py](https://github.com/docopt/docopt/tree/master/examples/validation_example.py)
-which uses voluptuous to validate date and report an error to the user.
+which uses voluptuous to validate data and report an error to the user.
 
 Development
 ===============================================================================
