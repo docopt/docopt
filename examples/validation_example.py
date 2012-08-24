@@ -12,7 +12,7 @@ import os
 
 from docopt import docopt
 try:
-    from schemAa import Schema, And, Or, Use, SchemaError
+    from schema import Schema, And, Or, Use, SchemaError
 except ImportError:
     exit('This example requires that `schema` data-validation library'
          ' is installed: \n    pip install schema\n'
