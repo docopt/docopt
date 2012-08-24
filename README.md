@@ -312,11 +312,11 @@ Data validation
 
 `docopt` does one thing and does it well: it implements your command-line
 interface.  However it does not validate the input data.  On the other hand
-there are great libraries like
-[voluptuous](https://github.com/alecthomas/voluptuous)
+there are libraries like
+[python schema](https://github.com/halst/schema)
 which make validating data a breeze.  Take a look at
 [validation_example.py](https://github.com/docopt/docopt/tree/master/examples/validation_example.py)
-which uses voluptuous to validate data and report an error to the user.
+which uses **schema** to validate data and report an error to the user.
 
 Development
 ===============================================================================

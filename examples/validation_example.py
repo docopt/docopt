@@ -1,32 +1,35 @@
-"""Usage: prog.py --count=N OUTDIR FILE
+"""Usage: prog.py [--count=N] PATH FILE...
 
 Arguments:
   FILE     input file
-  OUTDIR   out directory
+  PATH     out directory
 
 Options:
-  --count NUM   number of operations [default: 1]
+  --count=N   number of operations
 
 """
-import docopt
+import os
+
+from docopt import docopt
 try:
-    import voluptuous as v
+    from schemAa import Schema, And, Or, Use, SchemaError
 except ImportError:
-    exit('This example assumes that `voluptuous` data-validation library\n'
-         'is installed: pip install voluptuous\n'
-         'https://github.com/alecthomas/voluptuous')
+    exit('This example requires that `schema` data-validation library'
+         ' is installed: \n    pip install schema\n'
+         'https://github.com/halst/schema')
+
 
 if __name__ == '__main__':
-    args = docopt.docopt(__doc__)
+    args = docopt(__doc__)
 
-    schema = v.Schema({
-        'FILE': v.isfile('FILE does not exist.'),
-        'OUTDIR': v.isdir('OUTDIR directory does not exist.'),
-        '--count': v.all(v.coerce(int, '--count should be integer.'),
-                         v.clamp(min=1, max=5))})
+    schema = Schema({
+        'FILE': [Use(open, error='FILE should be readable')],
+        'PATH': And(os.path.exists, error='PATH should exist'),
+        '--count': Or(None, And(Use(int), lambda n: 0 < n < 5),
+                      error='--count=N should be integer 0 < N < 5')})
     try:
-        args = schema(args)
-    except v.Invalid as ex:
-        exit('\n'.join(['error: ' + e.msg.split('.')[0] for e in ex.errors]))
+        args = schema.validate(args)
+    except SchemaError as e:
+        exit(e)
 
     print(args)
