@@ -212,8 +212,8 @@ Use the following constructs to specify patterns:
   e.g.: `my_program.py --path=<path> <file>...` is the same as
   `my_program.py (--path=<path> <file>...)`.
   (Note, "required options" might be not a good idea for your users).
-- **|** (pipe) **mutualy exclussive** elements. Group them using **( )** if
-  one of the mutually exclussive elements is required:
+- **|** (pipe) **mutualy exclusive** elements. Group them using **( )** if
+  one of the mutually exclusive elements is required:
   `my_program.py (--clockwise | --counter-clockwise) TIME`. Group them using
   **[ ]** if none of the mutually-exclusive elements are required:
   `my_program.py [--left | --right]`.
