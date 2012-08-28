@@ -2,6 +2,9 @@ import sys
 import re
 
 
+__all__ = ['docopt']
+
+
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
