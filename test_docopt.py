@@ -582,7 +582,7 @@ def test_options_shortcut_multiple_commands():
         'c1 -o', _any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
-def _test_bug():
+def test_bug_recuired_option_didnt_work_with_option_whortcut():
     assert docopt('usage: prog [options] -a\n\n-a', '-a') == {'-a': True}
 
 

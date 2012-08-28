@@ -458,7 +458,9 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, list(options))
     for ao in AnyOptions.instances:
-        ao.children = options
+        doc_options = parse_doc_options(doc)
+        pattern_options = [o for o in pattern.flat if type(o) is Option]
+        ao.children = list(set(doc_options) - set(pattern_options))
         if _any_options:
             ao.children += [Option(o.short, o.long, o.argcount)
                             for o in argv if type(o) is Option]
