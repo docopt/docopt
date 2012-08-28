@@ -1,10 +1,10 @@
 `docopt` creates *beautiful* command-line interfaces
 ===============================================================================
 
-> New in version 0.5.0:
+> New in version 0.X.X:
 >
-> Repeatable flags and commands are counted if repeated (a-la ssh `-vvv`).
-> Repeatable options with arguments are accumulated into list.
+> `any_options` parameter to `docopt` function, which allows for sub-parsers,
+> multi-level help and *huge* applications (like git)
 
 Isn't it awesome how `optparse` and `argparse` generate help messages
 based on your code?!
@@ -23,8 +23,8 @@ Usage:
   naval_fate.py ship new <name>...
   naval_fate.py ship <name> move <x> <y> [--speed=<kn>]
   naval_fate.py ship shoot <x> <y>
-  naval_fate.py mine (set|remove) <x> <y> [--moored|--drifting]
-  naval_fate.py -h | --help
+  naval_fate.py mine (set|remove) <x> <y> [--moored | --drifting]
+  naval_fate.py (-h | --help)
   naval_fate.py --version
 
 Options:
@@ -74,7 +74,7 @@ from docopt import docopt
 arguments = docopt(doc, argv=sys.argv[1:], help=True, version=None)
 ```
 
-`docopt` takes 1 required and 3 optional arguments:
+`docopt` takes 1 required and 4 optional arguments:
 
 - `doc` could be a module docstring (`__doc__`) or some other string that
   contains a **help message** that will be
@@ -115,6 +115,13 @@ arguments = docopt(doc, argv=sys.argv[1:], help=True, version=None)
 Note, when `docopt` is set to automatically handle `-h`, `--help` and
 `--version` options, you still need to mention them in usage pattern for
 this to work. Also, for your users to know about them.
+
+- `any_options`, by default `False` is an optional argument, setting it to
+   `True` changes the meaning of `[options]` shortcut (described in detail
+   below) from "any options listed" to "any options whatsoever". This is
+   useful if (1) you want to allow arbitrary options for some reason, or
+   (2) you want to delegate sub-command parsing to a sub-parser, without
+   knowing which options it takes.
 
 The **return** value is just a dictionary with options, arguments and commands,
 with keys spelled exactly like in a help message
@@ -226,7 +233,7 @@ Use the following constructs to specify patterns:
 - **[options]** (case sensitive) shortcut for any options.
   You can use it if you want to specify that the usage
   pattern could be provided with any options defined below in the
-  option-descriptions and do not want to enumerate them all in pattern.
+ option-descriptions and do not want to enumerate them all in pattern.
 - "`[--]`". Double dash "`--`" is used by convention to separate
   positional arguments that can be mistaken for options. In order to
   support this convention add "`[--]`" to you usage patterns.
@@ -307,6 +314,19 @@ We have an extensive list of
 which cover every aspect of functionality of `docopt`.  Try them out,
 read the source if in doubt.
 
+Sub-parsers, multi-level help and *huge* applications (like git)
+-------------------------------------------------------------------------------
+
+If you want to split your usage-patter in several, implement multi-level
+help (whith separate help-screen for each subcommand), want to interface
+with existing scripts that don't use docopt, or you're building
+the next "git", you will need the new `any_options` parameter (described
+in API section above).  To get you started quickly we implemented
+a subset of git command-line interface as an example:
+
+[docopt/examples/git](https://github.com/docopt/docopt/tree/master/examples/git)
+
+
 Data validation
 -------------------------------------------------------------------------------
 
@@ -352,8 +372,9 @@ Changelog
 release with stable API will be 1.0 (soon).  Until then, you are encouraged
 to specify explicitly the version in your dependency tools, e.g.:
 
-    pip install docopt==0.5.0
+    pip install docopt==0.X.X
 
+- 0.X.X `any_options` parameter to `docopt` function.
 - 0.5.0 Repeated options/commands are counted or accumulated into list.
 - 0.4.2 Bugfix release.
 - 0.4.0 Option descriptions become optional,
