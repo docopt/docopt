@@ -43,7 +43,7 @@ class Pattern(object):
                 c.fix_identities(uniq)
 
     def fix_repeating_arguments(self):
-        """Find arguments that should accumulate values and fix them."""
+        """Fix elements that should accumulate/increment values."""
         either = [list(c.children) for c in self.either.children]
         for case in either:
             for e in [c for c in case if case.count(c) > 1]:
