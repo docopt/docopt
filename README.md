@@ -71,7 +71,7 @@ API
 ```python
 from docopt import docopt
 
-arguments = docopt(doc, argv=sys.argv[1:], help=True, version=None)
+args = docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False)
 ```
 
 `docopt` takes 1 required and 4 optional arguments:
