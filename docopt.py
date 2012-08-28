@@ -227,8 +227,6 @@ class AnyOptions(Optional):
 
     """Marker/placeholder for [options] shortcut."""
 
-    instances = []
-
 
 class OneOrMore(ParrentPattern):
 
@@ -396,8 +394,7 @@ def parse_atom(tokens, options):
         return [result]
     elif token == 'options':
         tokens.move()
-        AnyOptions.instances.append(AnyOptions())
-        return [AnyOptions.instances[-1]]
+        return [AnyOptions()]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -456,13 +453,11 @@ class Dict(dict):
 
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
-    AnyOptions.instances = []
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, list(options))
-    print pattern
-    for ao in AnyOptions.instances:
+    for ao in pattern.flat(AnyOptions):
         doc_options = parse_doc_options(doc)
         pattern_options = [o for o in pattern.flat() if type(o) is Option]
         ao.children = list(set(doc_options) - set(pattern_options))
