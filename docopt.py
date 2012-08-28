@@ -76,6 +76,10 @@ class Pattern(object):
                 optional = [c for c in children if type(c) is Optional][0]
                 children.pop(children.index(optional))
                 groups.append(list(optional.children) + children)
+            elif AnyOptions in types:
+                optional = [c for c in children if type(c) is AnyOptions][0]
+                children.pop(children.index(optional))
+                groups.append(list(optional.children) + children)
             elif OneOrMore in types:
                 oneormore = [c for c in children if type(c) is OneOrMore][0]
                 children.pop(children.index(oneormore))
@@ -107,6 +111,7 @@ class ChildPattern(Pattern):
         same_name = [a for a in collected if a.name == self.name]
         if type(self.value) in (int, list):
             increment = 1 if type(self.value) is int else [match.value]
+            print 'sn>', same_name
             if not same_name:
                 match.value = increment
                 return True, left_, collected + [match]
@@ -193,18 +198,6 @@ class Option(ChildPattern):
         return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
                                            self.argcount, self.value)
 
-
-class AnyOptions(ParrentPattern):
-
-    enabled = True
-
-    def match(self, left, collected=None):
-        collected = [] if collected is None else collected
-        left_ = [l for l in left if type(l) != Option]
-        collected_ = [l for l in left if type(l) == Option]
-        return (left != left_), left_, collected + collected_
-
-
 class Required(ParrentPattern):
 
     def match(self, left, collected=None):
@@ -225,6 +218,13 @@ class Optional(ParrentPattern):
         for p in self.children:
             m, left, collected = p.match(left, collected)
         return True, left, collected
+
+
+class AnyOptions(Optional):
+
+    """Marker/placeholder for [options] shortcut."""
+
+    instance = None
 
 
 class OneOrMore(ParrentPattern):
@@ -284,11 +284,10 @@ def parse_long(tokens, options):
         opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         argcount = 1 if eq == '=' else 0
-        if  tokens.error is DocoptExit:
-            o = Option(None, raw, argcount, value if argcount else True)
-        else:
-            o = Option(None, raw, argcount)
+        o = Option(None, raw, argcount)
         options.append(o)
+        if tokens.error is DocoptExit:
+            o = Option(None, raw, argcount, value if argcount else True)
         return [o]
     if len(opt) > 1:
         raise tokens.error('%s is not a unique prefix: %s?' %
@@ -303,7 +302,7 @@ def parse_long(tokens, options):
     elif value is not None:
         raise tokens.error('%s must not have an argument' % opt.name)
     if tokens.error is DocoptExit:
-        opt.value = (value or True) if not opt.value else opt.value + 1
+        opt.value = (value or True)# if not opt.value else opt.value + 1
     else:
         opt.value = None if value else False
     return [opt]
@@ -319,8 +318,16 @@ def parse_shorts(tokens, options):
             raise tokens.error('-%s is specified ambiguously %d times' %
                                (raw[0], len(opt)))
         if len(opt) < 1:
-            o = Option('-' + raw[0], None, 0, tokens.error is DocoptExit)
+        ###argcount = 1 if eq == '=' else 0
+        ###o = Option(None, raw, argcount)
+        ###options.append(o)
+        ###if tokens.error is DocoptExit:
+        ###    o = Option(None, raw, argcount, value if argcount else True)
+        ###return [o]
+            o = Option('-' + raw[0], None, 0)
             options.append(o)
+            if tokens.error is DocoptExit:
+                o = Option('-' + raw[0], None, 0, True)
             parsed.append(o)
             raw = raw[1:]
             continue
@@ -336,7 +343,7 @@ def parse_shorts(tokens, options):
                 raw = tokens.move()
             value, raw = raw, ''
         if tokens.error is DocoptExit:
-            opt.value = value if not opt.value else opt.value + 1
+            opt.value = value# if not opt.value else opt.value + 1
         else:
             opt.value = None if value else False
         parsed.append(opt)
@@ -392,7 +399,8 @@ def parse_atom(tokens, options):
         return [result]
     elif token == 'options':
         tokens.move()
-        return [AnyOptions()] if AnyOptions.enabled else options
+        AnyOptions.instance = AnyOptions()
+        return [AnyOptions.instance]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -451,13 +459,25 @@ class Dict(dict):
 
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
-    AnyOptions.enabled = _any_options
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    argv = parse_argv(argv, options)
+    #options += [o for o in pattern.flat if type(o) is Option]
+    if AnyOptions.instance:
+        AnyOptions.instance.children = options
+        print '1>', AnyOptions.instance
+    argv = parse_argv(argv, list(options))
+    if _any_options and AnyOptions.instance:
+        AnyOptions.instance.children += [Option(o.short, o.long, o.argcount)
+                for o in argv if type(o) is Option]
+    #def __init__(self, short=None, long=None, argcount=0, value=False):
+    print '2>', AnyOptions.instance
+    print 'p>', pattern
     extras(help, version, argv, doc)
+    print 'f>', pattern.fix()
     matched, left, collected = pattern.fix().match(argv)
+    #print 'f>', pattern.fix()
+    print '>', matched, left, collected
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()

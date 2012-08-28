@@ -144,18 +144,14 @@ def test_parse_pattern():
     assert parse_pattern('[ -h ] [N]', options=o) == \
                Required(Optional(Option('-h')),
                         Optional(Argument('N')))
-    tmp = AnyOptions.enabled  # dirty side effects...
-    AnyOptions.enabled = True
     assert parse_pattern('[options]', options=o) == Required(
                 Optional(AnyOptions()))
     assert parse_pattern('[options] A', options=o) == Required(
                 Optional(AnyOptions()),
                 Argument('A'))
-    AnyOptions.enabled = False
     assert parse_pattern('-v [options]', options=o) == Required(
                 Option('-v', '--verbose'),
-                Optional(*o))
-    AnyOptions.enabled = tmp
+                Optional(AnyOptions()))
 
     assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
     assert parse_pattern('<add>', options=o) == Required(Argument('<add>'))
