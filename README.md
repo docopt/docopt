@@ -158,8 +158,6 @@ Help message consists of 2 parts:
         --verbose    print more text
 
 Their format is described below; other text is ignored.
-Also, take a look at the
-[beautiful examples](https://github.com/docopt/docopt/tree/master/examples>).
 
 Usage pattern format
 -------------------------------------------------------------------------------
@@ -214,8 +212,8 @@ Use the following constructs to specify patterns:
   e.g.: `my_program.py --path=<path> <file>...` is the same as
   `my_program.py (--path=<path> <file>...)`.
   (Note, "required options" might be not a good idea for your users).
-- **|** (pipe) **mutualy exclussive** elements. Group them using **( )** if
-  one of the mutually exclussive elements is required:
+- **|** (pipe) **mutualy exclusive** elements. Group them using **( )** if
+  one of the mutually exclusive elements is required:
   `my_program.py (--clockwise | --counter-clockwise) TIME`. Group them using
   **[ ]** if none of the mutually-exclusive elements are required:
   `my_program.py [--left | --right]`.
@@ -236,7 +234,7 @@ Use the following constructs to specify patterns:
   `stdin` is used instead of a file. To support this add "`[-]`" to
   you usage patterns. "`-`" act as a normal command.
 
-If you pattern allows to match argument-less option (a flag) several times:
+If your pattern allows to match argument-less option (a flag) several times:
 
     Usage: my_program.py [-v | -vv | -vvv]
 
@@ -300,6 +298,25 @@ The rules are as follows:
         --coefficient=K  The K coefficient [default: 2.95]
         --output=FILE    Output file [default: test.txt]
         --directory=DIR  Some directory [default: ./]
+
+Examples
+-------------------------------------------------------------------------------
+
+We have an extensive list of
+[examples](https://github.com/docopt/docopt/tree/master/examples)
+which cover every aspect of functionality of `docopt`.  Try them out,
+read the source if in doubt.
+
+Data validation
+-------------------------------------------------------------------------------
+
+`docopt` does one thing and does it well: it implements your command-line
+interface.  However it does not validate the input data.  On the other hand
+there are libraries like
+[python schema](https://github.com/halst/schema)
+which make validating data a breeze.  Take a look at
+[validation_example.py](https://github.com/docopt/docopt/tree/master/examples/validation_example.py)
+which uses **schema** to validate data and report an error to the user.
 
 Development
 ===============================================================================
