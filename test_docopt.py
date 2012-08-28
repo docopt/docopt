@@ -573,3 +573,21 @@ def test_any_options_parameter():
         docopt('usage: prog [options]', '--long=arg --long=another')
     assert docopt('usage: prog [options]', '--long=arg --long=another',
                   _any_options=True) == {'--long': ['arg', 'another']}
+
+
+def test_options_shortcut_multiple_commands():
+    assert docopt('usage: prog c1 [options] prog c2 [options]',
+        'c2 -o', _any_options=True) == {'-o': True, 'c1': False, 'c2': True}
+    assert docopt('usage: prog c1 [options] prog c2 [options]',
+        'c1 -o', _any_options=True) == {'-o': True, 'c1': True, 'c2': False}
+
+
+def _test_bug():
+    assert docopt('usage: prog [options] -a\n\n-a', '-a') == {'-a': True}
+
+
+def test_options_shortcut_does_not_add_options_to_patter_second_time():
+    assert docopt('usage: prog [options] [-a]\n\n-a', '-a') == {'-a': True}
+    print docopt('usage: prog [options] [-a]\n\n-a', '-aa')
+    with raises(DocoptExit):
+        docopt('usage: prog [options] [-a]\n\n-a', '-aa')

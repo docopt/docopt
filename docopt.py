@@ -223,7 +223,7 @@ class AnyOptions(Optional):
 
     """Marker/placeholder for [options] shortcut."""
 
-    instance = None
+    instances = []
 
 
 class OneOrMore(ParrentPattern):
@@ -392,8 +392,8 @@ def parse_atom(tokens, options):
         return [result]
     elif token == 'options':
         tokens.move()
-        AnyOptions.instance = AnyOptions()
-        return [AnyOptions.instance]
+        AnyOptions.instances.append(AnyOptions())
+        return [AnyOptions.instances[-1]]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -454,15 +454,20 @@ class Dict(dict):
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
+    AnyOptions.instances = []
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    if AnyOptions.instance:
-        AnyOptions.instance.children = options
+    print options
     argv = parse_argv(argv, list(options))
-    if _any_options and AnyOptions.instance:
-        AnyOptions.instance.children += [Option(o.short, o.long, o.argcount)
-                for o in argv if type(o) is Option]
+    for ao in AnyOptions.instances:
+        ao.children = options
+        if _any_options:
+            ao.children += [Option(o.short, o.long, o.argcount)
+                            for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
+    print pattern
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
+        return Dict((a.name, a.value)
+                    for a in (pattern.flat + options + collected))
+    print '>', matched, left, collected
     raise DocoptExit()
