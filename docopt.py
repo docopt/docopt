@@ -37,7 +37,7 @@ class Pattern(object):
         """Make pattern-tree tips point to same object if they are equal."""
         if not hasattr(self, 'children'):
             return self
-        uniq = list(set(self.flat)) if uniq == None else uniq
+        uniq = list(set(self.flat())) if uniq == None else uniq
         for i, c in enumerate(self.children):
             if not hasattr(c, 'children'):
                 assert c in uniq
@@ -101,7 +101,6 @@ class ChildPattern(Pattern):
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
 
-    @property
     def flat(self):
         return [self]
 
@@ -131,9 +130,8 @@ class ParrentPattern(Pattern):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join(repr(a) for a in self.children))
 
-    @property
     def flat(self):
-        return sum([c.flat for c in self.children], [])
+        return sum([c.flat() for c in self.children], [])
 
 
 class Argument(ChildPattern):
@@ -461,9 +459,10 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, list(options))
+    print pattern
     for ao in AnyOptions.instances:
         doc_options = parse_doc_options(doc)
-        pattern_options = [o for o in pattern.flat if type(o) is Option]
+        pattern_options = [o for o in pattern.flat() if type(o) is Option]
         ao.children = list(set(doc_options) - set(pattern_options))
         if any_options:
             ao.children += [Option(o.short, o.long, o.argcount)
@@ -472,5 +471,5 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value)
-                    for a in (pattern.flat + options + collected))
+                    for a in (pattern.flat() + options + collected))
     raise DocoptExit()

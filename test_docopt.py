@@ -10,7 +10,7 @@ from pytest import raises
 
 def test_pattern_flat():
     assert Required(OneOrMore(Argument('N')),
-                    Option('-a'), Argument('M')).flat == \
+                    Option('-a'), Argument('M')).flat() == \
                             [Argument('N'), Option('-a'), Argument('M')]
 
 
@@ -592,3 +592,4 @@ def test_options_shortcut_does_not_add_options_to_patter_second_time():
             {'-a': True, '-b': False}
     with raises(DocoptExit):
         docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')
+    assert False
