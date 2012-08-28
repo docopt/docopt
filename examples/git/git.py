@@ -49,16 +49,9 @@ if __name__ == '__main__':
     elif args['<command>'] == 'branch':
         # In case subcommand is a script in some other programming language:
         exit(call(['python', 'git_branch.py'] + sub_argv))
-    elif args['<command>'] == 'checkout':
-        exit(call(['python', 'git_checkout.py'] + sub_argv))
-    elif args['<command>'] == 'clone':
-        exit(call(['python', 'git_clone.py'] + sub_argv))
-    elif args['<command>'] == 'commit':
-        exit(call(['python', 'git_commit.py'] + sub_argv))
-    elif args['<command>'] == 'push':
-        exit(call(['python', 'git_push.py'] + sub_argv))
-    elif args['<command>'] == 'remote':
-        exit(call(['python', 'git_remote.py'] + sub_argv))
+    elif args['<command>'] in 'checkout clone commit push remote'.split():
+        # For the rest we'll just keep DRY:
+        exit(call(['python', 'git_%s.py' % args['<command>']] + sub_argv))
     elif args['<command>'] == 'help':
         exit(call(['python', 'git.py'] + args['<args>'] + ['--help']))
     else:
