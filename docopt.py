@@ -101,8 +101,8 @@ class ChildPattern(Pattern):
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
 
-    def flat(self):
-        return [self]
+    def flat(self, *types):
+        return [self] if not types or type(self) in types else []
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -130,8 +130,10 @@ class ParrentPattern(Pattern):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join(repr(a) for a in self.children))
 
-    def flat(self):
-        return sum([c.flat() for c in self.children], [])
+    def flat(self, *types):
+        if type(self) in types:
+            return [self]
+        return sum([c.flat(*types) for c in self.children], [])
 
 
 class Argument(ChildPattern):
