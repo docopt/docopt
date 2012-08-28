@@ -560,27 +560,27 @@ def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
     assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
-                  _any_options=True) == {'-f': True, '-o': 2,
+                  any_options=True) == {'-f': True, '-o': 2,
                                          '--bar': True, '--spam': 'eggs'}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--foo --bar --bar')
     assert docopt('usage: prog [options]', '--foo --bar --bar',
-                _any_options=True) == {'--foo': True, '--bar': 2}
+                any_options=True) == {'--foo': True, '--bar': 2}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--bar --bar --bar -ffff')
     assert docopt('usage: prog [options]', '--bar --bar --bar -ffff',
-                  _any_options=True) == {'--bar': 3, '-f': 4}
+                  any_options=True) == {'--bar': 3, '-f': 4}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--long=arg --long=another')
     assert docopt('usage: prog [options]', '--long=arg --long=another',
-                  _any_options=True) == {'--long': ['arg', 'another']}
+                  any_options=True) == {'--long': ['arg', 'another']}
 
 
 def test_options_shortcut_multiple_commands():
     assert docopt('usage: prog c1 [options] prog c2 [options]',
-        'c2 -o', _any_options=True) == {'-o': True, 'c1': False, 'c2': True}
+        'c2 -o', any_options=True) == {'-o': True, 'c1': False, 'c2': True}
     assert docopt('usage: prog c1 [options] prog c2 [options]',
-        'c1 -o', _any_options=True) == {'-o': True, 'c1': True, 'c2': False}
+        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
 def test_bug_recuired_option_didnt_work_with_option_whortcut():

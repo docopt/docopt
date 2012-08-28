@@ -452,7 +452,7 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
+def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     AnyOptions.instances = []
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
@@ -462,7 +462,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
         doc_options = parse_doc_options(doc)
         pattern_options = [o for o in pattern.flat if type(o) is Option]
         ao.children = list(set(doc_options) - set(pattern_options))
-        if _any_options:
+        if any_options:
             ao.children += [Option(o.short, o.long, o.argcount)
                             for o in argv if type(o) is Option]
     extras(help, version, argv, doc)

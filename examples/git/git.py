@@ -28,7 +28,7 @@ if __name__ == '__main__':
     args = docopt(__doc__,
                   version='git version 1.7.4.4',
                   help=False,
-                  _any_options=True)
+                  any_options=True)
 
     # Handle -h|--help manually.
     # Otherwise `subcommand -h` would trigger global help.
