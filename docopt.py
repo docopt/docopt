@@ -111,7 +111,6 @@ class ChildPattern(Pattern):
         same_name = [a for a in collected if a.name == self.name]
         if type(self.value) in (int, list):
             increment = 1 if type(self.value) is int else [match.value]
-            print 'sn>', same_name
             if not same_name:
                 match.value = increment
                 return True, left_, collected + [match]
@@ -318,12 +317,6 @@ def parse_shorts(tokens, options):
             raise tokens.error('-%s is specified ambiguously %d times' %
                                (raw[0], len(opt)))
         if len(opt) < 1:
-        ###argcount = 1 if eq == '=' else 0
-        ###o = Option(None, raw, argcount)
-        ###options.append(o)
-        ###if tokens.error is DocoptExit:
-        ###    o = Option(None, raw, argcount, value if argcount else True)
-        ###return [o]
             o = Option('-' + raw[0], None, 0)
             options.append(o)
             if tokens.error is DocoptExit:
@@ -462,22 +455,14 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    #options += [o for o in pattern.flat if type(o) is Option]
     if AnyOptions.instance:
         AnyOptions.instance.children = options
-        print '1>', AnyOptions.instance
     argv = parse_argv(argv, list(options))
     if _any_options and AnyOptions.instance:
         AnyOptions.instance.children += [Option(o.short, o.long, o.argcount)
                 for o in argv if type(o) is Option]
-    #def __init__(self, short=None, long=None, argcount=0, value=False):
-    print '2>', AnyOptions.instance
-    print 'p>', pattern
     extras(help, version, argv, doc)
-    print 'f>', pattern.fix()
     matched, left, collected = pattern.fix().match(argv)
-    #print 'f>', pattern.fix()
-    print '>', matched, left, collected
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
     raise DocoptExit()
