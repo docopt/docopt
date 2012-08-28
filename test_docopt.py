@@ -314,10 +314,10 @@ def test_pattern_either():
                             Argument('N'), Argument('M')))
 
 
-def test_pattern_fix_list_arguments():
-    assert Option('-a').fix_list_arguments() == Option('-a')
-    assert Argument('N', None).fix_list_arguments() == Argument('N', None)
-    assert Required(Argument('N'), Argument('N')).fix_list_arguments() == \
+def test_pattern_fix_repeating_arguments():
+    assert Option('-a').fix_repeating_arguments() == Option('-a')
+    assert Argument('N', None).fix_repeating_arguments() == Argument('N', None)
+    assert Required(Argument('N'), Argument('N')).fix_repeating_arguments() == \
             Required(Argument('N', []), Argument('N', []))
     assert Either(Argument('N'),
                         OneOrMore(Argument('N'))).fix() == \

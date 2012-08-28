@@ -27,7 +27,7 @@ class Pattern(object):
 
     def fix(self):
         self.fix_identities()
-        self.fix_list_arguments()
+        self.fix_repeating_arguments()
         return self
 
     def fix_identities(self, uniq=None):
@@ -42,7 +42,7 @@ class Pattern(object):
             else:
                 c.fix_identities(uniq)
 
-    def fix_list_arguments(self):
+    def fix_repeating_arguments(self):
         """Find arguments that should accumulate values and fix them."""
         either = [list(c.children) for c in self.either.children]
         for case in either:
