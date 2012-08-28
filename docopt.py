@@ -107,7 +107,7 @@ class ChildPattern(Pattern):
         pos, match = self.single_match(left)
         if match is None:
             return False, left, collected
-        left_ = left[:pos] + left[pos+1:]
+        left_ = left[:pos] + left[pos + 1:]
         same_name = [a for a in collected if a.name == self.name]
         if type(self.value) in (int, list):
             increment = 1 if type(self.value) is int else [match.value]
@@ -196,6 +196,7 @@ class Option(ChildPattern):
     def __repr__(self):
         return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
                                            self.argcount, self.value)
+
 
 class Required(ParrentPattern):
 
@@ -301,7 +302,7 @@ def parse_long(tokens, options):
     elif value is not None:
         raise tokens.error('%s must not have an argument' % opt.name)
     if tokens.error is DocoptExit:
-        opt.value = (value or True)# if not opt.value else opt.value + 1
+        opt.value = value or True
     else:
         opt.value = None if value else False
     return [opt]
@@ -336,7 +337,7 @@ def parse_shorts(tokens, options):
                 raw = tokens.move()
             value, raw = raw, ''
         if tokens.error is DocoptExit:
-            opt.value = value# if not opt.value else opt.value + 1
+            opt.value = value
         else:
             opt.value = None if value else False
         parsed.append(opt)

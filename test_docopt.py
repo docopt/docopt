@@ -500,6 +500,7 @@ def test_issue40():
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
                                                            '--aa': True}
 
+
 def test_bug_option_argument_should_not_capture_default_value_from_pattern():
     assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
     assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
