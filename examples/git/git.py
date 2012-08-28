@@ -10,6 +10,8 @@ usage: git [--version] [--exec-path=<path>] [--html-path]
 The most commonly used git commands are:
    add        Add file contents to the index
    branch     List, create, or delete branches
+   checkout   Checkout a branch or paths to the working tree
+   clone      Clone a repository into a new directory
    commit     Record changes to the repository
    push       Update remote refs along with associated objects
    remote     Manage set of tracked repositories
@@ -47,6 +49,10 @@ if __name__ == '__main__':
     elif args['<command>'] == 'branch':
         # In case subcommand is a script in some other programming language:
         exit(call(['python', 'git_branch.py'] + sub_argv))
+    elif args['<command>'] == 'checkout':
+        exit(call(['python', 'git_checkout.py'] + sub_argv))
+    elif args['<command>'] == 'clone':
+        exit(call(['python', 'git_clone.py'] + sub_argv))
     elif args['<command>'] == 'commit':
         exit(call(['python', 'git_commit.py'] + sub_argv))
     elif args['<command>'] == 'push':
