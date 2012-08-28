@@ -587,7 +587,7 @@ def _test_bug():
 
 
 def test_options_shortcut_does_not_add_options_to_patter_second_time():
-    assert docopt('usage: prog [options] [-a]\n\n-a', '-a') == {'-a': True}
-    print docopt('usage: prog [options] [-a]\n\n-a', '-aa')
+    assert docopt('usage: prog [options] [-a]\n\n-a -b', '-a') == \
+            {'-a': True, '-b': False}
     with raises(DocoptExit):
-        docopt('usage: prog [options] [-a]\n\n-a', '-aa')
+        docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')

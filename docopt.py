@@ -452,11 +452,10 @@ class Dict(dict):
 
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
+    AnyOptions.instances = []
     DocoptExit.usage = printable_usage(doc)
     options = parse_doc_options(doc)
-    AnyOptions.instances = []
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    print options
     argv = parse_argv(argv, list(options))
     for ao in AnyOptions.instances:
         ao.children = options
@@ -465,9 +464,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, _any_options=False):
                             for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
-    print pattern
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value)
                     for a in (pattern.flat + options + collected))
-    print '>', matched, left, collected
     raise DocoptExit()
