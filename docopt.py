@@ -51,7 +51,10 @@ class Pattern(object):
         for case in either:
             for e in [c for c in case if case.count(c) > 1]:
                 if type(e) is Argument or type(e) is Option and e.argcount:
-                    e.value = []
+                    if e.value is None:
+                        e.value = []
+                    elif type(e.value) is not list:
+                        e.value = [e.value]
                 if type(e) is Command or type(e) is Option and e.argcount == 0:
                     e.value = 0
         return self
