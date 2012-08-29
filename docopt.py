@@ -147,6 +147,12 @@ class Argument(ChildPattern):
                 return n, Argument(self.name, p.value)
         return None, None
 
+    @classmethod
+    def parse(class_, source):
+        name = re.findall('(<\S*?>)', source)[0]
+        value = re.findall('\[default: (.*)\]', source, flags=re.I)
+        return class_(name, value[0] if value else None)
+
 
 class Command(Argument):
 
@@ -419,11 +425,17 @@ def parse_argv(source, options):
     return parsed
 
 
-def parse_doc_options(doc):
-    return [Option.parse('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
+def parse_defaults(doc):
+    # in python < 2.7 you can't pass flags=re.MULTILINE
+    split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
+    split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
+    options = [Option.parse(s) for s in split if s.startswith('-')]
+    arguments = [Argument.parse(s) for s in split if s.startswith('<')]
+    return options, arguments
 
 
 def printable_usage(doc):
+    # in python < 2.7 you can't pass flags=re.IGNORECASE
     usage_split = re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)
     if len(usage_split) < 3:
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
@@ -453,11 +465,11 @@ class Dict(dict):
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     DocoptExit.usage = printable_usage(doc)
-    options = parse_doc_options(doc)
+    options, _ = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, list(options))
     for ao in pattern.flat(AnyOptions):
-        doc_options = parse_doc_options(doc)
+        doc_options, _ = parse_defaults(doc)
         pattern_options = [o for o in pattern.flat() if type(o) is Option]
         ao.children = list(set(doc_options) - set(pattern_options))
         if any_options:

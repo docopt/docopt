@@ -2,8 +2,8 @@ from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
-                    parse_argv, parse_pattern,
-                    parse_doc_options, printable_usage, formal_usage
+                    parse_argv, parse_pattern, parse_defaults,
+                    printable_usage, formal_usage
                    )
 from pytest import raises
 
@@ -72,15 +72,6 @@ def test_commands():
     assert docopt('Usage: prog a b', 'a b') == {'a': True, 'b': True}
     with raises(DocoptExit):
         assert docopt('Usage: prog a b', 'b a')
-
-
-def test_parse_doc_options():
-    doc = '''-h, --help  Print help message.
-    -o FILE     Output file.
-    --verbose   Verbose mode.'''
-    assert parse_doc_options(doc) == [Option('-h', '--help'),
-                                      Option('-o', None, 1),
-                                      Option(None, '--verbose')]
 
 
 def test_printable_and_formal_usage():
@@ -606,3 +597,30 @@ def test_default_value_is_converted_to_list():
                   '-o this') == {'-o': ['this']}
     assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x y]',
                   '') == {'-o': ['x', 'y']}
+
+
+def test_default_value_for_positional_arguments():
+    assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
+            {'<p>': 'x'}
+
+
+def test_parse_defaults():
+    assert parse_defaults("""usage: prog
+
+                          -o, --option <o>
+                          --another <a>  description
+                                         [default: x]
+                          <a>
+                          <another>  description [default: y]""") == \
+           ([Option('-o', '--option', 1, None),
+             Option(None, '--another', 1, 'x')],
+            [Argument('<a>', None),
+             Argument('<another>', 'y')])
+
+    doc = '''
+    -h, --help  Print help message.
+    -o FILE     Output file.
+    --verbose   Verbose mode.'''
+    assert parse_defaults(doc)[0] == [Option('-h', '--help'),
+                                      Option('-o', None, 1),
+                                      Option(None, '--verbose')]
