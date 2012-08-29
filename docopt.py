@@ -304,8 +304,6 @@ def parse_long(tokens, options):
         raise tokens.error('%s must not have an argument' % opt.name)
     if tokens.error is DocoptExit:
         opt.value = value or True
-    else:
-        opt.value = None if value else False
     return [opt]
 
 
@@ -339,8 +337,6 @@ def parse_shorts(tokens, options):
             value, raw = raw, ''
         if tokens.error is DocoptExit:
             opt.value = value
-        else:
-            opt.value = None if value else False
         parsed.append(opt)
     return parsed
 
@@ -467,6 +463,5 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value)
-                    for a in (pattern.flat() + options + collected))
+        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
