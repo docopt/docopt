@@ -602,6 +602,10 @@ def test_default_value_is_converted_to_list():
 def test_default_value_for_positional_arguments():
     assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
             {'<p>': 'x'}
+    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
+            {'<p>': ['x', 'y']}
+    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
+            {'<p>': ['this']}
 
 
 def test_parse_defaults():

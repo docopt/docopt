@@ -465,8 +465,12 @@ class Dict(dict):
 
 def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     DocoptExit.usage = printable_usage(doc)
-    options, _ = parse_defaults(doc)
+    options, arguments = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    for a in pattern.flat(Argument):
+        same_name = [d for d in arguments if d.name == a.name]
+        if same_name:
+            a.value = d.value
     argv = parse_argv(argv, list(options))
     for ao in pattern.flat(AnyOptions):
         doc_options, _ = parse_defaults(doc)
