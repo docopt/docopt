@@ -602,3 +602,7 @@ def test_default_value_is_converted_to_list():
                   '-o this -o that') == {'-o': ['this', 'that']}
     assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x]',
                   '') == {'-o': ['x']}
+    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x y]',
+                  '-o this') == {'-o': ['this']}
+    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x y]',
+                  '') == {'-o': ['x', 'y']}

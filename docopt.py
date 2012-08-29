@@ -54,7 +54,7 @@ class Pattern(object):
                     if e.value is None:
                         e.value = []
                     elif type(e.value) is not list:
-                        e.value = [e.value]
+                        e.value = e.value.split()
                 if type(e) is Command or type(e) is Option and e.argcount == 0:
                     e.value = 0
         return self
