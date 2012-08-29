@@ -595,3 +595,10 @@ def test_options_shortcut_does_not_add_options_to_patter_second_time():
             {'-a': True, '-b': False}
     with raises(DocoptExit):
         docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')
+
+
+def test_default_value_is_converted_to_list():
+    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x]',
+                  '-o this -o that') == {'-o': ['this', 'that']}
+    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x]',
+                  '') == {'-o': ['x']}
