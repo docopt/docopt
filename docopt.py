@@ -470,7 +470,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     for a in pattern.flat(Argument):
         same_name = [d for d in arguments if d.name == a.name]
         if same_name:
-            a.value = d.value
+            a.value = same_name[0].value
     argv = parse_argv(argv, list(options))
     for ao in pattern.flat(AnyOptions):
         doc_options, _ = parse_defaults(doc)
