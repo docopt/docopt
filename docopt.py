@@ -287,66 +287,70 @@ class TokenStream(list):
 
 
 def parse_long(tokens, options):
-    raw, eq, value = tokens.move().partition('=')
+    """long ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
+    long, eq, value = tokens.move().partition('=')
+    assert long.startswith('--')
     value = None if eq == value == '' else value
-    opt = [o for o in options if o.long and o.long == raw]
-    if tokens.error is DocoptExit and opt == []:
-        opt = [o for o in options if o.long and o.long.startswith(raw)]
-    if len(opt) < 1:
+    similar = [o for o in options if o.long == long]
+    if tokens.error is DocoptExit and similar == []:  # if no exact match
+        similar = [o for o in options if o.long and o.long.startswith(long)]
+    if len(similar) > 1:  # might be simply specified ambiguously 2+ times?
+        raise tokens.error('%s is not a unique prefix: %s?' %
+                           (long, ', '.join(o.long for o in similar)))
+    elif len(similar) < 1:
         argcount = 1 if eq == '=' else 0
-        o = Option(None, raw, argcount)
+        o = Option(None, long, argcount)
         options.append(o)
         if tokens.error is DocoptExit:
-            o = Option(None, raw, argcount, value if argcount else True)
-        return [o]
-    if len(opt) > 1:
-        raise tokens.error('%s is not a unique prefix: %s?' %
-                         (raw, ', '.join('%s' % o.long for o in opt)))
-    o = opt[0]
-    opt = Option(o.short, o.long, o.argcount, o.value)
-    if opt.argcount == 1:
-        if value is None:
-            if tokens.current() is None:
-                raise tokens.error('%s requires argument' % opt.name)
-            value = tokens.move()
-    elif value is not None:
-        raise tokens.error('%s must not have an argument' % opt.name)
-    if tokens.error is DocoptExit:
-        opt.value = value or True
-    return [opt]
+            o = Option(None, long, argcount, value if argcount else True)
+    else:
+        o = Option(similar[0].short, similar[0].long,
+                   similar[0].argcount, similar[0].value)
+        if o.argcount == 0:
+            if value is not None:
+                raise tokens.error('%s must not have an argument' % o.long)
+        else:
+            if value is None:
+                if tokens.current() is None:
+                    raise tokens.error('%s requires argument' % o.long)
+                value = tokens.move()
+        if tokens.error is DocoptExit:
+            o.value = value or True
+    return [o]
 
 
 def parse_shorts(tokens, options):
-    raw = tokens.move()[1:]
+    """shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;"""
+    token = tokens.move()
+    assert token.startswith('-') and not token.startswith('--')
+    left = token.lstrip('-')
     parsed = []
-    while raw != '':
-        opt = [o for o in options
-               if o.short and o.short.lstrip('-').startswith(raw[0])]
-        if len(opt) > 1:
-            raise tokens.error('-%s is specified ambiguously %d times' %
-                               (raw[0], len(opt)))
-        if len(opt) < 1:
-            o = Option('-' + raw[0], None, 0)
+    while left != '':
+        short, left = '-' + left[0], left[1:]
+        similar = [o for o in options if o.short == short]
+        if len(similar) > 1:
+            raise tokens.error('%s is specified ambiguously %d times' %
+                               (short, len(similar)))
+        elif len(similar) < 1:
+            o = Option(short, None, 0)
             options.append(o)
             if tokens.error is DocoptExit:
-                o = Option('-' + raw[0], None, 0, True)
-            parsed.append(o)
-            raw = raw[1:]
-            continue
-        o = opt[0]
-        opt = Option(o.short, o.long, o.argcount, o.value)
-        raw = raw[1:]
-        if opt.argcount == 0:
-            value = True if tokens.error is DocoptExit else False
-        else:
-            if raw == '':
-                if tokens.current() is None:
-                    raise tokens.error('-%s requires argument' % opt.short[0])
-                raw = tokens.move()
-            value, raw = raw, ''
-        if tokens.error is DocoptExit:
-            opt.value = value
-        parsed.append(opt)
+                o = Option(short, None, 0, True)
+        else:  # why copying is necessary here?
+            o = Option(short, similar[0].long,
+                       similar[0].argcount, similar[0].value)
+            value = None
+            if o.argcount != 0:
+                if left == '':
+                    if tokens.current() is None:
+                        raise tokens.error('%s requires argument' % short)
+                    value = tokens.move()
+                else:
+                    value = left
+                    left = ''
+            if tokens.error is DocoptExit:
+                o.value = value or True
+        parsed.append(o)
     return parsed
 
 
@@ -410,8 +414,8 @@ def parse_atom(tokens, options):
         return [Command(tokens.move())]
 
 
-def parse_argv(source, options):
-    tokens = TokenStream(source, DocoptExit)
+def parse_argv(tokens, options):
+    """argv ::= [ long | shorts | argument ]* [ '--' [ argument* ] ] ;"""
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
@@ -471,7 +475,7 @@ def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
         same_name = [d for d in arguments if d.name == a.name]
         if same_name:
             a.value = same_name[0].value
-    argv = parse_argv(argv, list(options))
+    argv = parse_argv(TokenStream(argv, DocoptExit), list(options))
     for ao in pattern.flat(AnyOptions):
         doc_options, _ = parse_defaults(doc)
         pattern_options = [o for o in pattern.flat() if type(o) is Option]

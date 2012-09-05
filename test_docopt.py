@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_defaults,
-                    printable_usage, formal_usage
+                    printable_usage, formal_usage, TokenStream
                    )
 from pytest import raises
 
@@ -87,22 +87,23 @@ def test_printable_and_formal_usage():
 
 def test_parse_argv():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
-    assert parse_argv('', options=o) == []
-    assert parse_argv('-h', options=o) == [Option('-h', None, 0, True)]
-    assert parse_argv('-h --verbose', options=o) == \
+    TS = lambda s: TokenStream(s, error=DocoptExit)
+    assert parse_argv(TS(''), options=o) == []
+    assert parse_argv(TS('-h'), options=o) == [Option('-h', None, 0, True)]
+    assert parse_argv(TS('-h --verbose'), options=o) == \
             [Option('-h', None, 0, True), Option('-v', '--verbose', 0, True)]
-    assert parse_argv('-h --file f.txt', options=o) == \
+    assert parse_argv(TS('-h --file f.txt'), options=o) == \
             [Option('-h', None, 0, True), Option('-f', '--file', 1, 'f.txt')]
-    assert parse_argv('-h --file f.txt arg', options=o) == \
+    assert parse_argv(TS('-h --file f.txt arg'), options=o) == \
             [Option('-h', None, 0, True),
              Option('-f', '--file', 1, 'f.txt'),
              Argument(None, 'arg')]
-    assert parse_argv('-h --file f.txt arg arg2', options=o) == \
+    assert parse_argv(TS('-h --file f.txt arg arg2'), options=o) == \
             [Option('-h', None, 0, True),
              Option('-f', '--file', 1, 'f.txt'),
              Argument(None, 'arg'),
              Argument(None, 'arg2')]
-    assert parse_argv('-h arg -- -v', options=o) == \
+    assert parse_argv(TS('-h arg -- -v'), options=o) == \
             [Option('-h', None, 0, True),
              Argument(None, 'arg'),
              Argument(None, '--'),
@@ -634,3 +635,7 @@ def test_parse_defaults():
     assert parse_defaults(doc)[0] == [Option('-h', '--help'),
                                       Option('-o', None, 1),
                                       Option(None, '--verbose')]
+
+
+def test_stacked_option_argument():
+    assert docopt('usage: prog -pPATH\n\n-p PATH', '-pHOME') == {'-p': 'HOME'}
