@@ -37,7 +37,7 @@ class Pattern(object):
         """Make pattern-tree tips point to same object if they are equal."""
         if not hasattr(self, 'children'):
             return self
-        uniq = list(set(self.flat())) if uniq == None else uniq
+        uniq = list(set(self.flat())) if uniq is None else uniq
         for i, c in enumerate(self.children):
             if not hasattr(c, 'children'):
                 assert c in uniq
@@ -176,7 +176,7 @@ class Option(ChildPattern):
         assert argcount in (0, 1)
         self.short, self.long = short, long
         self.argcount, self.value = argcount, value
-        self.value = None if value == False and argcount else value  # HACK
+        self.value = None if value is False and argcount else value
 
     @classmethod
     def parse(class_, option_description):
