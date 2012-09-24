@@ -68,7 +68,7 @@ def test_commands():
     assert docopt('Usage: prog (add|rm)', 'rm') == {'add': False, 'rm': True}
     assert docopt('Usage: prog a b', 'a b') == {'a': True, 'b': True}
     with raises(DocoptExit):
-        assert docopt('Usage: prog a b', 'b a')
+        docopt('Usage: prog a b', 'b a')
 
 
 def test_parse_doc_options():
@@ -526,7 +526,7 @@ def test_count_multiple_flags():
     assert docopt('usage: prog [-vv]', '-v') == {'-v': 1}
     assert docopt('usage: prog [-vv]', '-vv') == {'-v': 2}
     with raises(DocoptExit):
-        assert docopt('usage: prog [-vv]', '-vvv')
+        docopt('usage: prog [-vv]', '-vvv')
     assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
     assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
     assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
@@ -538,7 +538,7 @@ def test_count_multiple_commands():
     assert docopt('usage: prog [go go]', 'go') == {'go': 1}
     assert docopt('usage: prog [go go]', 'go go') == {'go': 2}
     with raises(DocoptExit):
-        assert docopt('usage: prog [go go]', 'go go go')
+        docopt('usage: prog [go go]', 'go go go')
     assert docopt('usage: prog go...', 'go go go go go') == {'go': 5}
 
 
