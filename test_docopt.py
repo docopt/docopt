@@ -639,3 +639,8 @@ def test_parse_defaults():
 
 def test_stacked_option_argument():
     assert docopt('usage: prog -pPATH\n\n-p PATH', '-pHOME') == {'-p': 'HOME'}
+
+
+def test_issue_56():
+    assert docopt("Usage: foo (--xx=x|--yy=y)...",
+            "--xx=1 --yy=2") == {'--xx': ['1'], '--yy': ['2']}
