@@ -319,7 +319,7 @@ def parse_long(tokens, options):
                     raise tokens.error('%s requires argument' % o.long)
                 value = tokens.move()
         if tokens.error is DocoptExit:
-            o.value = value or True
+            o.value = value if value is not None else True
     return [o]
 
 
@@ -353,7 +353,7 @@ def parse_shorts(tokens, options):
                     value = left
                     left = ''
             if tokens.error is DocoptExit:
-                o.value = value or True
+                o.value = value if value is not None else True
         parsed.append(o)
     return parsed
 

@@ -644,3 +644,8 @@ def test_stacked_option_argument():
 def test_issue_56():
     assert docopt("Usage: foo (--xx=x|--yy=y)...",
             "--xx=1 --yy=2") == {'--xx': ['1'], '--yy': ['2']}
+
+
+def test_issue_59():
+    assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
+    assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
