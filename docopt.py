@@ -9,12 +9,23 @@ class DocoptLanguageError(Exception):
 
 class DocoptExit(SystemExit):
 
-    """Exit in case user invoked program with incorrect arguments."""
+    """Exit with a given status or error message.
+    
+    When exiting with an error message, prepend it with the program name
+    and append it with a usage message.  Otherwise, behave identical to
+    SystemExit.
+    
+    """
 
+    program = ''
     usage = ''
 
-    def __init__(self, message=''):
-        SystemExit.__init__(self, (message + '\n' + self.usage).strip())
+    def __init__(self, arg=None):
+        if arg is None or isinstance(arg, int):
+            SystemExit.__init__(self, arg)
+        else:
+            SystemExit.__init__(self, "%s: %s\n%s" %
+                                (self.program, arg, self.usage))
 
 
 class Pattern(object):
@@ -273,23 +284,25 @@ def parse_long(tokens, options):
         opt = [o for o in options if o.long and o.long.startswith(raw)]
     if len(opt) < 1:
         if tokens.error is DocoptExit:
-            raise tokens.error('%s is not recognized' % raw)
+            raise tokens.error('illegal option: %s' % raw)
         else:
             o = Option(None, raw, (1 if eq == '=' else 0))
             options.append(o)
             return [o]
     if len(opt) > 1:
-        raise tokens.error('%s is not a unique prefix: %s?' %
-                         (raw, ', '.join('%s' % o.long for o in opt)))
+        raise tokens.error('option is ambiguous: %s; possibilities: %s' %
+                         (raw, ' '.join("'%s'" % o.long for o in opt)))
     o = opt[0]
     opt = Option(o.short, o.long, o.argcount, o.value)
     if opt.argcount == 1:
         if value is None:
             if tokens.current() is None:
-                raise tokens.error('%s requires argument' % opt.name)
+                raise tokens.error('option requires an argument: %s' %
+                                   opt.name)
             value = tokens.move()
     elif value is not None:
-        raise tokens.error('%s must not have an argument' % opt.name)
+        raise tokens.error('option does not allow an argument: %s' %
+                           opt.name)
     if tokens.error is DocoptExit:
         opt.value = value or True
     else:
@@ -304,11 +317,11 @@ def parse_shorts(tokens, options):
         opt = [o for o in options
                if o.short and o.short.lstrip('-').startswith(raw[0])]
         if len(opt) > 1:
-            raise tokens.error('-%s is specified ambiguously %d times' %
-                              (raw[0], len(opt)))
+            raise tokens.error('option is specified ambiguously %d '
+                               'times: -%s' % (len(opt), raw[0]))
         if len(opt) < 1:
             if tokens.error is DocoptExit:
-                raise tokens.error('-%s is not recognized' % raw[0])
+                raise tokens.error('illegal option: -%s' % raw[0])
             else:
                 o = Option('-' + raw[0], None)
                 options.append(o)
@@ -323,7 +336,8 @@ def parse_shorts(tokens, options):
         else:
             if raw == '':
                 if tokens.current() is None:
-                    raise tokens.error('-%s requires argument' % opt.short[0])
+                    raise tokens.error('option requires an argument: -%s' %
+                                       opt.short[1])
                 raw = tokens.move()
             value, raw = raw, ''
         if tokens.error is DocoptExit:
@@ -441,13 +455,18 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
+def exit(arg=None):
+    raise DocoptExit(arg)
+
+
 def docopt(doc, argv=sys.argv[1:], help=True, version=None):
     DocoptExit.usage = printable_usage(doc)
+    DocoptExit.program = DocoptExit.usage.split()[1]
     options = parse_doc_options(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     argv = parse_argv(argv, options)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
-    if matched and left == []:  # better error message if left?
+    if matched and left == []:
         return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
-    raise DocoptExit()
+    raise DocoptExit("missing operand(s)")
