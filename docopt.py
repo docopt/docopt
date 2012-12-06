@@ -2,6 +2,9 @@ import sys
 import re
 
 
+__all__ = ['docopt']
+
+
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -27,14 +30,14 @@ class Pattern(object):
 
     def fix(self):
         self.fix_identities()
-        self.fix_list_arguments()
+        self.fix_repeating_arguments()
         return self
 
     def fix_identities(self, uniq=None):
         """Make pattern-tree tips point to same object if they are equal."""
         if not hasattr(self, 'children'):
             return self
-        uniq = list(set(self.flat)) if uniq == None else uniq
+        uniq = list(set(self.flat())) if uniq is None else uniq
         for i, c in enumerate(self.children):
             if not hasattr(c, 'children'):
                 assert c in uniq
@@ -42,13 +45,16 @@ class Pattern(object):
             else:
                 c.fix_identities(uniq)
 
-    def fix_list_arguments(self):
-        """Find arguments that should accumulate values and fix them."""
+    def fix_repeating_arguments(self):
+        """Fix elements that should accumulate/increment values."""
         either = [list(c.children) for c in self.either.children]
         for case in either:
             for e in [c for c in case if case.count(c) > 1]:
                 if type(e) is Argument or type(e) is Option and e.argcount:
-                    e.value = []
+                    if e.value is None:
+                        e.value = []
+                    elif type(e.value) is not list:
+                        e.value = e.value.split()
                 if type(e) is Command or type(e) is Option and e.argcount == 0:
                     e.value = 0
         return self
@@ -76,6 +82,10 @@ class Pattern(object):
                 optional = [c for c in children if type(c) is Optional][0]
                 children.pop(children.index(optional))
                 groups.append(list(optional.children) + children)
+            elif AnyOptions in types:
+                optional = [c for c in children if type(c) is AnyOptions][0]
+                children.pop(children.index(optional))
+                groups.append(list(optional.children) + children)
             elif OneOrMore in types:
                 oneormore = [c for c in children if type(c) is OneOrMore][0]
                 children.pop(children.index(oneormore))
@@ -94,19 +104,22 @@ class ChildPattern(Pattern):
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
 
-    @property
-    def flat(self):
-        return [self]
+    def flat(self, *types):
+        return [self] if not types or type(self) in types else []
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
         pos, match = self.single_match(left)
         if match is None:
             return False, left, collected
-        left_ = left[:pos] + left[pos+1:]
+        left_ = left[:pos] + left[pos + 1:]
         same_name = [a for a in collected if a.name == self.name]
         if type(self.value) in (int, list):
-            increment = 1 if type(self.value) is int else [match.value]
+            if type(self.value) is int:
+                increment = 1
+            else:
+                increment = ([match.value] if type(match.value) is str
+                             else match.value)
             if not same_name:
                 match.value = increment
                 return True, left_, collected + [match]
@@ -124,9 +137,10 @@ class ParrentPattern(Pattern):
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join(repr(a) for a in self.children))
 
-    @property
-    def flat(self):
-        return sum([c.flat for c in self.children], [])
+    def flat(self, *types):
+        if type(self) in types:
+            return [self]
+        return sum([c.flat(*types) for c in self.children], [])
 
 
 class Argument(ChildPattern):
@@ -136,6 +150,12 @@ class Argument(ChildPattern):
             if type(p) is Argument:
                 return n, Argument(self.name, p.value)
         return None, None
+
+    @classmethod
+    def parse(class_, source):
+        name = re.findall('(<\S*?>)', source)[0]
+        value = re.findall('\[default: (.*)\]', source, flags=re.I)
+        return class_(name, value[0] if value else None)
 
 
 class Command(Argument):
@@ -160,7 +180,7 @@ class Option(ChildPattern):
         assert argcount in (0, 1)
         self.short, self.long = short, long
         self.argcount, self.value = argcount, value
-        self.value = None if value == False and argcount else value  # HACK
+        self.value = None if value is False and argcount else value
 
     @classmethod
     def parse(class_, option_description):
@@ -216,6 +236,11 @@ class Optional(ParrentPattern):
         return True, left, collected
 
 
+class AnyOptions(Optional):
+
+    """Marker/placeholder for [options] shortcut."""
+
+
 class OneOrMore(ParrentPattern):
 
     def match(self, left, collected=None):
@@ -266,71 +291,70 @@ class TokenStream(list):
 
 
 def parse_long(tokens, options):
-    raw, eq, value = tokens.move().partition('=')
+    """long ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
+    long, eq, value = tokens.move().partition('=')
+    assert long.startswith('--')
     value = None if eq == value == '' else value
-    opt = [o for o in options if o.long and o.long == raw]
-    if tokens.error is DocoptExit and opt == []:
-        opt = [o for o in options if o.long and o.long.startswith(raw)]
-    if len(opt) < 1:
-        if tokens.error is DocoptExit:
-            raise tokens.error('%s is not recognized' % raw)
-        else:
-            o = Option(None, raw, (1 if eq == '=' else 0))
-            options.append(o)
-            return [o]
-    if len(opt) > 1:
+    similar = [o for o in options if o.long == long]
+    if tokens.error is DocoptExit and similar == []:  # if no exact match
+        similar = [o for o in options if o.long and o.long.startswith(long)]
+    if len(similar) > 1:  # might be simply specified ambiguously 2+ times?
         raise tokens.error('%s is not a unique prefix: %s?' %
-                         (raw, ', '.join('%s' % o.long for o in opt)))
-    o = opt[0]
-    opt = Option(o.short, o.long, o.argcount, o.value)
-    if opt.argcount == 1:
-        if value is None:
-            if tokens.current() is None:
-                raise tokens.error('%s requires argument' % opt.name)
-            value = tokens.move()
-    elif value is not None:
-        raise tokens.error('%s must not have an argument' % opt.name)
-    if tokens.error is DocoptExit:
-        opt.value = value or True
+                           (long, ', '.join(o.long for o in similar)))
+    elif len(similar) < 1:
+        argcount = 1 if eq == '=' else 0
+        o = Option(None, long, argcount)
+        options.append(o)
+        if tokens.error is DocoptExit:
+            o = Option(None, long, argcount, value if argcount else True)
     else:
-        opt.value = None if value else False
-    return [opt]
+        o = Option(similar[0].short, similar[0].long,
+                   similar[0].argcount, similar[0].value)
+        if o.argcount == 0:
+            if value is not None:
+                raise tokens.error('%s must not have an argument' % o.long)
+        else:
+            if value is None:
+                if tokens.current() is None:
+                    raise tokens.error('%s requires argument' % o.long)
+                value = tokens.move()
+        if tokens.error is DocoptExit:
+            o.value = value if value is not None else True
+    return [o]
 
 
 def parse_shorts(tokens, options):
-    raw = tokens.move()[1:]
+    """shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;"""
+    token = tokens.move()
+    assert token.startswith('-') and not token.startswith('--')
+    left = token.lstrip('-')
     parsed = []
-    while raw != '':
-        opt = [o for o in options
-               if o.short and o.short.lstrip('-').startswith(raw[0])]
-        if len(opt) > 1:
-            raise tokens.error('-%s is specified ambiguously %d times' %
-                              (raw[0], len(opt)))
-        if len(opt) < 1:
+    while left != '':
+        short, left = '-' + left[0], left[1:]
+        similar = [o for o in options if o.short == short]
+        if len(similar) > 1:
+            raise tokens.error('%s is specified ambiguously %d times' %
+                               (short, len(similar)))
+        elif len(similar) < 1:
+            o = Option(short, None, 0)
+            options.append(o)
             if tokens.error is DocoptExit:
-                raise tokens.error('-%s is not recognized' % raw[0])
-            else:
-                o = Option('-' + raw[0], None)
-                options.append(o)
-                parsed.append(o)
-                raw = raw[1:]
-                continue
-        o = opt[0]
-        opt = Option(o.short, o.long, o.argcount, o.value)
-        raw = raw[1:]
-        if opt.argcount == 0:
-            value = True if tokens.error is DocoptExit else False
-        else:
-            if raw == '':
-                if tokens.current() is None:
-                    raise tokens.error('-%s requires argument' % opt.short[0])
-                raw = tokens.move()
-            value, raw = raw, ''
-        if tokens.error is DocoptExit:
-            opt.value = value
-        else:
-            opt.value = None if value else False
-        parsed.append(opt)
+                o = Option(short, None, 0, True)
+        else:  # why copying is necessary here?
+            o = Option(short, similar[0].long,
+                       similar[0].argcount, similar[0].value)
+            value = None
+            if o.argcount != 0:
+                if left == '':
+                    if tokens.current() is None:
+                        raise tokens.error('%s requires argument' % short)
+                    value = tokens.move()
+                else:
+                    value = left
+                    left = ''
+            if tokens.error is DocoptExit:
+                o.value = value if value is not None else True
+        parsed.append(o)
     return parsed
 
 
@@ -383,7 +407,7 @@ def parse_atom(tokens, options):
         return [result]
     elif token == 'options':
         tokens.move()
-        return options
+        return [AnyOptions()]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -394,8 +418,8 @@ def parse_atom(tokens, options):
         return [Command(tokens.move())]
 
 
-def parse_argv(source, options):
-    tokens = TokenStream(source, DocoptExit)
+def parse_argv(tokens, options):
+    """argv ::= [ long | shorts | argument ]* [ '--' [ argument* ] ] ;"""
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
@@ -409,11 +433,17 @@ def parse_argv(source, options):
     return parsed
 
 
-def parse_doc_options(doc):
-    return [Option.parse('-' + s) for s in re.split('^ *-|\n *-', doc)[1:]]
+def parse_defaults(doc):
+    # in python < 2.7 you can't pass flags=re.MULTILINE
+    split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
+    split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
+    options = [Option.parse(s) for s in split if s.startswith('-')]
+    arguments = [Argument.parse(s) for s in split if s.startswith('<')]
+    return options, arguments
 
 
 def printable_usage(doc):
+    # in python < 2.7 you can't pass flags=re.IGNORECASE
     usage_split = re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)
     if len(usage_split) < 3:
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
@@ -441,13 +471,23 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=sys.argv[1:], help=True, version=None):
+def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
     DocoptExit.usage = printable_usage(doc)
-    options = parse_doc_options(doc)
+    options, arguments = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    argv = parse_argv(argv, options)
+    for a in pattern.flat(Argument):
+        same_name = [d for d in arguments if d.name == a.name]
+        if same_name:
+            a.value = same_name[0].value
+    argv = parse_argv(TokenStream(argv, DocoptExit), list(options))
+    for ao in pattern.flat(AnyOptions):
+        doc_options, _ = parse_defaults(doc)
+        ao.children = list(set(doc_options) - set(pattern.flat(Option)))
+        if any_options:
+            ao.children += [Option(o.short, o.long, o.argcount)
+                            for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat + options + collected))
+        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
