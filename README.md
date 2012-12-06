@@ -3,8 +3,8 @@
 
 > New in version 0.X.X:
 >
-> `any_options` parameter to `docopt` function, which allows for sub-parsers,
-> multi-level help and *huge* applications (like git)
+>
+>
 
 Isn't it awesome how `optparse` and `argparse` generate help messages
 based on your code?!
@@ -71,10 +71,10 @@ API
 ```python
 from docopt import docopt
 
-args = docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False)
+args = docopt(doc, argv=sys.argv[1:], help=True, version=None)
 ```
 
-`docopt` takes 1 required and 4 optional arguments:
+`docopt` takes 1 required and 3 optional arguments:
 
 - `doc` could be a module docstring (`__doc__`) or some other string that
   contains a **help message** that will be
@@ -116,21 +116,14 @@ Note, when `docopt` is set to automatically handle `-h`, `--help` and
 `--version` options, you still need to mention them in usage pattern for
 this to work. Also, for your users to know about them.
 
-- `any_options`, by default `False` is an optional argument, setting it to
-   `True` changes the meaning of `[options]` shortcut (described in detail
-   below) from "any options listed" to "any options whatsoever". This is
-   useful if (1) you want to allow arbitrary options for some reason, or
-   (2) you want to delegate sub-command parsing to a sub-parser, without
-   knowing which options it takes.
-
 The **return** value is just a dictionary with options, arguments and commands,
 with keys spelled exactly like in a help message
 (long versions of options are given priority). For example, if you invoke
-the top example as::
+the top example as:
 
     naval_fate.py ship Guardian move 100 150 --speed=15
 
-the return dictionary will be::
+the return dictionary will be:
 
 ```python
 {'--drifting': False,    'mine': False,
@@ -152,11 +145,11 @@ Help message format
 
 Help message consists of 2 parts:
 
-- Usage pattern, e.g.::
+- Usage pattern, e.g.:
 
         Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
-- Option descriptions, e.g.::
+- Option descriptions, e.g.:
 
         -h --help    show this
         -s --sorted  sorted output
@@ -314,17 +307,17 @@ We have an extensive list of
 which cover every aspect of functionality of `docopt`.  Try them out,
 read the source if in doubt.
 
-Sub-parsers, multi-level help and *huge* applications (like git)
--------------------------------------------------------------------------------
-
-If you want to split your usage-patter in several, implement multi-level
-help (whith separate help-screen for each subcommand), want to interface
-with existing scripts that don't use docopt, or you're building
-the next "git", you will need the new `any_options` parameter (described
-in API section above).  To get you started quickly we implemented
-a subset of git command-line interface as an example:
-
-[docopt/examples/git](https://github.com/docopt/docopt/tree/master/examples/git)
+##Sub-parsers, multi-level help and *huge* applications (like git)
+##-------------------------------------------------------------------------------
+##
+##If you want to split your usage-patter in several, implement multi-level
+##help (whith separate help-screen for each subcommand), want to interface
+##with existing scripts that don't use docopt, or you're building
+##the next "git", you will need the new `any_options` parameter (described
+##in API section above).  To get you started quickly we implemented
+##a subset of git command-line interface as an example:
+##
+##[docopt/examples/git](https://github.com/docopt/docopt/tree/master/examples/git)
 
 
 Data validation
@@ -359,10 +352,10 @@ Help develop [Ruby port](http://github.com/docopt/docopt.rb),
 [PHP port](http://github.com/docopt/docopt.php) or
 create a port for your favorite language! You are encouraged to use the
 Python version as a reference implementation. A Language-agnostic test suite
-is bundled with [Python implementation](http://github.com/docopt/docopt>).
+is bundled with [Python implementation](http://github.com/docopt/docopt).
 
 Porting discussion is on
-[issues page](http://github.com/docopt/docopt/issues>).
+[issues page](http://github.com/docopt/docopt/issues).
 
 
 Changelog
@@ -374,7 +367,7 @@ to specify explicitly the version in your dependency tools, e.g.:
 
     pip install docopt==0.X.X
 
-- 0.X.X `any_options` parameter to `docopt` function.
+- 0.X.X ##`any_options` parameter to `docopt` function.
 - 0.5.0 Repeated options/commands are counted or accumulated into list.
 - 0.4.2 Bugfix release.
 - 0.4.0 Option descriptions become optional,

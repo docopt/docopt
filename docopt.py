@@ -418,7 +418,7 @@ def parse_atom(tokens, options):
         return [Command(tokens.move())]
 
 
-def parse_argv(tokens, options):
+def parse_argv(tokens, options, options_first=False):
     """argv ::= [ long | shorts | argument ]* [ '--' [ argument* ] ] ;"""
     parsed = []
     while tokens.current() is not None:
@@ -428,6 +428,8 @@ def parse_argv(tokens, options):
             parsed += parse_long(tokens, options)
         elif tokens.current().startswith('-') and tokens.current() != '-':
             parsed += parse_shorts(tokens, options)
+        elif options_first:
+            return parsed + [Argument(None, v) for v in tokens]
         else:
             parsed.append(Argument(None, tokens.move()))
     return parsed
@@ -438,8 +440,9 @@ def parse_defaults(doc):
     split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
     split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
     options = [Option.parse(s) for s in split if s.startswith('-')]
-    arguments = [Argument.parse(s) for s in split if s.startswith('<')]
-    return options, arguments
+    #arguments = [Argument.parse(s) for s in split if s.startswith('<')]
+    #return options, arguments
+    return options
 
 
 def printable_usage(doc):
@@ -471,21 +474,23 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=sys.argv[1:], help=True, version=None, any_options=False):
+def docopt(doc, argv=sys.argv[1:], help=True, version=None, options_first=False):
     DocoptExit.usage = printable_usage(doc)
-    options, arguments = parse_defaults(doc)
+    options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    for a in pattern.flat(Argument):
-        same_name = [d for d in arguments if d.name == a.name]
-        if same_name:
-            a.value = same_name[0].value
-    argv = parse_argv(TokenStream(argv, DocoptExit), list(options))
+    # [default] syntax for argument is disabled
+    #for a in pattern.flat(Argument):
+    #    same_name = [d for d in arguments if d.name == a.name]
+    #    if same_name:
+    #        a.value = same_name[0].value
+    argv = parse_argv(TokenStream(argv, DocoptExit), list(options),
+                      options_first)
     for ao in pattern.flat(AnyOptions):
-        doc_options, _ = parse_defaults(doc)
+        doc_options = parse_defaults(doc)
         ao.children = list(set(doc_options) - set(pattern.flat(Option)))
-        if any_options:
-            ao.children += [Option(o.short, o.long, o.argcount)
-                            for o in argv if type(o) is Option]
+        #if any_options:
+        #    ao.children += [Option(o.short, o.long, o.argcount)
+        #                    for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?

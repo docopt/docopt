@@ -2,7 +2,7 @@ from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
-                    parse_argv, parse_pattern, parse_defaults,
+                    parse_argv, parse_pattern, #parse_defaults,
                     printable_usage, formal_usage, TokenStream
                    )
 from pytest import raises
@@ -389,7 +389,7 @@ def test_matching_paren():
         docopt('Usage: prog [a [b] ] c )')
 
 
-def test_allow_double_underscore():
+def test_allow_double_dash():
     assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
                   '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
     assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
@@ -485,8 +485,7 @@ def test_language_errors():
 
 
 def test_bug():
-    assert docopt('usage: prog',
-                  '') == {}
+    assert docopt('usage: prog', '') == {}
     assert docopt('usage: prog \n prog <a> <b>',
                   '1 2') == {'<a>': '1', '<b>': '2'}
     assert docopt('usage: prog \n prog <a> <b>',
@@ -495,7 +494,7 @@ def test_bug():
                   '') == {'<a>': None, '<b>': None}
 
 
-def test_issue40():
+def test_issue_40():
     with raises(SystemExit):  # i.e. shows help
         docopt('usage: prog --help-commands | --help', '--help')
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
@@ -560,31 +559,32 @@ def test_multiple_different_elements():
 def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
-    assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
-                  any_options=True) == {'-f': True, '-o': 2,
-                                         '--bar': True, '--spam': 'eggs'}
+#    assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
+#                  any_options=True) == {'-f': True, '-o': 2,
+#                                         '--bar': True, '--spam': 'eggs'}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--foo --bar --bar')
-    assert docopt('usage: prog [options]', '--foo --bar --bar',
-                any_options=True) == {'--foo': True, '--bar': 2}
+#    assert docopt('usage: prog [options]', '--foo --bar --bar',
+#                  any_options=True) == {'--foo': True, '--bar': 2}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--bar --bar --bar -ffff')
-    assert docopt('usage: prog [options]', '--bar --bar --bar -ffff',
-                  any_options=True) == {'--bar': 3, '-f': 4}
+#    assert docopt('usage: prog [options]', '--bar --bar --bar -ffff',
+#                  any_options=True) == {'--bar': 3, '-f': 4}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--long=arg --long=another')
-    assert docopt('usage: prog [options]', '--long=arg --long=another',
-                  any_options=True) == {'--long': ['arg', 'another']}
+#    assert docopt('usage: prog [options]', '--long=arg --long=another',
+#                  any_options=True) == {'--long': ['arg', 'another']}
 
 
-def test_options_shortcut_multiple_commands():
-    assert docopt('usage: prog c1 [options] prog c2 [options]',
-        'c2 -o', any_options=True) == {'-o': True, 'c1': False, 'c2': True}
-    assert docopt('usage: prog c1 [options] prog c2 [options]',
-        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
+#def test_options_shortcut_multiple_commands():
+#    # any_options is disabled
+#    assert docopt('usage: prog c1 [options] prog c2 [options]',
+#        'c2 -o', any_options=True) == {'-o': True, 'c1': False, 'c2': True}
+#    assert docopt('usage: prog c1 [options] prog c2 [options]',
+#        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
-def test_bug_recuired_option_didnt_work_with_option_whortcut():
+def test_bug_required_options_should_work_with_option_whortcut():
     assert docopt('usage: prog [options] -a\n\n-a', '-a') == {'-a': True}
 
 
@@ -607,34 +607,38 @@ def test_default_value_is_converted_to_list():
 
 
 def test_default_value_for_positional_arguments():
+    # disabled right now
     assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
-            {'<p>': 'x'}
+            {'<p>': None}
+    #       {'<p>': 'x'}
     assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
-            {'<p>': ['x', 'y']}
+            {'<p>': []}
+    #       {'<p>': ['x', 'y']}
     assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
             {'<p>': ['this']}
+    #       {'<p>': ['this']}
 
 
-def test_parse_defaults():
-    assert parse_defaults("""usage: prog
-
-                          -o, --option <o>
-                          --another <a>  description
-                                         [default: x]
-                          <a>
-                          <another>  description [default: y]""") == \
-           ([Option('-o', '--option', 1, None),
-             Option(None, '--another', 1, 'x')],
-            [Argument('<a>', None),
-             Argument('<another>', 'y')])
-
-    doc = '''
-    -h, --help  Print help message.
-    -o FILE     Output file.
-    --verbose   Verbose mode.'''
-    assert parse_defaults(doc)[0] == [Option('-h', '--help'),
-                                      Option('-o', None, 1),
-                                      Option(None, '--verbose')]
+#def test_parse_defaults():
+#    assert parse_defaults("""usage: prog
+#
+#                          -o, --option <o>
+#                          --another <a>  description
+#                                         [default: x]
+#                          <a>
+#                          <another>  description [default: y]""") == \
+#           ([Option('-o', '--option', 1, None),
+#             Option(None, '--another', 1, 'x')],
+#            [Argument('<a>', None),
+#             Argument('<another>', 'y')])
+#
+#    doc = '''
+#    -h, --help  Print help message.
+#    -o FILE     Output file.
+#    --verbose   Verbose mode.'''
+#    assert parse_defaults(doc)[0] == [Option('-h', '--help'),
+#                                      Option('-o', None, 1),
+#                                      Option(None, '--verbose')]
 
 
 def test_stacked_option_argument():
@@ -649,3 +653,16 @@ def test_issue_56():
 def test_issue_59():
     assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
     assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
+
+
+def test_options_first():
+    assert docopt('usage: prog [--opt] [<args>...]',
+                  '--opt this that') == {'--opt': True,
+                                         '<args>': ['this', 'that']}
+    assert docopt('usage: prog [--opt] [<args>...]',
+                  'this that --opt') == {'--opt': True,
+                                         '<args>': ['this', 'that']}
+    assert docopt('usage: prog [--opt] [<args>...]',
+                  'this that --opt',
+                  options_first=True) == {'--opt': False,
+                                          '<args>': ['this', 'that', '--opt']}
