@@ -115,7 +115,7 @@ class ChildPattern(Pattern):
         return True, left_, collected + [match]
 
 
-class ParrentPattern(Pattern):
+class ParentPattern(Pattern):
 
     def __init__(self, *children):
         self.children = list(children)
@@ -194,7 +194,7 @@ class Option(ChildPattern):
                                            self.argcount, self.value)
 
 
-class Required(ParrentPattern):
+class Required(ParentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -207,7 +207,7 @@ class Required(ParrentPattern):
         return True, l, c
 
 
-class Optional(ParrentPattern):
+class Optional(ParentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -216,7 +216,7 @@ class Optional(ParrentPattern):
         return True, left, collected
 
 
-class OneOrMore(ParrentPattern):
+class OneOrMore(ParentPattern):
 
     def match(self, left, collected=None):
         assert len(self.children) == 1
@@ -238,7 +238,7 @@ class OneOrMore(ParrentPattern):
         return False, left, collected
 
 
-class Either(ParrentPattern):
+class Either(ParentPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
