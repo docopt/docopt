@@ -420,7 +420,14 @@ def parse_atom(tokens, options):
 
 
 def parse_argv(tokens, options, options_first=False):
-    """argv ::= [ long | shorts | argument ]* [ '--' [ argument* ] ] ;"""
+    """Parse command-line argument vector.
+
+    If options_first:
+        argv ::= [ long | shorts ]* [ argument ]* [ '--' [ argument ]* ] ;
+    else:
+        argv ::= [ long | shorts | argument ]* [ '--' [ argument ]* ] ;
+
+    """
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
