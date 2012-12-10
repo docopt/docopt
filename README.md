@@ -343,7 +343,7 @@ Contribute, make pull requrests, report bugs, suggest ideas and discuss
 Porting `docopt` to other languages
 ===============================================================================
 
-We think `docopt` is so good, we want to share it beyound the Python
+We think `docopt` is so good, we want to share it beyond the Python
 community!
 
 Help develop [Ruby port](http://github.com/docopt/docopt.rb),
