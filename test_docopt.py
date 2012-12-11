@@ -666,3 +666,11 @@ def test_options_first():
                   'this that --opt',
                   options_first=True) == {'--opt': False,
                                           '<args>': ['this', 'that', '--opt']}
+
+
+def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
+    args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
+    assert args['-a'] is True
+    assert args['-b'] is False
+    assert args['-x'] is True
+    assert args['-y'] is False
