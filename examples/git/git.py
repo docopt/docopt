@@ -30,17 +30,18 @@ if __name__ == '__main__':
                   version='git version 1.7.4.4',
                   options_first=True)
 
+    argv = [args['<command>']] + args['<args>']
     if args['<command>'] == 'add':
         # In case subcommand is implemented as python module:
         import git_add
-        print(docopt(git_add.__doc__, argv=args['<args>']))
+        print(docopt(git_add.__doc__, argv=argv))
     elif args['<command>'] == 'branch':
         # In case subcommand is a script in some other programming language:
-        exit(call(['python', 'git_branch.py'] + args['<args>']))
+        exit(call(['python', 'git_branch.py'] + argv))
     elif args['<command>'] in 'checkout clone commit push remote'.split():
         # For the rest we'll just keep DRY:
-        exit(call(['python', 'git_%s.py' % args['<command>']] + args['<args>']))
-    elif args['<command>'] == 'help':
-        exit(call(['python', 'git.py'] + args['<args>'] + ['--help']))
+        exit(call(['python', 'git_%s.py' % args['<command>']] + argv))
+    elif args['<command>'] in ['help', None]:
+        exit(call(['python', 'git.py', '--help']))
     else:
         exit("%r is not a git.py command. See 'git help'." % args['<command>'])
