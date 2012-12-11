@@ -482,7 +482,9 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=sys.argv[1:], help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False):
+    if argv is None:
+        argv = sys.argv[1:]
     DocoptExit.usage = printable_usage(doc)
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)

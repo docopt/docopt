@@ -674,3 +674,11 @@ def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
     assert args['-b'] is False
     assert args['-x'] is True
     assert args['-y'] is False
+
+
+def test_issue_65_evaluate_argv_when_called_not_when_imported():
+    import sys
+    sys.argv = 'prog -a'.split()
+    assert docopt('usage: prog [-ab]') == {'-a': True, '-b': False}
+    sys.argv = 'prog -b'.split()
+    assert docopt('usage: prog [-ab]') == {'-a': False, '-b': True}
