@@ -1,10 +1,22 @@
 `docopt` creates *beautiful* command-line interfaces
 ===============================================================================
 
-> New in version 0.X.X:
+> New in version 0.6.0:
 >
+> - New argument `options_first`, disallows interspersing options and arguments.
+>   If you supply `options_first=True` to `docopt`, it will interpret
+>   all arguments as positional arguments after first positional argument.
 >
+> Breaking changes:
 >
+> - Meaning of `[options]` shortcut slightly changed. Previously it ment
+>   *"any known option"*. Now it means *"any option not in usage-pattern"*.
+>   This avoids the situation when an option is allowed to be
+>   repeated unintentionaly.
+>
+> - `argv` is `None` by default, not `sys.argv[1:]`.
+>   This allows `docopt` to always use the *latest* `sys.argv`,
+>   not `sys.argv` during import time.
 
 Isn't it awesome how `optparse` and `argparse` generate help messages
 based on your code?!
@@ -58,10 +70,10 @@ Installation
 
 Use [pip](http://pip-installer.org) or easy_install:
 
-    pip install docopt
+    pip install docopt==0.6.0
 
 Alternatively, you can just drop `docopt.py` file into your project--it is
-self-contained. [Get source on github](http://github.com/docopt/docopt).
+self-contained.
 
 `docopt` is tested with Python 2.5, 2.6, 2.7, 3.1, 3.2.
 
@@ -71,10 +83,10 @@ API
 ```python
 from docopt import docopt
 
-args = docopt(doc, argv=sys.argv[1:], help=True, version=None)
+args = docopt(doc, argv=None, help=True, version=None, options_first=False)
 ```
 
-`docopt` takes 1 required and 3 optional arguments:
+`docopt` takes 1 required and 4 optional arguments:
 
 - `doc` could be a module docstring (`__doc__`) or some other string that
   contains a **help message** that will be
@@ -94,9 +106,9 @@ args = docopt(doc, argv=sys.argv[1:], help=True, version=None)
 """
 ```
 
-- `argv` is an optional argument vector; by default it is the argument vector
-  passed to your program (`sys.argv[1:]`). You can supply it with the list of
-  strings (similar to `sys.argv`) e.g. `['--verbose', '-o', 'hai.txt']`.
+- `argv` is an optional argument vector; by default `docopt` uses the argument
+  vector passed to your program (`sys.argv[1:]`). Alternatively you can
+  supply a list of strings like `['--verbose', '-o', 'hai.txt']`.
 
 - `help`, by default `True`, specifies whether the parser should
   automatically print the help message (supplied as `doc`) and terminate,
@@ -116,9 +128,16 @@ Note, when `docopt` is set to automatically handle `-h`, `--help` and
 `--version` options, you still need to mention them in usage pattern for
 this to work. Also, for your users to know about them.
 
-The **return** value is just a dictionary with options, arguments and commands,
-with keys spelled exactly like in a help message
-(long versions of options are given priority). For example, if you invoke
+- `options_first`, by default `False`. If set to `True` will disallow
+  interspersing options and positional argument. I.e. after first
+  positional argument, all arguments
+  will be interpreted as positional even if the look like options.
+  This can be used for strict compatibility with POSIX, or if you want
+  to dispatch your arguments to other programs.
+
+The **return** value is a simple dictionary with options, arguments and
+commands as keys, spelled exactly like in your help message.
+Long versions of options are given priority. For example, if you invoke
 the top example as:
 
     naval_fate.py ship Guardian move 100 150 --speed=15
@@ -135,10 +154,6 @@ the return dictionary will be:
  '<x>': '100',           'shoot': False,
  '<y>': '150'}
 ```
-
-This turns out to be the most straight-forward, unambiguous and readable
-format possible.  You can instantly see that `args['<name>']` is an
-argument, `args['--speed']` is an option, and `args['move']` is a command.
 
 Help message format
 ===============================================================================
@@ -226,7 +241,7 @@ Use the following constructs to specify patterns:
 - **[options]** (case sensitive) shortcut for any options.
   You can use it if you want to specify that the usage
   pattern could be provided with any options defined below in the
- option-descriptions and do not want to enumerate them all in pattern.
+ option-descriptions and do not want to enumerate them all in usage-pattern.
 - "`[--]`". Double dash "`--`" is used by convention to separate
   positional arguments that can be mistaken for options. In order to
   support this convention add "`[--]`" to you usage patterns.
@@ -307,17 +322,17 @@ We have an extensive list of
 which cover every aspect of functionality of `docopt`.  Try them out,
 read the source if in doubt.
 
-##Sub-parsers, multi-level help and *huge* applications (like git)
-##-------------------------------------------------------------------------------
-##
-##If you want to split your usage-patter in several, implement multi-level
-##help (whith separate help-screen for each subcommand), want to interface
-##with existing scripts that don't use docopt, or you're building
-##the next "git", you will need the new `any_options` parameter (described
-##in API section above).  To get you started quickly we implemented
-##a subset of git command-line interface as an example:
-##
-##[docopt/examples/git](https://github.com/docopt/docopt/tree/master/examples/git)
+Subparsers, multi-level help and *huge* applications (like git)
+-------------------------------------------------------------------------------
+
+If you want to split your usage-pattern into several, implement multi-level
+help (whith separate help-screen for each subcommand), want to interface
+with existing scripts that don't use docopt, or you're building
+the next "git", you will need the new `any_options` parameter (described
+in API section above). To get you started quickly we implemented
+a subset of git command-line interface as an example:
+
+[docopt/examples/git](https://github.com/docopt/docopt/tree/master/examples/git)
 
 
 Data validation
@@ -337,7 +352,7 @@ Development
 We would *love* to hear what you think about `docopt` on our
 [issues page](http://github.com/docopt/docopt/issues>).
 
-Contribute, make pull requrests, report bugs, suggest ideas and discuss
+Make pull requrests, report bugs, suggest ideas and discuss
 `docopt`. You can also drop a line directly to vladimir@keleshev.com.
 
 Porting `docopt` to other languages
@@ -367,7 +382,8 @@ to specify explicitly the version in your dependency tools, e.g.:
 
     pip install docopt==0.X.X
 
-- 0.X.X ##`any_options` parameter to `docopt` function.
+- 0.6.0 `options_first` parameter. Corrected `[options]` meaning.
+  `argv` defaults to `None`.
 - 0.5.0 Repeated options/commands are counted or accumulated into list.
 - 0.4.2 Bugfix release.
 - 0.4.0 Option descriptions become optional,
