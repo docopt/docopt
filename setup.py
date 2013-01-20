@@ -1,5 +1,5 @@
-"""`docopt` lives on `GitHub <http://github.com/halst/docopt/>`_."""
 from setuptools import setup
+
 from docopt import __version__
 
 
@@ -13,7 +13,7 @@ setup(
     keywords='option arguments parsing optparse argparse getopt',
     url='http://docopt.org',
     py_modules=['docopt'],
-    long_description=__doc__,
+    long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Topic :: Utilities',
