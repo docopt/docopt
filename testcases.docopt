@@ -595,33 +595,6 @@ $ prog --a
 "user-error"  # not a unique prefix
 
 #
-# test_bug_option_argument_should_not_capture_default_value_from_pattern
-#
-
-r"""usage: prog [--file=<f>]
-
-"""
-$ prog
-{"--file": null}
-
-
-r"""usage: prog [--file=<f>]
-
---file <a>
-
-"""
-{"--file": null}
-
-
-r"""Usage: tau [-a <host:port>]
-
--a, --address <host:port>  TCP address [default: localhost:6283].
-
-"""
-$ prog
-{"--address": "localhost:6283"}
-
-#
 # Counting number of flags
 #
 
@@ -718,27 +691,219 @@ r"""usage: prog go...
 $ prog go go go go go
 {"go": 5}
 
-
 #
-# test_accumulate_multiple_options
+# Test [options] shourtcut
 #
 
-r"""usage: prog --long=<arg> ...
+r"""Usage: prog [options] A
+
+    -q  Be quiet
+    -v  Be verbose.
 
 """
+$ prog arg
+{"A": "arg", "-v": false, "-q": false}
+
+$ prog -v arg
+{"A": "arg", "-v": true, "-q": false}
+
+$ prog -q arg
+{"A": "arg", "-v": false, "-q": true}
+
+#
+# Test single dash
+#
+
+r"""usage: prog [-]"""
+
+$ prog -
+{"-": true}
+
+$ prog
+{"-": false}
+
+#
+# If argument is repeated, its value should always be a list
+#
+
+r"""usage: prog [NAME [NAME ...]]"""
+
+$ prog a b
+{"NAME": ["a", "b"]}
+
+$ prog
+{"NAME": []}
+
+#
+# Option's argument defaults to null/None
+#
+
+r"""usage: prog [options]
+
+-a        Add
+-m <msg>  Message
+
+"""
+$ prog -a
+{"-m": null, "-a": true}
+
+#
+# Test options without description
+#
+
+r"""usage: prog --hello"""
+$ prog --hello
+{"--hello": true}
+
+r"""usage: prog [--hello=<world>]"""
+$ prog
+{"--hello": null}
+
+$ prog --hello wrld
+{"--hello": "wrld"}
+
+r"""usage: prog [-o]"""
+$ prog
+{"-o": false}
+
+$ prog -o
+{"-o": true}
+
+r"""usage: prog [-opr]"""
+$ prog -op
+{"-o": true, "-p": true, "-r": false}
+
+r"""usage: git [-v | --verbose]"""
+$ prog -v
+{"-v": true, "--verbose": false}
+
+r"""usage: git remote [-v | --verbose]"""
+$ prog remote -v
+{"remote": true, "-v": true, "--verbose": false}
+
+#
+# Test empty usage pattern
+#
+
+r"""usage: prog"""
+$ prog
+{}
+
+r"""usage: prog
+           prog <a> <b>
+"""
+$ prog 1 2
+{"<a>": "1", "<b>": "2"}
+
+$ prog
+{"<a>": null, "<b>": null}
+
+r"""usage: prog <a> <b>
+           prog
+"""
+$ prog
+{"<a>": null, "<b>": null}
+
+#
+# Option's argument should not capture default value from usage pattern
+#
+
+r"""usage: prog [--file=<f>]"""
+
+$ prog
+{"--file": null}
+
+r"""usage: prog [--file=<f>]
+
+--file <a>
+
+"""
+$ prog
+{"--file": null}
+
+r"""Usage: prog [-a <host:port>]
+
+-a, --address <host:port>  TCP address [default: localhost:6283].
+
+"""
+$ prog
+{"--address": "localhost:6283"}
+
+#
+# If option with argument could be repeated,
+# its arguments should be accumulated into a list
+#
+
+r"""usage: prog --long=<arg> ..."""
+
 $ prog --long one
 {"--long": ["one"]}
 
 $ prog --long one --long two
 {"--long": ["one", "two"]}
 
+#
+# Test multiple elements repeated at once
+#
+
+r"""usage: prog (go <direction> --speed=<km/h>)..."""
+$ prog  go left --speed=5  go right --speed=9
+{"go": 2, "<direction>": ["left", "right"], "--speed": ["5", "9"]}
 
 #
-# test_multiple_different_elements
+# Required options should work with option shortcut
 #
 
-r"""usage: prog (go <direction> --speed=<km/h>)...
+r"""usage: prog [options] -a
+
+-a
 
 """
-$ prog go left --speed=5  go right --speed=9
-{"go": 2, "<direction>": ["left", "right"], "--speed": ["5", "9"]}
+$ prog -a
+{"-a": true}
+
+#
+# If option could be repeated its defaults should be split into a list
+#
+
+r"""usage: prog [-o <o>]...
+
+-o <o>  [default: x]
+
+"""
+$ prog -o this -o that
+{"-o": ["this", "that"]}
+
+$ prog
+{"-o": ["x"]}
+
+r"""usage: prog [-o <o>]...
+
+-o <o>  [default: x y]
+
+"""
+$ prog -o this
+{"-o": ["this"]}
+
+$ prog
+{"-o": ["x", "y"]}
+
+#
+# Test stacked option's argument
+#
+
+r"""usage: prog -pPATH
+
+-p PATH
+
+"""
+$ prog -pHOME
+{"-p": "HOME"}
+
+#
+# Issue 56: Repeated mutually exclusive args give nested lists sometimes
+#
+
+r"""Usage: foo (--xx=x|--yy=y)..."""
+$ prog --xx=1 --yy=2
+{"--xx": ["1"], "--yy": ["2"]}

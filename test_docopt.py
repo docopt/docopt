@@ -53,16 +53,6 @@ def test_option_name():
     assert Option(None, '--help').name == '--help'
 
 
-def test_any_options():
-    doc = '''Usage: prog [options] A
-
-    -q  Be quiet
-    -v  Be verbose.'''
-    assert docopt(doc, 'arg') == {'A': 'arg', '-v': False, '-q': False}
-    assert docopt(doc, '-v arg') == {'A': 'arg', '-v': True, '-q': False}
-    assert docopt(doc, '-q arg') == {'A': 'arg', '-v': False, '-q': True}
-
-
 def test_commands():
     assert docopt('Usage: prog add', 'add') == {'add': True}
     assert docopt('Usage: prog [add]', '') == {'add': False}
@@ -398,15 +388,6 @@ def test_allow_double_dash():
         docopt('usage: prog [-o] <arg>\n\n-o', '-- -o')  # '--' not allowed
 
 
-def test_allow_single_underscore():
-    assert docopt('usage: prog [-]', '-') == {'-': True}
-    assert docopt('usage: prog [-]', '') == {'-': False}
-
-
-def test_allow_empty_pattern():
-    assert docopt('usage: prog', '') == {}
-
-
 def test_docopt():
     doc = '''Usage: prog [-v] A
 
@@ -446,37 +427,6 @@ def test_docopt():
     #    docopt(doc, 'help')  XXX Maybe help command?
 
 
-def test_bug_not_list_argument_if_nothing_matched():
-    d = 'usage: prog [NAME [NAME ...]]'
-    assert docopt(d, 'a b') == {'NAME': ['a', 'b']}
-    assert docopt(d, '') == {'NAME': []}
-
-
-def test_option_arguments_default_to_none():
-    d = """usage: prog [options]
-
-    -a        Add
-    -m <msg>  Message
-
-    """
-    assert docopt(d, '-a') == {'-m': None, '-a': True}
-
-
-def test_options_without_description():
-    assert docopt('usage: prog --hello', '--hello') == {'--hello': True}
-    assert docopt('usage: prog [--hello=<world>]', '') == {'--hello': None}
-    assert docopt('usage: prog [--hello=<world>]',
-                  '--hello wrld') == {'--hello': 'wrld'}
-    assert docopt('usage: prog [-o]', '') == {'-o': False}
-    assert docopt('usage: prog [-o]', '-o') == {'-o': True}
-    assert docopt('usage: prog [-opr]',
-                  '-op') == {'-o': True, '-p': True, '-r': False}
-    assert docopt('usage: git [-v | --verbose]',
-                  '-v') == {'-v': True, '--verbose': False}
-    assert docopt('usage: git remote [-v | --verbose]',
-            'remote -v') == {'remote': True, '-v': True, '--verbose': False}
-
-
 def test_language_errors():
     with raises(DocoptLanguageError):
         docopt('no usage with colon here')
@@ -484,33 +434,11 @@ def test_language_errors():
         docopt('usage: here \n\n and again usage: here')
 
 
-def test_bug():
-    assert docopt('usage: prog', '') == {}
-    assert docopt('usage: prog \n prog <a> <b>',
-                  '1 2') == {'<a>': '1', '<b>': '2'}
-    assert docopt('usage: prog \n prog <a> <b>',
-                  '') == {'<a>': None, '<b>': None}
-    assert docopt('usage: prog <a> <b> \n prog',
-                  '') == {'<a>': None, '<b>': None}
-
-
 def test_issue_40():
     with raises(SystemExit):  # i.e. shows help
         docopt('usage: prog --help-commands | --help', '--help')
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
                                                            '--aa': True}
-
-
-def test_bug_option_argument_should_not_capture_default_value_from_pattern():
-    assert docopt('usage: prog [--file=<f>]', '') == {'--file': None}
-    assert docopt('usage: prog [--file=<f>]\n\n--file <a>', '') == \
-            {'--file': None}
-    doc = """Usage: tau [-a <host:port>]
-
-    -a, --address <host:port>  TCP address [default: localhost:6283].
-
-    """
-    assert docopt(doc, '') == {'--address': 'localhost:6283'}
 
 
 def test_issue34_unicode_strings():
@@ -543,19 +471,6 @@ def test_count_multiple_commands():
     assert docopt('usage: prog go...', 'go go go go go') == {'go': 5}
 
 
-def test_accumulate_multiple_options():
-    assert docopt('usage: prog --long=<arg> ...', '--long one') == \
-            {'--long': ['one']}
-    assert docopt('usage: prog --long=<arg> ...', '--long one --long two') == \
-            {'--long': ['one', 'two']}
-
-
-def test_multiple_different_elements():
-    assert docopt('usage: prog (go <direction> --speed=<km/h>)...',
-                  'go left --speed=5  go right --speed=9') == \
-            {'go': 2, '<direction>': ['left', 'right'], '--speed': ['5', '9']}
-
-
 def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
@@ -584,26 +499,11 @@ def test_any_options_parameter():
 #        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
-def test_bug_required_options_should_work_with_option_whortcut():
-    assert docopt('usage: prog [options] -a\n\n-a', '-a') == {'-a': True}
-
-
 def test_options_shortcut_does_not_add_options_to_patter_second_time():
     assert docopt('usage: prog [options] [-a]\n\n-a -b', '-a') == \
             {'-a': True, '-b': False}
     with raises(DocoptExit):
         docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')
-
-
-def test_default_value_is_converted_to_list():
-    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x]',
-                  '-o this -o that') == {'-o': ['this', 'that']}
-    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x]',
-                  '') == {'-o': ['x']}
-    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x y]',
-                  '-o this') == {'-o': ['this']}
-    assert docopt('usage: prog [-o <o>]...\n\n-o <o>  [default: x y]',
-                  '') == {'-o': ['x', 'y']}
 
 
 def test_default_value_for_positional_arguments():
@@ -641,15 +541,6 @@ def test_default_value_for_positional_arguments():
 #                                      Option(None, '--verbose')]
 
 
-def test_stacked_option_argument():
-    assert docopt('usage: prog -pPATH\n\n-p PATH', '-pHOME') == {'-p': 'HOME'}
-
-
-def test_issue_56():
-    assert docopt("Usage: foo (--xx=x|--yy=y)...",
-            "--xx=1 --yy=2") == {'--xx': ['1'], '--yy': ['2']}
-
-
 def test_issue_59():
     assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
     assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
@@ -670,6 +561,8 @@ def test_options_first():
 
 def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
     args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
+    # Need to use `is` (not `==`) since we want to make sure
+    # that they are not 1/0, but strictly True/False:
     assert args['-a'] is True
     assert args['-b'] is False
     assert args['-x'] is True
