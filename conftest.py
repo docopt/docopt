@@ -1,11 +1,15 @@
-import pytest
 import re
-import docopt
 import json
+
+import pytest
+
+import docopt
+
 
 def pytest_collect_file(path, parent):
     if path.ext == ".docopt" and path.basename.startswith("test"):
         return DocoptTestFile(path, parent)
+
 
 def parse_test(raw):
     raw = re.sub('#.*$', '', raw, flags=re.M).strip()
@@ -24,23 +28,27 @@ def parse_test(raw):
 
         yield name, doc, cases
 
+
 class DocoptTestFile(pytest.File):
+
     def collect(self):
         raw = self.fspath.open().read()
         index = 1
-        
+
         for name, doc, cases in parse_test(raw):
             name = self.fspath.purebasename
             for case in cases:
                 yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
                 index += 1
 
+
 class DocoptTestItem(pytest.Item):
+
     def __init__(self, name, parent, doc, case):
         super(DocoptTestItem, self).__init__(name, parent)
         self.doc = doc
         self.prog, self.argv, self.expect = case
-    
+
     def runtest(self):
         try:
             result = docopt.docopt(self.doc, argv=self.argv)
@@ -51,7 +59,7 @@ class DocoptTestItem(pytest.Item):
             raise DocoptTestException(self, result)
 
     def repr_failure(self, excinfo):
-        """ called when self.runtest() raises an exception. """
+        """Called when self.runtest() raises an exception."""
         if isinstance(excinfo.value, DocoptTestException):
             return "\n".join((
                 "usecase execution failed:",
@@ -63,6 +71,7 @@ class DocoptTestItem(pytest.Item):
 
     def reportinfo(self):
         return self.fspath, 0, "usecase: %s" % self.name
+
 
 class DocoptTestException(Exception):
     pass
