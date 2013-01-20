@@ -1,6 +1,9 @@
 ``docopt`` creates *beautiful* command-line interfaces
 ======================================================================
 
+Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
+command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
+
     New in version 0.6.0:
 
     - New argument ``options_first``, disallows interspersing options
