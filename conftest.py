@@ -1,5 +1,8 @@
 import re
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 import pytest
 
@@ -12,7 +15,7 @@ def pytest_collect_file(path, parent):
 
 
 def parse_test(raw):
-    raw = re.sub('#.*$', '', raw, flags=re.M).strip()
+    raw = re.compile('#.*$', re.M).sub('', raw).strip()
     if raw.startswith('"""'):
         raw = raw[3:]
 
