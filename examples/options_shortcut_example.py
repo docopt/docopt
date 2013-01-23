@@ -1,7 +1,7 @@
 """Example of program which uses [options] shortcut in pattern.
 
 Usage:
-  any_options_example.py [options] <port>
+  options_shortcut_example.py [options] <port>
 
 Options:
   -h --help                show this help message and exit

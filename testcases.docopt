@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-'''
-
 r"""Usage: prog
 
 """
@@ -598,33 +595,6 @@ $ prog --a
 "user-error"  # not a unique prefix
 
 #
-# test_bug_option_argument_should_not_capture_default_value_from_pattern
-#
-
-r"""usage: prog [--file=<f>]
-
-"""
-$ prog
-{"--file": null}
-
-
-r"""usage: prog [--file=<f>]
-
---file <a>
-
-"""
-{"--file": null}
-
-
-r"""Usage: tau [-a <host:port>]
-
--a, --address <host:port>  TCP address [default: localhost:6283].
-
-"""
-$ prog
-{"--address": "localhost:6283"}
-
-#
 # Counting number of flags
 #
 
@@ -721,74 +691,219 @@ r"""usage: prog go...
 $ prog go go go go go
 {"go": 5}
 
-
 #
-# test_accumulate_multiple_options
+# Test [options] shourtcut
 #
 
-r"""usage: prog --long=<arg> ...
+r"""Usage: prog [options] A
+
+    -q  Be quiet
+    -v  Be verbose.
 
 """
+$ prog arg
+{"A": "arg", "-v": false, "-q": false}
+
+$ prog -v arg
+{"A": "arg", "-v": true, "-q": false}
+
+$ prog -q arg
+{"A": "arg", "-v": false, "-q": true}
+
+#
+# Test single dash
+#
+
+r"""usage: prog [-]"""
+
+$ prog -
+{"-": true}
+
+$ prog
+{"-": false}
+
+#
+# If argument is repeated, its value should always be a list
+#
+
+r"""usage: prog [NAME [NAME ...]]"""
+
+$ prog a b
+{"NAME": ["a", "b"]}
+
+$ prog
+{"NAME": []}
+
+#
+# Option's argument defaults to null/None
+#
+
+r"""usage: prog [options]
+
+-a        Add
+-m <msg>  Message
+
+"""
+$ prog -a
+{"-m": null, "-a": true}
+
+#
+# Test options without description
+#
+
+r"""usage: prog --hello"""
+$ prog --hello
+{"--hello": true}
+
+r"""usage: prog [--hello=<world>]"""
+$ prog
+{"--hello": null}
+
+$ prog --hello wrld
+{"--hello": "wrld"}
+
+r"""usage: prog [-o]"""
+$ prog
+{"-o": false}
+
+$ prog -o
+{"-o": true}
+
+r"""usage: prog [-opr]"""
+$ prog -op
+{"-o": true, "-p": true, "-r": false}
+
+r"""usage: git [-v | --verbose]"""
+$ prog -v
+{"-v": true, "--verbose": false}
+
+r"""usage: git remote [-v | --verbose]"""
+$ prog remote -v
+{"remote": true, "-v": true, "--verbose": false}
+
+#
+# Test empty usage pattern
+#
+
+r"""usage: prog"""
+$ prog
+{}
+
+r"""usage: prog
+           prog <a> <b>
+"""
+$ prog 1 2
+{"<a>": "1", "<b>": "2"}
+
+$ prog
+{"<a>": null, "<b>": null}
+
+r"""usage: prog <a> <b>
+           prog
+"""
+$ prog
+{"<a>": null, "<b>": null}
+
+#
+# Option's argument should not capture default value from usage pattern
+#
+
+r"""usage: prog [--file=<f>]"""
+
+$ prog
+{"--file": null}
+
+r"""usage: prog [--file=<f>]
+
+--file <a>
+
+"""
+$ prog
+{"--file": null}
+
+r"""Usage: prog [-a <host:port>]
+
+-a, --address <host:port>  TCP address [default: localhost:6283].
+
+"""
+$ prog
+{"--address": "localhost:6283"}
+
+#
+# If option with argument could be repeated,
+# its arguments should be accumulated into a list
+#
+
+r"""usage: prog --long=<arg> ..."""
+
 $ prog --long one
 {"--long": ["one"]}
 
 $ prog --long one --long two
 {"--long": ["one", "two"]}
 
-
 #
-# test_multiple_different_elements
+# Test multiple elements repeated at once
 #
 
-r"""usage: prog (go <direction> --speed=<km/h>)...
-
-"""
-$ prog go left --speed=5  go right --speed=9
+r"""usage: prog (go <direction> --speed=<km/h>)..."""
+$ prog  go left --speed=5  go right --speed=9
 {"go": 2, "<direction>": ["left", "right"], "--speed": ["5", "9"]}
 
-'''
-import sys, json, re
-from subprocess import Popen, PIPE, STDOUT
+#
+# Required options should work with option shortcut
+#
 
-# remove comments
-__doc__ = re.sub('#.*$', '', __doc__, flags=re.M)
+r"""usage: prog [options] -a
 
-testee = (sys.argv[1] if len(sys.argv) >= 2 else
-        exit('Usage: language_agnostic_tester.py ./path/to/executable/testee [ID ...]'))
-ids = [int(x) for x in sys.argv[2:]] if len(sys.argv) > 2 else None
-summary = ''
+-a
 
-index = 0
-for fixture in __doc__.split('r"""'):
-    doc, _, body = fixture.partition('"""')
-    for case in body.split('$')[1:]:
-        index += 1
-        if ids is not None and index not in ids:
-            continue
-        argv, _, expect = case.strip().partition('\n')
-        prog, _, argv = argv.strip().partition(' ')
-        assert prog == 'prog', repr(prog)
-        p = Popen(testee + ' ' + argv,
-                  stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=True)
-        result = p.communicate(input=doc)[0]
-        try:
-            py_result = json.loads(result)
-            py_expect = json.loads(expect)
-        except:
-            summary += 'J'
-            print (' %d: BAD JSON ' % index).center(79, '=')
-            print 'result>', result
-            print 'expect>', expect
-            continue
-        if py_result == py_expect:
-            summary += '.'
-        else:
-            print (' %d: FAILED ' % index).center(79, '=')
-            print 'r"""%s"""' % doc
-            print '$ prog %s\n' % argv
-            print 'result>', result
-            print 'expect>', expect
-            summary += 'F'
+"""
+$ prog -a
+{"-a": true}
 
-print (' %d / %d ' % (summary.count('.'), len(summary))).center(79, '=')
-print summary
+#
+# If option could be repeated its defaults should be split into a list
+#
+
+r"""usage: prog [-o <o>]...
+
+-o <o>  [default: x]
+
+"""
+$ prog -o this -o that
+{"-o": ["this", "that"]}
+
+$ prog
+{"-o": ["x"]}
+
+r"""usage: prog [-o <o>]...
+
+-o <o>  [default: x y]
+
+"""
+$ prog -o this
+{"-o": ["this"]}
+
+$ prog
+{"-o": ["x", "y"]}
+
+#
+# Test stacked option's argument
+#
+
+r"""usage: prog -pPATH
+
+-p PATH
+
+"""
+$ prog -pHOME
+{"-p": "HOME"}
+
+#
+# Issue 56: Repeated mutually exclusive args give nested lists sometimes
+#
+
+r"""Usage: foo (--xx=x|--yy=y)..."""
+$ prog --xx=1 --yy=2
+{"--xx": ["1"], "--yy": ["2"]}
