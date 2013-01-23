@@ -11,6 +11,11 @@ command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
       ``docopt``, it will interpret all arguments as positional
       arguments after first positional argument.
 
+    - If option with argument could be repeated, its default value
+      will be interpreted as space-separated list. E.g. with
+      ``[default: ./here ./there]`` will be interpreted as
+      ``['./here', './there']``.
+
     Breaking changes:
 
     - Meaning of ``[options]`` shortcut slightly changed. Previously
@@ -324,6 +329,23 @@ The rules are as follows:
     --coefficient=K  The K coefficient [default: 2.95]
     --output=FILE    Output file [default: test.txt]
     --directory=DIR  Some directory [default: ./]
+
+- If the option is not repeatable, the value inside ``[default: ...]``
+  will be interpeted as string.  If it *is* repeatable, it will be
+  splited into a list on whitespace::
+
+    Usage: my_program.py [--repeatable=<arg> --repeatable=<arg>]
+                         [--another-repeatable=<arg>]...
+                         [--not-repeatable=<arg>]
+
+    # will be ['./here', './there']
+    --repeatable=<arg>          [default: ./here ./there]
+
+    # will be ['./here']
+    --another-repeatable=<arg>  [default: ./here]
+
+    # will be './here ./there', because it is not repeatable
+    --not-repeatable=<arg>      [default: ./here ./there]
 
 Examples
 ----------------------------------------------------------------------
