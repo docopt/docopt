@@ -364,8 +364,7 @@ want to interface with existing scripts that don't use **docopt**, or
 you're building the next "git", you will need the new ``options_first``
 parameter (described in API section above). To get you started quickly
 we implemented a subset of git command-line interface as an example:
-
-`./examples/git directory
+`examples/git
 <https://github.com/docopt/docopt/tree/master/examples/git>`_
 
 
