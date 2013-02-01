@@ -25,9 +25,9 @@ command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
     Breaking changes:
 
     - Meaning of ``[options]`` shortcut slightly changed. Previously
-      it ment *"any known option"*. Now it means *"any option not in
+      it meant *"any known option"*. Now it means *"any option not in
       usage-pattern"*.  This avoids the situation when an option is
-      allowed to be repeated unintentionaly.
+      allowed to be repeated unintentionally.
 
     - ``argv`` is ``None`` by default, not ``sys.argv[1:]``.
       This allows ``docopt`` to always use the *latest* ``sys.argv``,
@@ -246,7 +246,7 @@ Use the following constructs to specify patterns:
   --path=<path> <file>...`` is the same as ``my_program.py
   (--path=<path> <file>...)``.  (Note, "required options" might be not
   a good idea for your users).
-- **|** (pipe) **mutualy exclusive** elements. Group them using **(
+- **|** (pipe) **mutually exclusive** elements. Group them using **(
   )** if one of the mutually exclusive elements is required:
   ``my_program.py (--clockwise | --counter-clockwise) TIME``. Group
   them using **[ ]** if none of the mutually-exclusive elements are
@@ -273,7 +273,7 @@ times::
 
     Usage: my_program.py [-v | -vv | -vvv]
 
-then number of occurences of the option will be counted. I.e.
+then number of occurrences of the option will be counted. I.e.
 ``args['-v']`` will be ``2`` if program was invoked as ``my_program
 -vv``. Same works for commands.
 
@@ -318,7 +318,7 @@ The rules are as follows:
   to stick to a single style.::
 
     -o FILE --output=FILE       # without comma, with "=" sign
-    -i <file>, --input <file>   # with comma, wihtout "=" sing
+    -i <file>, --input <file>   # with comma, without "=" sing
 
 - Use two spaces to separate options with their informal description::
 
@@ -337,7 +337,7 @@ The rules are as follows:
     --directory=DIR  Some directory [default: ./]
 
 - If the option is not repeatable, the value inside ``[default: ...]``
-  will be interpeted as string.  If it *is* repeatable, it will be
+  will be interpreted as string.  If it *is* repeatable, it will be
   splited into a list on whitespace::
 
     Usage: my_program.py [--repeatable=<arg> --repeatable=<arg>]
@@ -365,7 +365,7 @@ Subparsers, multi-level help and *huge* applications (like git)
 ----------------------------------------------------------------------
 
 If you want to split your usage-pattern into several, implement
-multi-level help (whith separate help-screen for each subcommand),
+multi-level help (with separate help-screen for each subcommand),
 want to interface with existing scripts that don't use **docopt**, or
 you're building the next "git", you will need the new ``options_first``
 parameter (described in API section above). To get you started quickly
@@ -392,7 +392,7 @@ Development
 We would *love* to hear what you think about **docopt** on our `issues
 page <http://github.com/docopt/docopt/issues>`_
 
-Make pull requrests, report bugs, suggest ideas and discuss
+Make pull requests, report bugs, suggest ideas and discuss
 **docopt**. You can also drop a line directly to
 <vladimir@keleshev.com>.
 
@@ -402,7 +402,7 @@ Porting ``docopt`` to other languages
 We think **docopt** is so good, we want to share it beyond the Python
 community!
 
-The follosing ports are available:
+The following ports are available:
 
 - `Ruby port <http://github.com/docopt/docopt.rb>`_
 - `CoffeeScript port <http://github.com/docopt/docopt.coffee>`_
