@@ -565,9 +565,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #        a.value = same_name[0].value
     argv = parse_argv(TokenStream(argv, DocoptExit), list(options),
                       options_first)
+    pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
         doc_options = parse_defaults(doc)
-        ao.children = list(set(doc_options) - set(pattern.flat(Option)))
+        ao.children = list(set(doc_options) - pattern_options)
         #if any_options:
         #    ao.children += [Option(o.short, o.long, o.argcount)
         #                    for o in argv if type(o) is Option]

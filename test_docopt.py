@@ -575,3 +575,10 @@ def test_issue_65_evaluate_argv_when_called_not_when_imported():
     assert docopt('usage: prog [-ab]') == {'-a': True, '-b': False}
     sys.argv = 'prog -b'.split()
     assert docopt('usage: prog [-ab]') == {'-a': False, '-b': True}
+
+
+def test_issue_85_any_option_multiple_subcommands():
+    docopt('usage:\n  fs good [options]\n  fs fail [options]\n\nOptions:\n  --loglevel=<loglevel>\n',
+                  'fail --loglevel 5') ==  {'--loglevel': '5',
+                                            'fail': True,
+                                            'good': False}
