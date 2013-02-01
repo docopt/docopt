@@ -6,7 +6,7 @@ command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
 
     New in version 0.6.1:
 
-    - Fix issue [#85](https://github.com/docopt/docopt/issues/85)
+    - Fix issue `#85 <https://github.com/docopt/docopt/issues/85>`_
       which caused improper handling of ``[options]`` shortcut
       if it was present several times.
 
