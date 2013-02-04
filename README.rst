@@ -229,9 +229,9 @@ Each pattern can consist of the following elements:
   options, e.g. ``-oiv`` which will be the same as ``-o -i -v``. The
   options can have arguments, e.g.  ``--input=FILE`` or ``-i FILE`` or
   even ``-iFILE``. However it is important that you specify option
-  descriptions if you want for option to have an argument, a default
-  value, or specify synonymous short/long versions of option (see next
-  section on option descriptions).
+  descriptions if you want your option to have an argument, a default
+  value, or specify synonymous short/long versions of the option (see 
+  next section on option descriptions).
 - **commands** are words that do *not* follow the described above
   conventions of ``--options`` or ``<arguments>`` or ``ARGUMENTS``,
   plus two special commands: dash "``-``" and double dash "``--``"
