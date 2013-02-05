@@ -462,8 +462,8 @@ def parse_defaults(doc):
 
 
 def printable_usage(doc):
-    # in python < 2.7 you can't pass flags=re.IGNORECASE
-    usage_split = re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)
+    usage_pattern = re.compile(r'(usage:)', re.IGNORECASE)
+    usage_split = re.split(usage_pattern, doc)
     if len(usage_split) < 3:
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
     if len(usage_split) > 3:
