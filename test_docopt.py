@@ -582,3 +582,10 @@ def test_issue_85_any_option_multiple_subcommands():
                   'fail --loglevel 5') ==  {'--loglevel': '5',
                                             'fail': True,
                                             'good': False}
+
+
+def test_callable_module():
+    import docopt
+    assert docopt.docopt('usage: prog [-a]', '') == {'-a': False}
+    assert docopt.__call__('usage: prog [-a]', '') == {'-a': False}
+    assert docopt('usage: prog [-a]', '') == {'-a': False}

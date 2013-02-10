@@ -577,3 +577,26 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
+
+
+__call__ = docopt
+
+
+class CallableModule(type(sys)):
+
+    """When called, calls `__call__` function in the module."""
+
+    def __init__(self, original_module):
+        type(sys).__init__(self, original_module.__name__)
+        self._original_module = original_module
+
+    def __call__(self, *args, **kwargs):
+        return self._original_module.__call__(*args, **kwargs)
+
+    def __getattribute__(self, item):
+        if item in ['__call__', '_original_module']:
+            return object.__getattribute__(self, item)
+        return getattr(self._original_module, item)
+
+
+sys.modules[__name__] = CallableModule(sys.modules[__name__])
