@@ -907,3 +907,190 @@ $ prog -pHOME
 r"""Usage: foo (--xx=x|--yy=y)..."""
 $ prog --xx=1 --yy=2
 {"--xx": ["1"], "--yy": ["2"]}
+
+
+
+#
+# test_commands
+#
+
+r"""Usage: prog add"""
+$ prog add
+{"add": true}
+
+
+r"""Usage: prog [add]"""
+$ prog
+{"add": false}
+
+$ prog add
+{"add": true}
+
+
+r"""Usage: prog (add|rm)"""
+$ prog add
+{"add": true, "rm": false}
+
+$ prog rm
+{"add": false, "rm": true}
+
+
+r"""Usage: prog a b"""
+$ prog a b
+{"a": true, "b": true}
+
+$ prog b a
+"user-error"
+
+
+
+#
+# test_allow_double_dash
+#
+r"""usage: prog [-o] [--] <arg>
+
+-o"""
+$ prog -- -o
+{"-o": false, "<arg>": "-o", "--": true}
+
+$ prog -o 1
+{"-o": true, "<arg>": "1", "--": false}
+
+# "--" not allowed
+r"""usage: prog [-o] <arg>
+
+-o"""
+$ prog -- -o
+"user-error"
+
+
+#
+# test_count_multiple_flags
+#
+r"""usage: prog [-v]"""
+$ prog -v
+{"-v": true}
+
+r"""usage: prog [-vv]"""
+$ prog
+{"-v": 0}
+
+$ prog -v
+{"-v": 1}
+
+$ prog -vv
+{"-v": 2}
+
+$ prog -vvv
+"user-error"
+
+r"""usage: prog [-v | -vv | -vvv]"""
+$ prog -vvv
+{"-v": 3}
+
+r"""usage: prog -v..."""
+$ prog -vvvvvv
+{"-v": 6}
+
+r"""usage: prog [--ver --ver]"""
+$ prog --ver --ver
+{"--ver": 2}
+
+
+#
+# test_count_multiple_commands
+#
+r"""usage: prog [go]"""
+$ prog go
+{"go": true}
+
+r"""usage: prog [go go]"""
+$ prog go
+{"go": 1}
+
+$ prog go go
+{"go": 2}
+
+$ prog go go go
+"user-error"
+
+r"""usage: prog go..."""
+$ prog
+"user-error"
+
+$ prog go
+{"go": 1}
+
+$ prog go go go go go
+{"go": 5}
+
+
+
+#
+# test_default_value_for_positional_arguments
+#
+# disabled right now
+r"""usage: prog [<p>]
+
+<p>  [default: x]
+"""
+$ prog
+{"<p>": null}
+# {"<p>": "x"}
+
+r"""usage: prog [<p>]...
+
+<p>  [default: x y]"""
+$ prog
+{"<p>": []}
+# {"<p>": ["x", "y"]}
+
+$ prog this
+{"<p>": ["this"]}
+# {"<p>": ["this"]}
+
+
+#
+# test_issue_85_any_option_multiple_subcommands
+#
+r"""usage:
+  fs good [options]
+  fs fail [options]
+  
+Options:
+  --loglevel=<loglevel>
+"""
+$ prog fail --loglevel 5
+{"--loglevel": "5", "fail": true, "good": false}
+
+
+#
+# test_options_shortcut_does_not_add_options_to_patter_second_time()
+#
+r"""usage: prog [options] [-a]
+
+-a -b"""
+$ prog -a
+{"-a": true, "-b": false}
+
+$ prog -aa
+"user-error"
+
+
+#
+# test_options_first
+#
+r"""usage: prog [--opt] [<args>...]"""
+$ prog --opt this that
+{"--opt": true, "<args>": ["this", "that"]}
+
+$ prog this that --opt
+{"--opt": true, "<args>": ["this", "that"]}
+
+# Tester doesn't support specifying these options
+#    assert docopt("usage: prog [--opt] [<args>...]",
+#                  "this that --opt",
+#                  options_first=True) == {"--opt": False,
+#                                          "<args>": ["this", "that", "--opt"]}
+
+

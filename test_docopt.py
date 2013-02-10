@@ -53,17 +53,6 @@ def test_option_name():
     assert Option(None, '--help').name == '--help'
 
 
-def test_commands():
-    assert docopt('Usage: prog add', 'add') == {'add': True}
-    assert docopt('Usage: prog [add]', '') == {'add': False}
-    assert docopt('Usage: prog [add]', 'add') == {'add': True}
-    assert docopt('Usage: prog (add|rm)', 'add') == {'add': True, 'rm': False}
-    assert docopt('Usage: prog (add|rm)', 'rm') == {'add': False, 'rm': True}
-    assert docopt('Usage: prog a b', 'a b') == {'a': True, 'b': True}
-    with raises(DocoptExit):
-        docopt('Usage: prog a b', 'b a')
-
-
 def test_printable_and_formal_usage():
     doc = """
     Usage: prog [-hv] ARG
@@ -379,15 +368,6 @@ def test_matching_paren():
         docopt('Usage: prog [a [b] ] c )')
 
 
-def test_allow_double_dash():
-    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
-                  '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
-    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
-                  '-o 1') == {'-o': True, '<arg>': '1', '--': False}
-    with raises(DocoptExit):
-        docopt('usage: prog [-o] <arg>\n\n-o', '-- -o')  # '--' not allowed
-
-
 def test_docopt():
     doc = '''Usage: prog [-v] A
 
@@ -435,6 +415,7 @@ def test_language_errors():
 
 
 def test_issue_40():
+    # agnostic tester doesn't support complex exit checking
     with raises(SystemExit):  # i.e. shows help
         docopt('usage: prog --help-commands | --help', '--help')
     assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
@@ -447,28 +428,6 @@ def test_issue34_unicode_strings():
                 {'-o': False, '<a>': None}
     except SyntaxError:
         pass  # Python 3
-
-
-def test_count_multiple_flags():
-    assert docopt('usage: prog [-v]', '-v') == {'-v': True}
-    assert docopt('usage: prog [-vv]', '') == {'-v': 0}
-    assert docopt('usage: prog [-vv]', '-v') == {'-v': 1}
-    assert docopt('usage: prog [-vv]', '-vv') == {'-v': 2}
-    with raises(DocoptExit):
-        docopt('usage: prog [-vv]', '-vvv')
-    assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
-    assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
-    assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
-
-
-def test_count_multiple_commands():
-    assert docopt('usage: prog [go]', 'go') == {'go': True}
-    assert docopt('usage: prog [go go]', '') == {'go': 0}
-    assert docopt('usage: prog [go go]', 'go') == {'go': 1}
-    assert docopt('usage: prog [go go]', 'go go') == {'go': 2}
-    with raises(DocoptExit):
-        docopt('usage: prog [go go]', 'go go go')
-    assert docopt('usage: prog go...', 'go go go go go') == {'go': 5}
 
 
 def test_any_options_parameter():
@@ -499,26 +458,6 @@ def test_any_options_parameter():
 #        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
-def test_options_shortcut_does_not_add_options_to_patter_second_time():
-    assert docopt('usage: prog [options] [-a]\n\n-a -b', '-a') == \
-            {'-a': True, '-b': False}
-    with raises(DocoptExit):
-        docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')
-
-
-def test_default_value_for_positional_arguments():
-    # disabled right now
-    assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
-            {'<p>': None}
-    #       {'<p>': 'x'}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
-            {'<p>': []}
-    #       {'<p>': ['x', 'y']}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
-            {'<p>': ['this']}
-    #       {'<p>': ['this']}
-
-
 #def test_parse_defaults():
 #    assert parse_defaults("""usage: prog
 #
@@ -542,11 +481,15 @@ def test_default_value_for_positional_arguments():
 
 
 def test_issue_59():
+    # can't turn this into a language agnostic test yet as they
+    # don't support empty strings in the command ('' gets converted to "''")
     assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
     assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
 
 
 def test_options_first():
+    # can't turn this into a language agnostic test yet as the tester
+    # doesn't allow options_first to be passed on a per-test basis
     assert docopt('usage: prog [--opt] [<args>...]',
                   '--opt this that') == {'--opt': True,
                                          '<args>': ['this', 'that']}
@@ -560,6 +503,8 @@ def test_options_first():
 
 
 def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
+    # can't turn this into an agnostic test yet as the semantics behind ==/is
+    # are not fully articulated yet
     args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
     # Need to use `is` (not `==`) since we want to make sure
     # that they are not 1/0, but strictly True/False:
@@ -576,9 +521,3 @@ def test_issue_65_evaluate_argv_when_called_not_when_imported():
     sys.argv = 'prog -b'.split()
     assert docopt('usage: prog [-ab]') == {'-a': False, '-b': True}
 
-
-def test_issue_85_any_option_multiple_subcommands():
-    docopt('usage:\n  fs good [options]\n  fs fail [options]\n\nOptions:\n  --loglevel=<loglevel>\n',
-                  'fail --loglevel 5') ==  {'--loglevel': '5',
-                                            'fail': True,
-                                            'good': False}
