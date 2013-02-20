@@ -485,11 +485,6 @@ def extras(help, version, options, doc):
         sys.exit()
 
 
-class Dict(dict):
-    def __repr__(self):
-        return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
-
-
 def docopt(doc, argv=None, help=True, version=None, options_first=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
@@ -575,5 +570,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
+        r = lambda s: '{%s}'%',\n '.join('%r: %r'%i for i in sorted(s.items()))
+        Dict = type('Dict', (dict,), {'__repr__': r})
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
