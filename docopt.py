@@ -570,7 +570,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        r = lambda s: '{%s}'%',\n '.join('%r: %r'%i for i in sorted(s.items()))
-        Dict = type('Dict', (dict,), {'__repr__': r})
+        Dict = type('Dict', (dict,), {'__repr__': lambda s:
+                '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(s.items()))})
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
