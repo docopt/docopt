@@ -576,4 +576,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
-    raise DocoptExit("Unknown option: %s" % left[0].name)
+
+    if left:
+        msg = "Unknown option: %s" % left[0].name
+    else:
+        msg = ""
+
+    raise DocoptExit(msg)
