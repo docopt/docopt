@@ -553,8 +553,13 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
       at https://github.com/docopt/docopt#readme
 
     """
+    import __main__
+    if doc is None:
+        doc = getattr(__main__, '__doc__', None)
     if argv is None:
         argv = sys.argv[1:]
+    if version is None:
+        version = getattr(__main__, '__version__', None)
     DocoptExit.usage = printable_usage(doc)
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
