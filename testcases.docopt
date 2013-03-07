@@ -907,3 +907,15 @@ $ prog -pHOME
 r"""Usage: foo (--xx=x|--yy=y)..."""
 $ prog --xx=1 --yy=2
 {"--xx": ["1"], "--yy": ["2"]}
+
+#
+# POSIXly correct tokenization
+#
+
+r"""usage: prog [<input file>]"""
+$ prog f.txt
+{"<input file>": "f.txt"}
+
+r"""usage: prog [--input=<file name>]..."""
+$ prog --input a.txt --input=b.txt
+{"--input": ["a.txt", "b.txt"]}

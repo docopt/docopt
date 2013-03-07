@@ -288,9 +288,15 @@ class Either(ParentPattern):
 
 class Tokens(list):
 
-    def __init__(self, source, error):
+    def __init__(self, source, error=DocoptExit):
         self += source.split() if hasattr(source, 'split') else source
         self.error = error
+
+    @staticmethod
+    def from_pattern(source):
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
+        source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
+        return Tokens(source, error=DocoptLanguageError)
 
     def move(self):
         return self.pop(0) if len(self) else None
@@ -368,8 +374,7 @@ def parse_shorts(tokens, options):
 
 
 def parse_pattern(source, options):
-    tokens = Tokens(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
-                    DocoptLanguageError)
+    tokens = Tokens.from_pattern(source)
     result = parse_expr(tokens, options)
     if tokens.current() is not None:
         raise tokens.error('unexpected ending: %r' % ' '.join(tokens))
@@ -563,7 +568,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #    same_name = [d for d in arguments if d.name == a.name]
     #    if same_name:
     #        a.value = same_name[0].value
-    argv = parse_argv(Tokens(argv, DocoptExit), list(options), options_first)
+    argv = parse_argv(Tokens(argv), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
         doc_options = parse_defaults(doc)
