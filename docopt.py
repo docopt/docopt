@@ -286,7 +286,7 @@ class Either(ParentPattern):
         return False, left, collected
 
 
-class TokenStream(list):
+class Tokens(list):
 
     def __init__(self, source, error):
         self += source.split() if hasattr(source, 'split') else source
@@ -368,8 +368,8 @@ def parse_shorts(tokens, options):
 
 
 def parse_pattern(source, options):
-    tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
-                         DocoptLanguageError)
+    tokens = Tokens(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
+                    DocoptLanguageError)
     result = parse_expr(tokens, options)
     if tokens.current() is not None:
         raise tokens.error('unexpected ending: %r' % ' '.join(tokens))
@@ -563,8 +563,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #    same_name = [d for d in arguments if d.name == a.name]
     #    if same_name:
     #        a.value = same_name[0].value
-    argv = parse_argv(TokenStream(argv, DocoptExit), list(options),
-                      options_first)
+    argv = parse_argv(Tokens(argv, DocoptExit), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
         doc_options = parse_defaults(doc)

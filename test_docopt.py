@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, #parse_defaults,
-                    printable_usage, formal_usage, TokenStream
+                    printable_usage, formal_usage, Tokens
                    )
 from pytest import raises
 
@@ -77,7 +77,7 @@ def test_printable_and_formal_usage():
 
 def test_parse_argv():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
-    TS = lambda s: TokenStream(s, error=DocoptExit)
+    TS = lambda s: Tokens(s, error=DocoptExit)
     assert parse_argv(TS(''), options=o) == []
     assert parse_argv(TS('-h'), options=o) == [Option('-h', None, 0, True)]
     assert parse_argv(TS('-h --verbose'), options=o) == \
