@@ -919,3 +919,16 @@ $ prog f.txt
 r"""usage: prog [--input=<file name>]..."""
 $ prog --input a.txt --input=b.txt
 {"--input": ["a.txt", "b.txt"]}
+
+#
+# Issue 85: `[options]` shourtcut with multipel subcommands
+#
+
+r"""usage: prog good [options]
+           prog fail [options]
+
+--loglevel=N
+
+"""
+$ prog fail --loglevel 5
+{"--loglevel": "5", "fail": true, "good": false}

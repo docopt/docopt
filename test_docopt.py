@@ -577,23 +577,6 @@ def test_issue_65_evaluate_argv_when_called_not_when_imported():
     assert docopt('usage: prog [-ab]') == {'-a': False, '-b': True}
 
 
-def test_issue_85_any_option_multiple_subcommands():
-    doc = '''usage: prog good [options]
-                    prog fail [options]
-
-             --loglevel=N'''
-    assert docopt(doc, 'fail --loglevel 5') == {'--loglevel': '5',
-                                                'fail': True,
-                                                'good': False}
-    assert docopt('''usage: prog good [options]
-                            prog fail [options]
-
-                     --loglevel=<loglevel>''',
-                  'fail --loglevel 5') ==  {'--loglevel': '5',
-                                            'fail': True,
-                                            'good': False}
-
-
 def test_issue_71_double_dash_is_not_a_valid_option_argument():
     with raises(DocoptExit):
         docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
