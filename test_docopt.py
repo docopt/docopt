@@ -578,7 +578,17 @@ def test_issue_65_evaluate_argv_when_called_not_when_imported():
 
 
 def test_issue_85_any_option_multiple_subcommands():
-    docopt('usage:\n  fs good [options]\n  fs fail [options]\n\nOptions:\n  --loglevel=<loglevel>\n',
+    doc = '''usage: prog good [options]
+                    prog fail [options]
+
+             --loglevel=N'''
+    assert docopt(doc, 'fail --loglevel 5') == {'--loglevel': '5',
+                                                'fail': True,
+                                                'good': False}
+    assert docopt('''usage: prog good [options]
+                            prog fail [options]
+
+                     --loglevel=<loglevel>''',
                   'fail --loglevel 5') ==  {'--loglevel': '5',
                                             'fail': True,
                                             'good': False}
