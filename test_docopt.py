@@ -582,3 +582,10 @@ def test_issue_85_any_option_multiple_subcommands():
                   'fail --loglevel 5') ==  {'--loglevel': '5',
                                             'fail': True,
                                             'good': False}
+
+
+def test_issue_71_double_dash_is_not_a_valid_option_argument():
+    with raises(DocoptExit):
+        docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
+    with raises(DocoptExit):
+        docopt('usage: prog [-l LEVEL] [--] <args>...\n\n-l LEVEL', '-l -- 1 2')

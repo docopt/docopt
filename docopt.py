@@ -330,7 +330,7 @@ def parse_long(tokens, options):
                 raise tokens.error('%s must not have an argument' % o.long)
         else:
             if value is None:
-                if tokens.current() is None:
+                if tokens.current() in [None, '--']:
                     raise tokens.error('%s requires argument' % o.long)
                 value = tokens.move()
         if tokens.error is DocoptExit:
@@ -361,7 +361,7 @@ def parse_shorts(tokens, options):
             value = None
             if o.argcount != 0:
                 if left == '':
-                    if tokens.current() is None:
+                    if tokens.current() in [None, '--']:
                         raise tokens.error('%s requires argument' % short)
                     value = tokens.move()
                 else:
