@@ -559,7 +559,7 @@ def test_options_first():
                                           '<args>': ['this', 'that', '--opt']}
 
 
-def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
+def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():
     args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
     # Need to use `is` (not `==`) since we want to make sure
     # that they are not 1/0, but strictly True/False:

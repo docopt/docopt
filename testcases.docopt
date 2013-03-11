@@ -921,7 +921,7 @@ $ prog --input a.txt --input=b.txt
 {"--input": ["a.txt", "b.txt"]}
 
 #
-# Issue 85: `[options]` shourtcut with multipel subcommands
+# Issue 85: `[options]` shourtcut with multiple subcommands
 #
 
 r"""usage: prog good [options]
