@@ -2,8 +2,8 @@ from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
-                    parse_argv, parse_pattern, #parse_defaults,
-                    printable_usage, formal_usage, Tokens
+                    parse_argv, parse_pattern, parse_section,
+                    formal_usage, Tokens
                    )
 from pytest import raises
 
@@ -64,15 +64,15 @@ def test_commands():
         docopt('Usage: prog a b', 'b a')
 
 
-def test_printable_and_formal_usage():
+def test_formal_usage():
     doc = """
     Usage: prog [-hv] ARG
            prog N M
 
     prog is a program."""
-    assert printable_usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
-    assert formal_usage(printable_usage(doc)) == "( [-hv] ARG ) | ( N M )"
-    assert printable_usage('uSaGe: prog ARG\n\t \t\n bla') == "uSaGe: prog ARG"
+    usage, = parse_section('usage:', doc)
+    assert usage == "Usage: prog [-hv] ARG\n           prog N M"
+    assert formal_usage(usage) == "( [-hv] ARG ) | ( N M )"
 
 
 def test_parse_argv():
@@ -582,3 +582,38 @@ def test_issue_71_double_dash_is_not_a_valid_option_argument():
         docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
     with raises(DocoptExit):
         docopt('usage: prog [-l LEVEL] [--] <args>...\n\n-l LEVEL', '-l -- 1 2')
+
+
+usage = '''usage: this
+
+usage:hai
+usage: this that
+
+usage: foo
+       bar
+
+PROGRAM USAGE:
+ foo
+ bar
+usage:
+\ttoo
+\ttar
+Usage: eggs spam
+BAZZ
+usage: pit stop'''
+
+
+def test_parse_section():
+    assert parse_section('usage:', 'foo bar fizz buzz') == []
+    assert parse_section('usage:', 'usage: prog') == ['usage: prog']
+    print parse_section('usage:', usage)
+    assert parse_section('usage:', usage) == [
+            'usage: this',
+            'usage:hai',
+            'usage: this that',
+            'usage: foo\n       bar',
+            'PROGRAM USAGE:\n foo\n bar',
+            'usage:\n\ttoo\n\ttar',
+            'Usage: eggs spam',
+            'usage: pit stop',
+    ]

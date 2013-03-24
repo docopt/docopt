@@ -932,3 +932,36 @@ r"""usage: prog good [options]
 """
 $ prog fail --loglevel 5
 {"--loglevel": "5", "fail": true, "good": false}
+
+#
+# Usage-section syntax
+#
+
+r"""usage:prog --foo"""
+$ prog --foo
+{"--foo": true}
+
+r"""PROGRAM USAGE: prog --foo"""
+$ prog --foo
+{"--foo": true}
+
+r"""Usage: prog --foo
+           prog --bar
+NOT PART OF SECTION"""
+$ prog --foo
+{"--foo": true, "--bar": false}
+
+r"""Usage:
+ prog --foo
+ prog --bar
+
+NOT PART OF SECTION"""
+$ prog --foo
+{"--foo": true, "--bar": false}
+
+r"""Usage:
+ prog --foo
+ prog --bar
+NOT PART OF SECTION"""
+$ prog --foo
+{"--foo": true, "--bar": false}

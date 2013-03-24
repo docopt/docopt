@@ -466,18 +466,15 @@ def parse_defaults(doc):
     return options
 
 
-def printable_usage(doc):
-    usage_pattern = re.compile(r'(usage:)', re.IGNORECASE)
-    usage_split = re.split(usage_pattern, doc)
-    if len(usage_split) < 3:
-        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
-    if len(usage_split) > 3:
-        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
-    return re.split(r'\n\s*\n', ''.join(usage_split[1:]))[0].strip()
+def parse_section(name, source):
+    pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?\n)*)',
+                         re.IGNORECASE | re.MULTILINE)
+    return [s.strip() for s in pattern.findall(source)]
 
 
-def formal_usage(printable_usage):
-    pu = printable_usage.split()[1:]  # split and drop "usage:"
+def formal_usage(section):
+    _, _, section = section.partition(':')  # drop "usage:"
+    pu = section.split()
     return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
 
@@ -560,9 +557,16 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     """
     if argv is None:
         argv = sys.argv[1:]
-    DocoptExit.usage = printable_usage(doc)
+
+    usage_sections = parse_section('usage:', doc)
+    if len(usage_sections) == 0:
+        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
+    if len(usage_sections) > 1:
+        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
+    usage = usage_sections[0]
+
     options = parse_defaults(doc)
-    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    pattern = parse_pattern(formal_usage(usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
     #    same_name = [d for d in arguments if d.name == a.name]
