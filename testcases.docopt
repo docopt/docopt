@@ -10,7 +10,7 @@ $ prog --xxx
 
 r"""Usage: prog [options]
 
--a  All.
+Options: -a  All.
 
 """
 $ prog
@@ -25,7 +25,7 @@ $ prog -x
 
 r"""Usage: prog [options]
 
---all  All.
+Options: --all  All.
 
 """
 $ prog
@@ -40,7 +40,7 @@ $ prog --xxx
 
 r"""Usage: prog [options]
 
--v, --verbose  Verbose.
+Options: -v, --verbose  Verbose.
 
 """
 $ prog --verbose
@@ -55,7 +55,7 @@ $ prog -v
 
 r"""Usage: prog [options]
 
--p PATH
+Options: -p PATH
 
 """
 $ prog -p home/
@@ -70,7 +70,7 @@ $ prog -p
 
 r"""Usage: prog [options]
 
---path <path>
+Options: --path <path>
 
 """
 $ prog --path home/
@@ -91,7 +91,7 @@ $ prog --path
 
 r"""Usage: prog [options]
 
--p PATH, --path=<path>  Path to files.
+Options: -p PATH, --path=<path>  Path to files.
 
 """
 $ prog -proot
@@ -100,7 +100,7 @@ $ prog -proot
 
 r"""Usage: prog [options]
 
-   -p --path PATH  Path to files.
+Options:    -p --path PATH  Path to files.
 
 """
 $ prog -p root
@@ -112,7 +112,8 @@ $ prog --path root
 
 r"""Usage: prog [options]
 
--p PATH  Path to files [default: ./]
+Options:
+ -p PATH  Path to files [default: ./]
 
 """
 $ prog
@@ -124,7 +125,7 @@ $ prog -phome
 
 r"""UsAgE: prog [options]
 
---path=<files>  Path to files
+OpTiOnS: --path=<files>  Path to files
                 [dEfAuLt: /root]
 
 """
@@ -137,9 +138,10 @@ $ prog --path=home
 
 r"""usage: prog [options]
 
--a        Add
--r        Remote
--m <msg>  Message
+options:
+    -a        Add
+    -r        Remote
+    -m <msg>  Message
 
 """
 $ prog -a -r -m Hello
@@ -160,8 +162,8 @@ $ prog -a -r
 
 r"""Usage: prog [options]
 
---version
---verbose
+Options: --version
+         --verbose
 
 """
 $ prog --version
@@ -182,9 +184,10 @@ $ prog --verb
 
 r"""usage: prog [-a -r -m <msg>]
 
--a        Add
--r        Remote
--m <msg>  Message
+options:
+ -a        Add
+ -r        Remote
+ -m <msg>  Message
 
 """
 $ prog -armyourass
@@ -195,9 +198,9 @@ $ prog -armyourass
 
 r"""usage: prog [-armmsg]
 
--a        Add
--r        Remote
--m <msg>  Message
+options: -a        Add
+         -r        Remote
+         -m <msg>  Message
 
 """
 $ prog -a -r -m Hello
@@ -208,8 +211,9 @@ $ prog -a -r -m Hello
 
 r"""usage: prog -a -b
 
--a
--b
+options:
+ -a
+ -b
 
 """
 $ prog -a -b
@@ -227,8 +231,8 @@ $ prog
 
 r"""usage: prog (-a -b)
 
--a
--b
+options: -a
+         -b
 
 """
 $ prog -a -b
@@ -246,8 +250,8 @@ $ prog
 
 r"""usage: prog [-a] -b
 
--a
--b
+options: -a
+ -b
 
 """
 $ prog -a -b
@@ -268,8 +272,8 @@ $ prog
 
 r"""usage: prog [(-a -b)]
 
--a
--b
+options: -a
+         -b
 
 """
 $ prog -a -b
@@ -290,8 +294,8 @@ $ prog
 
 r"""usage: prog (-a|-b)
 
--a
--b
+options: -a
+         -b
 
 """
 $ prog -a -b
@@ -309,8 +313,8 @@ $ prog -b
 
 r"""usage: prog [ -a | -b ]
 
--a
--b
+options: -a
+         -b
 
 """
 $ prog -a -b
@@ -326,9 +330,7 @@ $ prog -b
 {"-a": false, "-b": true}
 
 
-r"""usage: prog <arg>
-
-"""
+r"""usage: prog <arg>"""
 $ prog 10
 {"<arg>": "10"}
 
@@ -339,9 +341,7 @@ $ prog
 "user-error"
 
 
-r"""usage: prog [<arg>]
-
-"""
+r"""usage: prog [<arg>]"""
 $ prog 10
 {"<arg>": "10"}
 
@@ -352,9 +352,7 @@ $ prog
 {"<arg>": null}
 
 
-r"""usage: prog <kind> <name> <type>
-
-"""
+r"""usage: prog <kind> <name> <type>"""
 $ prog 10 20 40
 {"<kind>": "10", "<name>": "20", "<type>": "40"}
 
@@ -365,9 +363,7 @@ $ prog
 "user-error"
 
 
-r"""usage: prog <kind> [<name> <type>]
-
-"""
+r"""usage: prog <kind> [<name> <type>]"""
 $ prog 10 20 40
 {"<kind>": "10", "<name>": "20", "<type>": "40"}
 
@@ -378,9 +374,7 @@ $ prog
 "user-error"
 
 
-r"""usage: prog [<kind> | <name> <type>]
-
-"""
+r"""usage: prog [<kind> | <name> <type>]"""
 $ prog 10 20 40
 "user-error"
 
@@ -393,7 +387,8 @@ $ prog
 
 r"""usage: prog (<kind> --all | <name>)
 
---all
+options:
+ --all
 
 """
 $ prog 10 --all
@@ -406,9 +401,7 @@ $ prog
 "user-error"
 
 
-r"""usage: prog [<name> <name>]
-
-"""
+r"""usage: prog [<name> <name>]"""
 $ prog 10 20
 {"<name>": ["10", "20"]}
 
@@ -419,9 +412,7 @@ $ prog
 {"<name>": []}
 
 
-r"""usage: prog [(<name> <name>)]
-
-"""
+r"""usage: prog [(<name> <name>)]"""
 $ prog 10 20
 {"<name>": ["10", "20"]}
 
@@ -432,9 +423,7 @@ $ prog
 {"<name>": []}
 
 
-r"""usage: prog NAME...
-
-"""
+r"""usage: prog NAME..."""
 $ prog 10 20
 {"NAME": ["10", "20"]}
 
@@ -445,9 +434,7 @@ $ prog
 "user-error"
 
 
-r"""usage: prog [NAME]...
-
-"""
+r"""usage: prog [NAME]..."""
 $ prog 10 20
 {"NAME": ["10", "20"]}
 
@@ -458,9 +445,7 @@ $ prog
 {"NAME": []}
 
 
-r"""usage: prog [NAME...]
-
-"""
+r"""usage: prog [NAME...]"""
 $ prog 10 20
 {"NAME": ["10", "20"]}
 
@@ -471,9 +456,7 @@ $ prog
 {"NAME": []}
 
 
-r"""usage: prog [NAME [NAME ...]]
-
-"""
+r"""usage: prog [NAME [NAME ...]]"""
 $ prog 10 20
 {"NAME": ["10", "20"]}
 
@@ -486,7 +469,7 @@ $ prog
 
 r"""usage: prog (NAME | --foo NAME)
 
---foo
+options: --foo
 
 """
 $ prog 10
@@ -501,8 +484,8 @@ $ prog --foo=10
 
 r"""usage: prog (NAME | --foo) [--bar | NAME]
 
---foo
---bar
+options: --foo
+options: --bar
 
 """
 $ prog 10
@@ -551,16 +534,12 @@ $ prog ship Guardian move 150 300 --speed=20
  "shoot": false}
 
 
-r"""usage: prog --hello
-
-"""
+r"""usage: prog --hello"""
 $ prog --hello
 {"--hello": true}
 
 
-r"""usage: prog [--hello=<world>]
-
-"""
+r"""usage: prog [--hello=<world>]"""
 $ prog
 {"--hello": null}
 
@@ -568,9 +547,7 @@ $ prog --hello wrld
 {"--hello": "wrld"}
 
 
-r"""usage: prog [-o]
-
-"""
+r"""usage: prog [-o]"""
 $ prog
 {"-o": false}
 
@@ -578,16 +555,12 @@ $ prog -o
 {"-o": true}
 
 
-r"""usage: prog [-opr]
-
-"""
+r"""usage: prog [-opr]"""
 $ prog -op
 {"-o": true, "-p": true, "-r": false}
 
 
-r"""usage: prog --aabb | --aa
-
-"""
+r"""usage: prog --aabb | --aa"""
 $ prog --aa
 {"--aabb": false, "--aa": true}
 
@@ -598,16 +571,12 @@ $ prog --a
 # Counting number of flags
 #
 
-r"""Usage: prog -v
-
-"""
+r"""Usage: prog -v"""
 $ prog -v
 {"-v": true}
 
 
-r"""Usage: prog [-v -v]
-
-"""
+r"""Usage: prog [-v -v]"""
 $ prog
 {"-v": 0}
 
@@ -618,9 +587,7 @@ $ prog -vv
 {"-v": 2}
 
 
-r"""Usage: prog -v ...
-
-"""
+r"""Usage: prog -v ..."""
 $ prog
 "user-error"
 
@@ -652,9 +619,7 @@ $ prog -vvvv
 "user-error"
 
 
-r"""usage: prog [--ver --ver]
-
-"""
+r"""usage: prog [--ver --ver]"""
 $ prog --ver --ver
 {"--ver": 2}
 
@@ -663,16 +628,12 @@ $ prog --ver --ver
 # Counting commands
 #
 
-r"""usage: prog [go]
-
-"""
+r"""usage: prog [go]"""
 $ prog go
 {"go": true}
 
 
-r"""usage: prog [go go]
-
-"""
+r"""usage: prog [go go]"""
 $ prog
 {"go": 0}
 
@@ -685,9 +646,7 @@ $ prog go go
 $ prog go go go
 "user-error"
 
-r"""usage: prog go...
-
-"""
+r"""usage: prog go..."""
 $ prog go go go go go
 {"go": 5}
 
@@ -696,7 +655,7 @@ $ prog go go go go go
 #
 
 r"""Usage: prog [options] A
-
+Options:
     -q  Be quiet
     -v  Be verbose.
 
@@ -739,9 +698,9 @@ $ prog
 #
 
 r"""usage: prog [options]
-
--a        Add
--m <msg>  Message
+options:
+ -a        Add
+ -m <msg>  Message
 
 """
 $ prog -a
@@ -809,13 +768,12 @@ $ prog
 #
 
 r"""usage: prog [--file=<f>]"""
-
 $ prog
 {"--file": null}
 
 r"""usage: prog [--file=<f>]
 
---file <a>
+options: --file <a>
 
 """
 $ prog
@@ -823,7 +781,7 @@ $ prog
 
 r"""Usage: prog [-a <host:port>]
 
--a, --address <host:port>  TCP address [default: localhost:6283].
+Options: -a, --address <host:port>  TCP address [default: localhost:6283].
 
 """
 $ prog
@@ -856,7 +814,7 @@ $ prog  go left --speed=5  go right --speed=9
 
 r"""usage: prog [options] -a
 
--a
+options: -a
 
 """
 $ prog -a
@@ -868,7 +826,7 @@ $ prog -a
 
 r"""usage: prog [-o <o>]...
 
--o <o>  [default: x]
+options: -o <o>  [default: x]
 
 """
 $ prog -o this -o that
@@ -879,7 +837,7 @@ $ prog
 
 r"""usage: prog [-o <o>]...
 
--o <o>  [default: x y]
+options: -o <o>  [default: x y]
 
 """
 $ prog -o this
@@ -894,7 +852,7 @@ $ prog
 
 r"""usage: prog -pPATH
 
--p PATH
+options: -p PATH
 
 """
 $ prog -pHOME
@@ -927,7 +885,7 @@ $ prog --input a.txt --input=b.txt
 r"""usage: prog good [options]
            prog fail [options]
 
---loglevel=N
+options: --loglevel=N
 
 """
 $ prog fail --loglevel 5
@@ -965,3 +923,21 @@ r"""Usage:
 NOT PART OF SECTION"""
 $ prog --foo
 {"--foo": true, "--bar": false}
+
+#
+# Options-section syntax
+#
+
+r"""Usage: prog [options]
+
+global options: --foo
+local options: --baz
+               --bar
+other options:
+ --egg
+ --spam
+-not-an-option-
+
+"""
+$ prog --baz --egg
+{"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}

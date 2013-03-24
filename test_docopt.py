@@ -345,21 +345,21 @@ def test_long_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(DocoptExit):
-        docopt('''Usage: prog [--version --verbose]\n\n
-                  --version\n--verbose''', '--ver')
+        docopt('Usage: prog [--version --verbose]\n',
+               'Options: --version\n --verbose', '--ver')
     with raises(DocoptLanguageError):
-        docopt('Usage: prog --long\n\n--long ARG')
+        docopt('Usage: prog --long\nOptions: --long ARG')
     with raises(DocoptExit):
-        docopt('Usage: prog --long ARG\n\n--long ARG', '--long')
+        docopt('Usage: prog --long ARG\nOptions: --long ARG', '--long')
     with raises(DocoptLanguageError):
-        docopt('Usage: prog --long=ARG\n\n--long')
+        docopt('Usage: prog --long=ARG\nOptions: --long')
     with raises(DocoptExit):
-        docopt('Usage: prog --long\n\n--long', '--long=ARG')
+        docopt('Usage: prog --long\nOptions: --long', '--long=ARG')
 
 
 def test_short_options_error_handling():
     with raises(DocoptLanguageError):
-        docopt('Usage: prog -x\n\n-x  this\n-x  that')
+        docopt('Usage: prog -x\nOptions: -x  this\n -x  that')
 
 #    with raises(DocoptLanguageError):
 #        docopt('Usage: prog -x')
@@ -367,9 +367,9 @@ def test_short_options_error_handling():
         docopt('Usage: prog', '-x')
 
     with raises(DocoptLanguageError):
-        docopt('Usage: prog -o\n\n-o ARG')
+        docopt('Usage: prog -o\nOptions: -o ARG')
     with raises(DocoptExit):
-        docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
+        docopt('Usage: prog -o ARG\nOptions: -o ARG', '-o')
 
 
 def test_matching_paren():
@@ -380,18 +380,18 @@ def test_matching_paren():
 
 
 def test_allow_double_dash():
-    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
+    assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
                   '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
-    assert docopt('usage: prog [-o] [--] <arg>\n\n-o',
+    assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
                   '-o 1') == {'-o': True, '<arg>': '1', '--': False}
-    with raises(DocoptExit):
-        docopt('usage: prog [-o] <arg>\n\n-o', '-- -o')  # '--' not allowed
+    with raises(DocoptExit):  # "--" is not allowed; FIXME?
+        docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
 
 
 def test_docopt():
     doc = '''Usage: prog [-v] A
 
-    -v  Be verbose.'''
+             Options: -v  Be verbose.'''
     assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
     assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
 
@@ -500,10 +500,10 @@ def test_any_options_parameter():
 
 
 def test_options_shortcut_does_not_add_options_to_patter_second_time():
-    assert docopt('usage: prog [options] [-a]\n\n-a -b', '-a') == \
+    assert docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-a') == \
             {'-a': True, '-b': False}
     with raises(DocoptExit):
-        docopt('usage: prog [options] [-a]\n\n-a -b', '-aa')
+        docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-aa')
 
 
 def test_default_value_for_positional_arguments():
@@ -521,7 +521,7 @@ def test_default_value_for_positional_arguments():
 
 #def test_parse_defaults():
 #    assert parse_defaults("""usage: prog
-#
+#                          options:
 #                          -o, --option <o>
 #                          --another <a>  description
 #                                         [default: x]
@@ -543,7 +543,8 @@ def test_default_value_for_positional_arguments():
 
 def test_issue_59():
     assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
-    assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
+    assert docopt('usage: prog -l <a>\n'
+                  'options: -l <a>', ['-l', '']) == {'-l': ''}
 
 
 def test_options_first():
@@ -560,7 +561,8 @@ def test_options_first():
 
 
 def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():
-    args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
+    args = docopt('usage: prog [-ab] [options]\n'
+                  'options: -x\n -y', '-ax')
     # Need to use `is` (not `==`) since we want to make sure
     # that they are not 1/0, but strictly True/False:
     assert args['-a'] is True
@@ -581,7 +583,8 @@ def test_issue_71_double_dash_is_not_a_valid_option_argument():
     with raises(DocoptExit):
         docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
     with raises(DocoptExit):
-        docopt('usage: prog [-l LEVEL] [--] <args>...\n\n-l LEVEL', '-l -- 1 2')
+        docopt('''usage: prog [-l LEVEL] [--] <args>...
+                  options: -l LEVEL', '-l -- 1 2''')
 
 
 usage = '''usage: this
@@ -606,7 +609,8 @@ usage: pit stop'''
 def test_parse_section():
     assert parse_section('usage:', 'foo bar fizz buzz') == []
     assert parse_section('usage:', 'usage: prog') == ['usage: prog']
-    print parse_section('usage:', usage)
+    assert parse_section('usage:',
+                         'usage: -x\n -y') == ['usage: -x\n -y']
     assert parse_section('usage:', usage) == [
             'usage: this',
             'usage:hai',

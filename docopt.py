@@ -187,8 +187,7 @@ class Option(ChildPattern):
 
     def __init__(self, short=None, long=None, argcount=0, value=False):
         assert argcount in (0, 1)
-        self.short, self.long = short, long
-        self.argcount, self.value = argcount, value
+        self.short, self.long, self.argcount = short, long, argcount
         self.value = None if value is False and argcount else value
 
     @classmethod
@@ -457,17 +456,19 @@ def parse_argv(tokens, options, options_first=False):
 
 
 def parse_defaults(doc):
-    # in python < 2.7 you can't pass flags=re.MULTILINE
-    split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
-    split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
-    options = [Option.parse(s) for s in split if s.startswith('-')]
-    #arguments = [Argument.parse(s) for s in split if s.startswith('<')]
-    #return options, arguments
-    return options
+    defaults = []
+    for s in parse_section('options:', doc):
+        # FIXME corner case "bla: options: --foo"
+        _, _, s = s.partition(':')  # get rid of "options:"
+        split = re.split('\n *(-\S+?)', '\n' + s)[1:]
+        split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
+        options = [Option.parse(s) for s in split if s.startswith('-')]
+        defaults += options
+    return defaults
 
 
 def parse_section(name, source):
-    pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?\n)*)',
+    pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?(?:\n|$))*)',
                          re.IGNORECASE | re.MULTILINE)
     return [s.strip() for s in pattern.findall(source)]
 
@@ -555,8 +556,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
       at https://github.com/docopt/docopt#readme
 
     """
-    if argv is None:
-        argv = sys.argv[1:]
+    argv = sys.argv[1:] if argv is None else argv
 
     usage_sections = parse_section('usage:', doc)
     if len(usage_sections) == 0:
