@@ -91,8 +91,8 @@ class Pattern(object):
                 optional = [c for c in children if type(c) is Optional][0]
                 children.pop(children.index(optional))
                 groups.append(list(optional.children) + children)
-            elif AnyOptions in types:
-                optional = [c for c in children if type(c) is AnyOptions][0]
+            elif OptionsShortcut in types:
+                optional = [c for c in children if type(c) is OptionsShortcut][0]
                 children.pop(children.index(optional))
                 groups.append(list(optional.children) + children)
             elif OneOrMore in types:
@@ -244,7 +244,7 @@ class Optional(ParentPattern):
         return True, left, collected
 
 
-class AnyOptions(Optional):
+class OptionsShortcut(Optional):
 
     """Marker/placeholder for [options] shortcut."""
 
@@ -420,7 +420,7 @@ def parse_atom(tokens, options):
         return [result]
     elif token == 'options':
         tokens.move()
-        return [AnyOptions()]
+        return [OptionsShortcut()]
     elif token.startswith('--') and token != '--':
         return parse_long(tokens, options)
     elif token.startswith('-') and token not in ('-', '--'):
@@ -574,11 +574,11 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #        a.value = same_name[0].value
     argv = parse_argv(Tokens(argv), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
-    for ao in pattern.flat(AnyOptions):
+    for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(doc)
-        ao.children = list(set(doc_options) - pattern_options)
+        options_shortcut.children = list(set(doc_options) - pattern_options)
         #if any_options:
-        #    ao.children += [Option(o.short, o.long, o.argcount)
+        #    options_shortcut.children += [Option(o.short, o.long, o.argcount)
         #                    for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)

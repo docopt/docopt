@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
-                    Option, Argument, Command, AnyOptions,
+                    Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_section,
                     formal_usage, Tokens
@@ -12,9 +12,9 @@ def test_pattern_flat():
     assert Required(OneOrMore(Argument('N')),
                     Option('-a'), Argument('M')).flat() == \
                             [Argument('N'), Option('-a'), Argument('M')]
-    assert Required(Optional(AnyOptions()),
-                    Optional(Option('-a', None))).flat(AnyOptions) == \
-                            [AnyOptions()]
+    assert Required(Optional(OptionsShortcut()),
+                    Optional(Option('-a', None))).flat(OptionsShortcut) == \
+                            [OptionsShortcut()]
 
 
 def test_option():
@@ -130,13 +130,13 @@ def test_parse_pattern():
                Required(Optional(Option('-h')),
                         Optional(Argument('N')))
     assert parse_pattern('[options]', options=o) == \
-            Required(Optional(AnyOptions()))
+            Required(Optional(OptionsShortcut()))
     assert parse_pattern('[options] A', options=o) == \
-            Required(Optional(AnyOptions()),
+            Required(Optional(OptionsShortcut()),
                      Argument('A'))
     assert parse_pattern('-v [options]', options=o) == \
             Required(Option('-v', '--verbose'),
-                     Optional(AnyOptions()))
+                     Optional(OptionsShortcut()))
     assert parse_pattern('ADD', options=o) == Required(Argument('ADD'))
     assert parse_pattern('<add>', options=o) == Required(Argument('<add>'))
     assert parse_pattern('add', options=o) == Required(Command('add'))
