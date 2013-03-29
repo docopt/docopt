@@ -461,16 +461,6 @@ def test_count_multiple_flags():
     assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
 
 
-def test_count_multiple_commands():
-    assert docopt('usage: prog [go]', 'go') == {'go': True}
-    assert docopt('usage: prog [go go]', '') == {'go': 0}
-    assert docopt('usage: prog [go go]', 'go') == {'go': 1}
-    assert docopt('usage: prog [go go]', 'go go') == {'go': 2}
-    with raises(DocoptExit):
-        docopt('usage: prog [go go]', 'go go go')
-    assert docopt('usage: prog go...', 'go go go go go') == {'go': 5}
-
-
 def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
@@ -497,13 +487,6 @@ def test_any_options_parameter():
 #        'c2 -o', any_options=True) == {'-o': True, 'c1': False, 'c2': True}
 #    assert docopt('usage: prog c1 [options] prog c2 [options]',
 #        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
-
-
-def test_options_shortcut_does_not_add_options_to_patter_second_time():
-    assert docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-a') == \
-            {'-a': True, '-b': False}
-    with raises(DocoptExit):
-        docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-aa')
 
 
 def test_default_value_for_positional_arguments():

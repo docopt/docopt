@@ -651,6 +651,20 @@ $ prog go go go go go
 {"go": 5}
 
 #
+# [options] does not include options from usage-pattern
+#
+r"""usage: prog [options] [-a]
+
+options: -a
+         -b
+"""
+$ prog -a
+{"-a": true, "-b": false}
+
+$ prog -aa
+"user-error"
+
+#
 # Test [options] shourtcut
 #
 
