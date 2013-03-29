@@ -56,7 +56,7 @@ class Pattern(object):
 
     def fix_repeating_arguments(self):
         """Fix elements that should accumulate/increment values."""
-        either = [list(c.children) for c in self.either.children]
+        either = [list(c.children) for c in transform(self).children]
         for case in either:
             for e in [c for c in case if case.count(c) > 1]:
                 if type(e) is Argument or type(e) is Option and e.argcount:
@@ -68,40 +68,32 @@ class Pattern(object):
                     e.value = 0
         return self
 
-    @property
-    def either(self):
-        """Transform pattern into an equivalent, with only top-level Either."""
-        # Currently the pattern will not be equivalent, but more "narrow",
-        # although good enough to reason about list arguments.
-        ret = []
-        groups = [[self]]
-        while groups:
-            children = groups.pop(0)
-            types = [type(c) for c in children]
-            if Either in types:
-                either = [c for c in children if type(c) is Either][0]
-                children.pop(children.index(either))
-                for c in either.children:
+
+def transform(pattern):
+    """Expand pattern into an (almost) equivalent one, but with single Either.
+
+    Example: ((-a | -b) (-c | -d)) => (-a -c | -a -d | -b -c | -b -d)
+    Quirks: [-a] => (-a), (-a...) => (-a -a)
+
+    """
+    result = []
+    groups = [[pattern]]
+    while groups:
+        children = groups.pop(0)
+        parents = [Required, Optional, OptionsShortcut, Either, OneOrMore]
+        if any(t in map(type, children) for t in parents):
+            child = [c for c in children if type(c) in parents][0]
+            children.remove(child)
+            if type(child) is Either:
+                for c in child.children:
                     groups.append([c] + children)
-            elif Required in types:
-                required = [c for c in children if type(c) is Required][0]
-                children.pop(children.index(required))
-                groups.append(list(required.children) + children)
-            elif Optional in types:
-                optional = [c for c in children if type(c) is Optional][0]
-                children.pop(children.index(optional))
-                groups.append(list(optional.children) + children)
-            elif OptionsShortcut in types:
-                optional = [c for c in children if type(c) is OptionsShortcut][0]
-                children.pop(children.index(optional))
-                groups.append(list(optional.children) + children)
-            elif OneOrMore in types:
-                oneormore = [c for c in children if type(c) is OneOrMore][0]
-                children.pop(children.index(oneormore))
-                groups.append(list(oneormore.children) * 2 + children)
+            elif type(child) is OneOrMore:
+                groups.append(list(child.children) * 2 + children)
             else:
-                ret.append(children)
-        return Either(*[Required(*e) for e in ret])
+                groups.append(list(child.children) + children)
+        else:
+            result.append(children)
+    return Either(*[Required(*e) for e in result])
 
 
 class ChildPattern(Pattern):

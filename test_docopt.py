@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_section,
-                    formal_usage, Tokens
+                    formal_usage, Tokens, transform
                    )
 from pytest import raises
 
@@ -285,22 +285,22 @@ def test_basic_pattern_matching():
 
 
 def test_pattern_either():
-    assert Option('-a').either == Either(Required(Option('-a')))
-    assert Argument('A').either == Either(Required(Argument('A')))
-    assert Required(Either(Option('-a'), Option('-b')),
-                    Option('-c')).either == \
+    assert transform(Option('-a')) == Either(Required(Option('-a')))
+    assert transform(Argument('A')) == Either(Required(Argument('A')))
+    assert transform(Required(Either(Option('-a'), Option('-b')),
+                    Option('-c'))) == \
             Either(Required(Option('-a'), Option('-c')),
                    Required(Option('-b'), Option('-c')))
-    assert Optional(Option('-a'),
-                    Either(Option('-b'),
-                    Option('-c'))).either == \
+    assert transform(Optional(Option('-a'), Either(Option('-b'),
+                                                   Option('-c')))) == \
             Either(Required(Option('-b'), Option('-a')),
                    Required(Option('-c'), Option('-a')))
-    assert Either(Option('-x'), Either(Option('-y'), Option('-z'))).either == \
+    assert transform(Either(Option('-x'),
+                            Either(Option('-y'), Option('-z')))) == \
             Either(Required(Option('-x')),
                    Required(Option('-y')),
                    Required(Option('-z')))
-    assert OneOrMore(Argument('N'), Argument('M')).either == \
+    assert transform(OneOrMore(Argument('N'), Argument('M'))) == \
             Either(Required(Argument('N'), Argument('M'),
                             Argument('N'), Argument('M')))
 
