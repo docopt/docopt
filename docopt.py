@@ -96,7 +96,9 @@ def transform(pattern):
     return Either(*[Required(*e) for e in result])
 
 
-class ChildPattern(Pattern):
+class LeafPattern(Pattern):
+
+    """Leaf/terminal node of a pattern tree."""
 
     def __init__(self, name, value=None):
         self.name = name
@@ -129,7 +131,9 @@ class ChildPattern(Pattern):
         return True, left_, collected + [match]
 
 
-class ParentPattern(Pattern):
+class BranchPattern(Pattern):
+
+    """Branch/inner node of a pattern tree."""
 
     def __init__(self, *children):
         self.children = list(children)
@@ -144,7 +148,7 @@ class ParentPattern(Pattern):
         return sum([c.flat(*types) for c in self.children], [])
 
 
-class Argument(ChildPattern):
+class Argument(LeafPattern):
 
     def single_match(self, left):
         for n, p in enumerate(left):
@@ -175,7 +179,7 @@ class Command(Argument):
         return None, None
 
 
-class Option(ChildPattern):
+class Option(LeafPattern):
 
     def __init__(self, short=None, long=None, argcount=0, value=False):
         assert argcount in (0, 1)
@@ -214,7 +218,7 @@ class Option(ChildPattern):
                                            self.argcount, self.value)
 
 
-class Required(ParentPattern):
+class Required(BranchPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -227,7 +231,7 @@ class Required(ParentPattern):
         return True, l, c
 
 
-class Optional(ParentPattern):
+class Optional(BranchPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -241,7 +245,7 @@ class OptionsShortcut(Optional):
     """Marker/placeholder for [options] shortcut."""
 
 
-class OneOrMore(ParentPattern):
+class OneOrMore(BranchPattern):
 
     def match(self, left, collected=None):
         assert len(self.children) == 1
@@ -263,7 +267,7 @@ class OneOrMore(ParentPattern):
         return False, left, collected
 
 
-class Either(ParentPattern):
+class Either(BranchPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
