@@ -88,9 +88,9 @@ def transform(pattern):
                 for c in child.children:
                     groups.append([c] + children)
             elif type(child) is OneOrMore:
-                groups.append(list(child.children) * 2 + children)
+                groups.append(child.children * 2 + children)
             else:
-                groups.append(list(child.children) + children)
+                groups.append(child.children + children)
         else:
             result.append(children)
     return Either(*[Required(*e) for e in result])
