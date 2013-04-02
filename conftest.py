@@ -41,7 +41,7 @@ class DocoptTestFile(pytest.File):
         for name, doc, cases in parse_test(raw):
             name = self.fspath.purebasename
             for case in cases:
-                yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
+                yield DocoptTestItem("%s_%d" % (name, index), self, doc, case)
                 index += 1
 
 
