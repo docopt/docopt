@@ -3,9 +3,13 @@
 usage: git [--version] [--exec-path=<path>] [--html-path]
            [-p|--paginate|--no-pager] [--no-replace-objects]
            [--bare] [--git-dir=<path>] [--work-tree=<path>]
-           [-c name=value]
+           [-c <name>=<value>] [--help]
            <command> [<args>...]
-       git [--help]
+
+options:
+   -c <name=value>
+   -h, --help
+   -p, --paginate
 
 The most commonly used git commands are:
    add        Add file contents to the index
@@ -29,6 +33,9 @@ if __name__ == '__main__':
     args = docopt(__doc__,
                   version='git version 1.7.4.4',
                   options_first=True)
+    print('global arguments:')
+    print(args)
+    print('command arguments:')
 
     argv = [args['<command>']] + args['<args>']
     if args['<command>'] == 'add':

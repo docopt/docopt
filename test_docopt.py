@@ -2,8 +2,8 @@ from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
-                    parse_argv, parse_pattern, #parse_defaults,
-                    printable_usage, formal_usage, TokenStream
+                    parse_argv, parse_pattern, parse_section,
+                    formal_usage, Tokens
                    )
 from pytest import raises
 
@@ -53,20 +53,31 @@ def test_option_name():
     assert Option(None, '--help').name == '--help'
 
 
-def test_printable_and_formal_usage():
+def test_commands():
+    assert docopt('Usage: prog add', 'add') == {'add': True}
+    assert docopt('Usage: prog [add]', '') == {'add': False}
+    assert docopt('Usage: prog [add]', 'add') == {'add': True}
+    assert docopt('Usage: prog (add|rm)', 'add') == {'add': True, 'rm': False}
+    assert docopt('Usage: prog (add|rm)', 'rm') == {'add': False, 'rm': True}
+    assert docopt('Usage: prog a b', 'a b') == {'a': True, 'b': True}
+    with raises(DocoptExit):
+        docopt('Usage: prog a b', 'b a')
+
+
+def test_formal_usage():
     doc = """
     Usage: prog [-hv] ARG
            prog N M
 
     prog is a program."""
-    assert printable_usage(doc) == "Usage: prog [-hv] ARG\n           prog N M"
-    assert formal_usage(printable_usage(doc)) == "( [-hv] ARG ) | ( N M )"
-    assert printable_usage('uSaGe: prog ARG\n\t \t\n bla') == "uSaGe: prog ARG"
+    usage, = parse_section('usage:', doc)
+    assert usage == "Usage: prog [-hv] ARG\n           prog N M"
+    assert formal_usage(usage) == "( [-hv] ARG ) | ( N M )"
 
 
 def test_parse_argv():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
-    TS = lambda s: TokenStream(s, error=DocoptExit)
+    TS = lambda s: Tokens(s, error=DocoptExit)
     assert parse_argv(TS(''), options=o) == []
     assert parse_argv(TS('-h'), options=o) == [Option('-h', None, 0, True)]
     assert parse_argv(TS('-h --verbose'), options=o) == \
@@ -334,21 +345,21 @@ def test_long_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(DocoptExit):
-        docopt('''Usage: prog [--version --verbose]\n\n
-                  --version\n--verbose''', '--ver')
+        docopt('Usage: prog [--version --verbose]\n',
+               'Options: --version\n --verbose', '--ver')
     with raises(DocoptLanguageError):
-        docopt('Usage: prog --long\n\n--long ARG')
+        docopt('Usage: prog --long\nOptions: --long ARG')
     with raises(DocoptExit):
-        docopt('Usage: prog --long ARG\n\n--long ARG', '--long')
+        docopt('Usage: prog --long ARG\nOptions: --long ARG', '--long')
     with raises(DocoptLanguageError):
-        docopt('Usage: prog --long=ARG\n\n--long')
+        docopt('Usage: prog --long=ARG\nOptions: --long')
     with raises(DocoptExit):
-        docopt('Usage: prog --long\n\n--long', '--long=ARG')
+        docopt('Usage: prog --long\nOptions: --long', '--long=ARG')
 
 
 def test_short_options_error_handling():
     with raises(DocoptLanguageError):
-        docopt('Usage: prog -x\n\n-x  this\n-x  that')
+        docopt('Usage: prog -x\nOptions: -x  this\n -x  that')
 
 #    with raises(DocoptLanguageError):
 #        docopt('Usage: prog -x')
@@ -356,9 +367,9 @@ def test_short_options_error_handling():
         docopt('Usage: prog', '-x')
 
     with raises(DocoptLanguageError):
-        docopt('Usage: prog -o\n\n-o ARG')
+        docopt('Usage: prog -o\nOptions: -o ARG')
     with raises(DocoptExit):
-        docopt('Usage: prog -o ARG\n\n-o ARG', '-o')
+        docopt('Usage: prog -o ARG\nOptions: -o ARG', '-o')
 
 
 def test_matching_paren():
@@ -368,10 +379,19 @@ def test_matching_paren():
         docopt('Usage: prog [a [b] ] c )')
 
 
+def test_allow_double_dash():
+    assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                  '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
+    assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                  '-o 1') == {'-o': True, '<arg>': '1', '--': False}
+    with raises(DocoptExit):  # "--" is not allowed; FIXME?
+        docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
+
+
 def test_docopt():
     doc = '''Usage: prog [-v] A
 
-    -v  Be verbose.'''
+             Options: -v  Be verbose.'''
     assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
     assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
 
@@ -458,9 +478,29 @@ def test_any_options_parameter():
 #        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
+def test_options_shortcut_does_not_add_options_to_patter_second_time():
+    assert docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-a') == \
+            {'-a': True, '-b': False}
+    with raises(DocoptExit):
+        docopt('usage: prog [options] [-a]\noptions: -a\n -b', '-aa')
+
+
+def test_default_value_for_positional_arguments():
+    # disabled right now
+    assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
+            {'<p>': None}
+    #       {'<p>': 'x'}
+    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
+            {'<p>': []}
+    #       {'<p>': ['x', 'y']}
+    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
+            {'<p>': ['this']}
+    #       {'<p>': ['this']}
+
+
 #def test_parse_defaults():
 #    assert parse_defaults("""usage: prog
-#
+#                          options:
 #                          -o, --option <o>
 #                          --another <a>  description
 #                                         [default: x]
@@ -484,7 +524,8 @@ def test_issue_59():
     # can't turn this into a language agnostic test yet as they
     # don't support empty strings in the command ('' gets converted to "''")
     assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
-    assert docopt('usage: prog -l <a>\n\n-l <a>', ['-l', '']) == {'-l': ''}
+    assert docopt('usage: prog -l <a>\n'
+                  'options: -l <a>', ['-l', '']) == {'-l': ''}
 
 
 def test_options_first():
@@ -502,10 +543,12 @@ def test_options_first():
                                           '<args>': ['this', 'that', '--opt']}
 
 
-def test_issue_68_options_shortcut_does_not_include_options_in_usage_patter():
+def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():
     # can't turn this into an agnostic test yet as the semantics behind ==/is
-    # are not fully articulated yet
-    args = docopt('usage: prog [-ab] [options]\n\n-x\n-y', '-ax')
+    # are not fully articulated in the testcases.docopt spec yet
+    args = docopt('usage: prog [-ab] [options]\n'
+                  'options: -x\n -y', '-ax')
+
     # Need to use `is` (not `==`) since we want to make sure
     # that they are not 1/0, but strictly True/False:
     assert args['-a'] is True
@@ -521,3 +564,46 @@ def test_issue_65_evaluate_argv_when_called_not_when_imported():
     sys.argv = 'prog -b'.split()
     assert docopt('usage: prog [-ab]') == {'-a': False, '-b': True}
 
+
+def test_issue_71_double_dash_is_not_a_valid_option_argument():
+    with raises(DocoptExit):
+        docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
+    with raises(DocoptExit):
+        docopt('''usage: prog [-l LEVEL] [--] <args>...
+                  options: -l LEVEL', '-l -- 1 2''')
+
+
+usage = '''usage: this
+
+usage:hai
+usage: this that
+
+usage: foo
+       bar
+
+PROGRAM USAGE:
+ foo
+ bar
+usage:
+\ttoo
+\ttar
+Usage: eggs spam
+BAZZ
+usage: pit stop'''
+
+
+def test_parse_section():
+    assert parse_section('usage:', 'foo bar fizz buzz') == []
+    assert parse_section('usage:', 'usage: prog') == ['usage: prog']
+    assert parse_section('usage:',
+                         'usage: -x\n -y') == ['usage: -x\n -y']
+    assert parse_section('usage:', usage) == [
+            'usage: this',
+            'usage:hai',
+            'usage: this that',
+            'usage: foo\n       bar',
+            'PROGRAM USAGE:\n foo\n bar',
+            'usage:\n\ttoo\n\ttar',
+            'Usage: eggs spam',
+            'usage: pit stop',
+    ]

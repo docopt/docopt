@@ -187,8 +187,7 @@ class Option(ChildPattern):
 
     def __init__(self, short=None, long=None, argcount=0, value=False):
         assert argcount in (0, 1)
-        self.short, self.long = short, long
-        self.argcount, self.value = argcount, value
+        self.short, self.long, self.argcount = short, long, argcount
         self.value = None if value is False and argcount else value
 
     @classmethod
@@ -286,11 +285,17 @@ class Either(ParentPattern):
         return False, left, collected
 
 
-class TokenStream(list):
+class Tokens(list):
 
-    def __init__(self, source, error):
+    def __init__(self, source, error=DocoptExit):
         self += source.split() if hasattr(source, 'split') else source
         self.error = error
+
+    @staticmethod
+    def from_pattern(source):
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
+        source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
+        return Tokens(source, error=DocoptLanguageError)
 
     def move(self):
         return self.pop(0) if len(self) else None
@@ -324,7 +329,7 @@ def parse_long(tokens, options):
                 raise tokens.error('%s must not have an argument' % o.long)
         else:
             if value is None:
-                if tokens.current() is None:
+                if tokens.current() in [None, '--']:
                     raise tokens.error('%s requires argument' % o.long)
                 value = tokens.move()
         if tokens.error is DocoptExit:
@@ -355,7 +360,7 @@ def parse_shorts(tokens, options):
             value = None
             if o.argcount != 0:
                 if left == '':
-                    if tokens.current() is None:
+                    if tokens.current() in [None, '--']:
                         raise tokens.error('%s requires argument' % short)
                     value = tokens.move()
                 else:
@@ -368,8 +373,7 @@ def parse_shorts(tokens, options):
 
 
 def parse_pattern(source, options):
-    tokens = TokenStream(re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source),
-                         DocoptLanguageError)
+    tokens = Tokens.from_pattern(source)
     result = parse_expr(tokens, options)
     if tokens.current() is not None:
         raise tokens.error('unexpected ending: %r' % ' '.join(tokens))
@@ -452,27 +456,26 @@ def parse_argv(tokens, options, options_first=False):
 
 
 def parse_defaults(doc):
-    # in python < 2.7 you can't pass flags=re.MULTILINE
-    split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
-    split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
-    options = [Option.parse(s) for s in split if s.startswith('-')]
-    #arguments = [Argument.parse(s) for s in split if s.startswith('<')]
-    #return options, arguments
-    return options
+    defaults = []
+    for s in parse_section('options:', doc):
+        # FIXME corner case "bla: options: --foo"
+        _, _, s = s.partition(':')  # get rid of "options:"
+        split = re.split('\n *(-\S+?)', '\n' + s)[1:]
+        split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
+        options = [Option.parse(s) for s in split if s.startswith('-')]
+        defaults += options
+    return defaults
 
 
-def printable_usage(doc):
-    # in python < 2.7 you can't pass flags=re.IGNORECASE
-    usage_split = re.split(r'([Uu][Ss][Aa][Gg][Ee]:)', doc)
-    if len(usage_split) < 3:
-        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
-    if len(usage_split) > 3:
-        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
-    return re.split(r'\n\s*\n', ''.join(usage_split[1:]))[0].strip()
+def parse_section(name, source):
+    pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?(?:\n|$))*)',
+                         re.IGNORECASE | re.MULTILINE)
+    return [s.strip() for s in pattern.findall(source)]
 
 
-def formal_usage(printable_usage):
-    pu = printable_usage.split()[1:]  # split and drop "usage:"
+def formal_usage(section):
+    _, _, section = section.partition(':')  # drop "usage:"
+    pu = section.split()
     return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
 
@@ -526,15 +529,15 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     -------
     >>> from docopt import docopt
     >>> doc = '''
-    Usage:
-        my_program tcp <host> <port> [--timeout=<seconds>]
-        my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
-        my_program (-h | --help | --version)
-
-    Options:
-        -h, --help  Show this screen and exit.
-        --baud=<n>  Baudrate [default: 9600]
-    '''
+    ... Usage:
+    ...     my_program tcp <host> <port> [--timeout=<seconds>]
+    ...     my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
+    ...     my_program (-h | --help | --version)
+    ...
+    ... Options:
+    ...     -h, --help  Show this screen and exit.
+    ...     --baud=<n>  Baudrate [default: 9600]
+    ... '''
     >>> argv = ['tcp', '127.0.0.1', '80', '--timeout', '30']
     >>> docopt(doc, argv)
     {'--baud': '9600',
@@ -553,18 +556,23 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
       at https://github.com/docopt/docopt#readme
 
     """
-    if argv is None:
-        argv = sys.argv[1:]
-    DocoptExit.usage = printable_usage(doc)
+    argv = sys.argv[1:] if argv is None else argv
+
+    usage_sections = parse_section('usage:', doc)
+    if len(usage_sections) == 0:
+        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
+    if len(usage_sections) > 1:
+        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
+    usage = usage_sections[0]
+
     options = parse_defaults(doc)
-    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    pattern = parse_pattern(formal_usage(usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
     #    same_name = [d for d in arguments if d.name == a.name]
     #    if same_name:
     #        a.value = same_name[0].value
-    argv = parse_argv(TokenStream(argv, DocoptExit), list(options),
-                      options_first)
+    argv = parse_argv(Tokens(argv), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
         doc_options = parse_defaults(doc)
