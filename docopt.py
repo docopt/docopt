@@ -563,10 +563,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
     if len(usage_sections) > 1:
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
-    usage = usage_sections[0]
+    DocoptExit.usage = usage_sections[0]
 
     options = parse_defaults(doc)
-    pattern = parse_pattern(formal_usage(usage), options)
+    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
     #    same_name = [d for d in arguments if d.name == a.name]
