@@ -1008,20 +1008,6 @@ $ prog this
 
 
 #
-# test_issue_85_any_option_multiple_subcommands
-#
-r"""usage:
-  fs good [options]
-  fs fail [options]
-  
-Options:
-  --loglevel=<loglevel>
-"""
-$ prog fail --loglevel 5
-{"--loglevel": "5", "fail": true, "good": false}
-
-
-#
 # test_options_shortcut_does_not_add_options_to_pattern_second_time()
 #
 r"""usage: prog [options] [-a]
