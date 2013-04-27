@@ -260,13 +260,13 @@ Use the following constructs to specify patterns:
 - **[options]** (case sensitive) shortcut for any options.  You can
   use it if you want to specify that the usage pattern could be
   provided with any options defined below in the option-descriptions
-  and do not want to enumerate them all in usage-pattern.  -
-  "``[--]``". Double dash "``--``" is used by convention to separate
+  and do not want to enumerate them all in usage-pattern.
+- "``[--]``". Double dash "``--``" is used by convention to separate
   positional arguments that can be mistaken for options. In order to
-  support this convention add "``[--]``" to you usage patterns.  -
-  "``[-]``". Single dash "``-``" is used by convention to signify that
+  support this convention add "``[--]``" to your usage patterns.
+- "``[-]``". Single dash "``-``" is used by convention to signify that
   ``stdin`` is used instead of a file. To support this add "``[-]``"
-  to you usage patterns. "``-``" act as a normal command.
+  to your usage patterns. "``-``" acts as a normal command.
 
 If your pattern allows to match argument-less option (a flag) several
 times::
