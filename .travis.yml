@@ -1,4 +1,4 @@
-# Travis (http://travis-ci.org/) is continuous integration
+# Travis (http://travis-ci.org/) is a continuous integration
 # service for open source projects. This file configures
 # Travis to install and run "tox" test runner, which is
 # configured in tox.ini file.
