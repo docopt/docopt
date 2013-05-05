@@ -579,3 +579,92 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
+
+#
+# Experimental PEG parser
+#
+from parsimonious.grammar import Grammar
+
+
+class Docopt(object):
+
+    def ast(self, source):
+        grammar = '\n'.join(v.__doc__ for k, v in vars(self.__class__).items()
+                       if '__' not in k and hasattr(v, '__doc__') and v.__doc__)
+        return Grammar(grammar)['docopt'].parse(source)
+
+    def parse(self, source):
+        node = self.ast(source) if isinstance(source, str) else source
+        method = getattr(self, node.expr_name, lambda node, children: children)
+        return method(node, [self.parse(n) for n in node])
+
+    def docopt(self, node, children):
+        'docopt = expr'
+        return chilren[0]
+
+    def expr(self, node, children):
+        'expr = _ basic_expr "..."? _'
+        if node.text.rstrip().endswith('...'):
+            return OneOrMore(children[1])
+        return children[1]
+
+    def basic_expr(self, node, children):
+        '''basic_expr = options_shortcut \
+                      / required         \
+                      / optional         \
+                      / required_either  \
+                      / optional_either  \
+                      / long_option      \
+                      / short_options    \
+                      / argument         \
+                      / command'''
+        return children[0]
+
+    def optional(self, node, children):
+        'optional = "[" expr+ "]"'
+        return Optional(*children[1])
+
+    def required(self, node, children):
+        'required = "(" expr+ ")"'
+        return Required(*children[1])
+
+    def optional_either(self, node, children):
+        'optional_either = "[" expr+ ("|" expr+)+ "]"'
+        return Optional(self.required_either(node, children))
+
+    def required_either(self, node, children):
+        'required_either = "(" expr+ ("|" expr+)+ ")"'
+        _, head, tail, _ = children
+        merge = lambda group: group[0] if len(group) == 1 else Required(*group)
+        return Either(merge(head), *[merge(exprs) for _, exprs in tail])
+
+    def options_shortcut(self, node, children):
+        'options_shortcut = "[options]"'
+        return OptionsShortcut()
+
+    def long_option(self, node, children):
+        'long_option = "--" ~"[^<=\s]"+ ("=" argument)?'
+        long, _, argument = node.text.partition('=')
+        return Option(long=long, argcount=1 if argument else 0)
+
+    def short_options(self, node, children):
+        'short_options = "-" ~"[^-\s]"+ argument?'
+        letters, _, argument = node.text.strip('-').partition('<')
+        options = [Option('-' + letter) for letter in letters]
+        if argument:
+            options[-1] = Option(options[-1].short, argcount=1)
+        return options[0] if len(options) == 1 else Required(*options)
+
+    def command(self, node, children):
+        'command = ~"[a-z-]"+'
+        return Command(node.text)
+
+    def argument(self, node, children):
+        'argument = "<" ~"[^>]"+ ">"'
+        return Argument(node.text)
+
+    def _(self, node, children):
+        '_ = ~"\s*"'
+
+
+parse = Docopt().parse

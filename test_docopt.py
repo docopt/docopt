@@ -604,3 +604,63 @@ def test_parse_section():
             'Usage: eggs spam',
             'usage: pit stop',
     ]
+
+
+#
+# Experimental PEG parser tests
+#
+from docopt import parse
+
+
+def test_argument():
+    assert parse('<arg>') == Argument('<arg>')
+    assert parse('<input file>') == Argument('<input file>')
+
+
+def test_command():
+    assert parse('commit') == Command('commit')
+
+
+def test_short_options():
+    assert parse('-o') == Option('-o')
+    assert parse('-abc') == Required(Option('-a'), Option('-b'), Option('-c'))
+    assert parse('-o<arg>') == Option('-o', argcount=1)
+    assert parse('-abc<arg>') == Required(Option('-a'),
+                                          Option('-b'),
+                                          Option('-c', argcount=1))
+
+def test_long_option():
+    assert parse('--long') == Option(long='--long')
+    assert parse('--long=<arg>') == Option(long='--long', argcount=1)
+
+
+def test_options_shortcut():
+    assert parse('[options]') == OptionsShortcut()
+
+
+def test_optional():
+    assert parse('[<arg>]') == Optional(Argument('<arg>'))
+    assert parse('[<a> <b>]') == Optional(Argument('<a>'), Argument('<b>'))
+    assert parse('[--long=<a> <b>]') == Optional(
+            Option(long='--long', argcount=1), Argument('<b>'))
+
+
+def test_required():
+    assert parse('(--long=<a> <b>)') == Required(
+            Option(long='--long', argcount=1), Argument('<b>'))
+    assert parse('(<a> <b> [c d])') == Required(
+            Argument('<a>'), Argument('<b>'),
+            Optional(Command('c'), Command('d')))
+
+
+def test_one_or_more():
+    assert parse('<a>...') == OneOrMore(Argument('<a>'))
+    assert parse('[c d]...') == OneOrMore(Optional(Command('c'), Command('d')))
+
+
+def test_either():
+    assert parse('(<a> | <b>)') == Either(Argument('<a>'), Argument('<b>'))
+    assert parse('[c | d]') == Optional(Either(Command('c'), Command('d')))
+    assert parse('(<a> <b> | c d)') == Either(
+            Required(Argument('<a>'), Argument('<b>')),
+            Required(Command('c'), Command('d')))
