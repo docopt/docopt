@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_section,
-                    formal_usage, Tokens, transform
+                    parse_defaults, formal_usage, Tokens, transform
                    )
 from pytest import raises
 
@@ -604,3 +604,8 @@ def test_parse_section():
             'Usage: eggs spam',
             'usage: pit stop',
     ]
+
+
+def test_issue_126_defaults_not_parsed_correctly_when_tabs():
+    section = 'Options:\n\t--foo=<arg>  [default: bar]'
+    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
