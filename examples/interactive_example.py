@@ -23,7 +23,7 @@ from docopt import docopt, DocoptExit
 def docopt_cmd(func):
     """
     This decorator is used to simplify the try/except block and pass the result
-    of the docopt parsing to the callec action.
+    of the docopt parsing to the called action.
     """
     def fn(self, arg):
         try:
@@ -58,19 +58,19 @@ class MyInteractive (cmd.Cmd):
     file = None
 
     @docopt_cmd
-    def do_tcp(self, opt):
+    def do_tcp(self, arg):
         """Usage: tcp <host> <port> [--timeout=<seconds>]"""
 
-        print(opt)
+        print(arg)
 
     @docopt_cmd
-    def do_serial(self, opt):
+    def do_serial(self, arg):
         """Usage: serial <port> [--baud=<n>] [--timeout=<seconds>]
 Options:
     --baud=<n>  Baudrate [default: 9600]
         """
 
-        print(opt)
+        print(arg)
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
