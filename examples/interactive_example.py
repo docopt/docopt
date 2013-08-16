@@ -18,7 +18,7 @@ import sys, cmd
 from docopt import docopt
 
 class MyInteractive (cmd.Cmd):
-    intro   = 'Welcome to my interactive program!'
+    intro   = 'Welcome to my interactive program! (type help for a list of commands.)'
     prompt  = '(my_program) '
     file    = None
     
