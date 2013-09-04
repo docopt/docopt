@@ -345,7 +345,7 @@ def test_long_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(DocoptExit):
-        docopt('Usage: prog [--version --verbose]\n',
+        docopt('Usage: prog [--version --verbose]\n'
                'Options: --version\n --verbose', '--ver')
     with raises(DocoptLanguageError):
         docopt('Usage: prog --long\nOptions: --long ARG')
@@ -567,7 +567,7 @@ def test_issue_71_double_dash_is_not_a_valid_option_argument():
         docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
     with raises(DocoptExit):
         docopt('''usage: prog [-l LEVEL] [--] <args>...
-                  options: -l LEVEL', '-l -- 1 2''')
+                  options: -l LEVEL''', '-l -- 1 2')
 
 
 usage = '''usage: this
