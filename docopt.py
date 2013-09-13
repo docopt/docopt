@@ -14,6 +14,9 @@ __all__ = ['docopt']
 __version__ = '0.6.1'
 
 
+#-------------------------------------------------------------------
+#   ERRORS
+#
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -29,6 +32,37 @@ class DocoptExit(SystemExit):
         SystemExit.__init__(self, (message + '\n' + self.usage).strip())
 
 
+#-------------------------------------------------------------------
+#   CLASSES
+#
+
+##  HELPER classes   -----------------------------------------------
+class Dict(dict):
+    def __repr__(self):
+        return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
+
+
+class Tokens(list):
+
+    def __init__(self, source, error=DocoptExit):
+        self += source.split() if hasattr(source, 'split') else source
+        self.error = error
+
+    @staticmethod
+    def from_pattern(source):
+        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
+        source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
+        return Tokens(source, error=DocoptLanguageError)
+
+    def move(self):
+        return self.pop(0) if len(self) else None
+
+    def current(self):
+        return self[0] if len(self) else None
+
+
+
+##  PATTERN classes   ----------------------------------------------
 class Pattern(object):
 
     def __eq__(self, other):
@@ -67,33 +101,6 @@ class Pattern(object):
                 if type(e) is Command or type(e) is Option and e.argcount == 0:
                     e.value = 0
         return self
-
-
-def transform(pattern):
-    """Expand pattern into an (almost) equivalent one, but with single Either.
-
-    Example: ((-a | -b) (-c | -d)) => (-a -c | -a -d | -b -c | -b -d)
-    Quirks: [-a] => (-a), (-a...) => (-a -a)
-
-    """
-    result = []
-    groups = [[pattern]]
-    while groups:
-        children = groups.pop(0)
-        parents = [Required, Optional, OptionsShortcut, Either, OneOrMore]
-        if any(t in map(type, children) for t in parents):
-            child = [c for c in children if type(c) in parents][0]
-            children.remove(child)
-            if type(child) is Either:
-                for c in child.children:
-                    groups.append([c] + children)
-            elif type(child) is OneOrMore:
-                groups.append(child.children * 2 + children)
-            else:
-                groups.append(child.children + children)
-        else:
-            result.append(children)
-    return Either(*[Required(*e) for e in result])
 
 
 class LeafPattern(Pattern):
@@ -279,25 +286,11 @@ class Either(BranchPattern):
         return False, left, collected
 
 
-class Tokens(list):
+#-------------------------------------------------------------------
+#   FUNCTIONS
+#
 
-    def __init__(self, source, error=DocoptExit):
-        self += source.split() if hasattr(source, 'split') else source
-        self.error = error
-
-    @staticmethod
-    def from_pattern(source):
-        source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
-        source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
-        return Tokens(source, error=DocoptLanguageError)
-
-    def move(self):
-        return self.pop(0) if len(self) else None
-
-    def current(self):
-        return self[0] if len(self) else None
-
-
+##  PARSING functions   --------------------------------------------
 def parse_long(tokens, options):
     """long ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
     long, eq, value = tokens.move().partition('=')
@@ -467,6 +460,33 @@ def parse_section(name, source):
     return [s.strip() for s in pattern.findall(source)]
 
 
+##  MISC functions  ------------------------------------------------
+def transform(pattern):
+    """Expand pattern into an (almost) equivalent one, but with single Either.
+
+    Example: ((-a | -b) (-c | -d)) => (-a -c | -a -d | -b -c | -b -d)
+    Quirks: [-a] => (-a), (-a...) => (-a -a)
+
+    """
+    result = []
+    groups = [[pattern]]
+    while groups:
+        children = groups.pop(0)
+        parents = [Required, Optional, OptionsShortcut, Either, OneOrMore]
+        if any(t in map(type, children) for t in parents):
+            child = [c for c in children if type(c) in parents][0]
+            children.remove(child)
+            if type(child) is Either:
+                for c in child.children:
+                    groups.append([c] + children)
+            elif type(child) is OneOrMore:
+                groups.append(child.children * 2 + children)
+            else:
+                groups.append(child.children + children)
+        else:
+            result.append(children)
+    return Either(*[Required(*e) for e in result])
+
 def formal_usage(section):
     _, _, section = section.partition(':')  # drop "usage:"
     pu = section.split()
@@ -482,11 +502,9 @@ def extras(help, version, options, doc):
         sys.exit()
 
 
-class Dict(dict):
-    def __repr__(self):
-        return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
-
-
+#-------------------------------------------------------------------
+#   MAIN public function
+#
 def docopt(doc, argv=None, help=True, version=None, options_first=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
