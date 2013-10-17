@@ -483,20 +483,6 @@ def extras(help, version, options, doc):
 
 
 class Dict(dict):
-    def __init__(self, *args, **kwargs):
-        self.__setitem__('strip_chars', kwargs['strip_chars'])
-        for (key, value) in args[0]:
-            self.__setitem__(key, value)
-
-    def __setitem__(self, key, value):
-        if super(Dict, self).has_key('strip_chars') and self['strip_chars']:
-            super(Dict, self).__setitem__(self.format_key(key), value)
-        else:
-            super(Dict, self).__setitem__(key, value)
-
-    def format_key(self, key):
-        return key.lower().translate(None, '-<>')  # Remove all POSIX special characters
-
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
@@ -604,8 +590,9 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, strip_c
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        retdict = Dict(((a.name, a.value) for a in (pattern.flat() + collected)), strip_chars=strip_chars)
-        retdict.pop('strip_chars')
+        retdict = Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        if strip_chars:
+            retdict = Dict((key.translate(None, '-<>'), value) for key, value in retdict.items())
         return retdict
     raise DocoptExit()
 
