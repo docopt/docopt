@@ -306,8 +306,6 @@ def test_pattern_either():
 
 
 def test_pattern_fix_repeating_arguments():
-    assert Option('-a').fix_repeating_arguments() == Option('-a')
-    assert Argument('N', None).fix_repeating_arguments() == Argument('N', None)
     assert Required(Argument('N'),
                     Argument('N')).fix_repeating_arguments() == \
             Required(Argument('N', []), Argument('N', []))

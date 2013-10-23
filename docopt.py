@@ -37,37 +37,6 @@ class Pattern(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def fix(self):
-        self.fix_identities()
-        self.fix_repeating_arguments()
-        return self
-
-    def fix_identities(self, uniq=None):
-        """Make pattern-tree tips point to same object if they are equal."""
-        if not hasattr(self, 'children'):
-            return self
-        uniq = list(set(self.flat())) if uniq is None else uniq
-        for i, child in enumerate(self.children):
-            if not hasattr(child, 'children'):
-                assert child in uniq
-                self.children[i] = uniq[uniq.index(child)]
-            else:
-                child.fix_identities(uniq)
-
-    def fix_repeating_arguments(self):
-        """Fix elements that should accumulate/increment values."""
-        either = [list(child.children) for child in transform(self).children]
-        for case in either:
-            for e in [child for child in case if case.count(child) > 1]:
-                if type(e) is Argument or type(e) is Option and e.argcount:
-                    if e.value is None:
-                        e.value = []
-                    elif type(e.value) is not list:
-                        e.value = e.value.split()
-                if type(e) is Command or type(e) is Option and e.argcount == 0:
-                    e.value = 0
-        return self
-
 
 def transform(pattern):
     """Expand pattern into an (almost) equivalent one, but with single Either.
@@ -102,6 +71,7 @@ class LeafPattern(Pattern):
 
     def __init__(self, name, value=None):
         self.name, self.value = name, value
+        Pattern.__init__(self)
 
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
@@ -136,6 +106,7 @@ class BranchPattern(Pattern):
 
     def __init__(self, *children):
         self.children = list(children)
+        Pattern.__init__(self)
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__,
@@ -146,8 +117,38 @@ class BranchPattern(Pattern):
             return [self]
         return sum([child.flat(*types) for child in self.children], [])
 
+    def fix(self):
+        self.fix_identities()
+        self.fix_repeating_arguments()
+        return self
+
+    def fix_identities(self, uniq=None):
+        """Make pattern-tree tips point to same object if they are equal."""
+        if uniq is None:
+            uniq = list(set(self.flat()))
+        for i, child in enumerate(self.children):
+            if isinstance(child, LeafPattern):
+                assert child in uniq
+                self.children[i] = uniq[uniq.index(child)]
+            else:
+                child.fix_identities(uniq)
+
+    def fix_repeating_arguments(self):
+        """Fix elements that should accumulate/increment values."""
+        either = [list(child.children) for child in transform(self).children]
+        for case in either:
+            for e in [child for child in case if case.count(child) > 1]:
+                if type(e) is Argument or (type(e) is Option and e.argcount):
+                    if e.value is None:
+                        e.value = []
+                    elif type(e.value) is not list:
+                        e.value = e.value.split()
+                if type(e) is Command or (type(e) is Option and e.argcount == 0):
+                    e.value = 0
+        return self
 
 class Argument(LeafPattern):
+    """An argument is something that is not an option."""
 
     def single_match(self, left):
         for n, pattern in enumerate(left):
@@ -163,9 +164,10 @@ class Argument(LeafPattern):
 
 
 class Command(Argument):
+    """An command is effectively an argument with a fixed value."""
 
     def __init__(self, name, value=False):
-        self.name, self.value = name, value
+        Argument.__init__(self, name, value)
 
     def single_match(self, left):
         for n, pattern in enumerate(left):
@@ -178,11 +180,15 @@ class Command(Argument):
 
 
 class Option(LeafPattern):
+    """Options are things that start with - or --."""
 
     def __init__(self, short=None, long=None, argcount=0, value=False):
         assert argcount in (0, 1)
         self.short, self.long, self.argcount = short, long, argcount
-        self.value = None if value is False and argcount else value
+        
+        name = self.long or self.short
+        value = None if value is False and argcount else value
+        LeafPattern.__init__(self, name, value)
 
     @classmethod
     def parse(class_, option_description):
@@ -207,16 +213,13 @@ class Option(LeafPattern):
                 return n, pattern
         return None, None
 
-    @property
-    def name(self):
-        return self.long or self.short
-
     def __repr__(self):
         return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
                                            self.argcount, self.value)
 
 
 class Required(BranchPattern):
+    """A collection of arguments/options that must be present"""
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -230,6 +233,7 @@ class Required(BranchPattern):
 
 
 class Optional(BranchPattern):
+    """A collection of arguments/options that may or may not be present."""
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -244,6 +248,9 @@ class OptionsShortcut(Optional):
 
 
 class OneOrMore(BranchPattern):
+    """An option that is present one or more times."""
+
+    # Although this is a BranchPattern, it is really just a wrapper around one pattern child.
 
     def match(self, left, collected=None):
         assert len(self.children) == 1
@@ -266,6 +273,7 @@ class OneOrMore(BranchPattern):
 
 
 class Either(BranchPattern):
+    """A collection of arguments/options for which only one is present"""
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
@@ -279,11 +287,15 @@ class Either(BranchPattern):
         return False, left, collected
 
 
-class Tokens(list):
+class Tokens(object):
+    """The tokenized arguments passed on the command line."""
 
     def __init__(self, source, error=DocoptExit):
-        self += source.split() if hasattr(source, 'split') else source
+        self.tokens = source.split() if hasattr(source, 'split') else source
         self.error = error
+
+    def __iter__(self):
+        return iter(self.tokens)
 
     @staticmethod
     def from_pattern(source):
@@ -292,10 +304,10 @@ class Tokens(list):
         return Tokens(source, error=DocoptLanguageError)
 
     def move(self):
-        return self.pop(0) if len(self) else None
+        return self.tokens.pop(0) if self.tokens else None
 
     def current(self):
-        return self[0] if len(self) else None
+        return self.tokens[0] if self.tokens else None
 
 
 def parse_long(tokens, options):
