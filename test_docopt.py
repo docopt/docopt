@@ -372,7 +372,7 @@ def test_short_options_error_handling():
         docopt('Usage: prog -o ARG\nOptions: -o ARG', '-o')
 
 
-def test_matching_paren():
+def test_matching_parent():
     with raises(DocoptLanguageError):
         docopt('Usage: prog [a [b]')
     with raises(DocoptLanguageError):
