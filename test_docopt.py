@@ -611,14 +611,25 @@ def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
     
 def test_multiple__default_values():
+    # two default values
     doc = """Usage: prog 
-              prog [--data=<data>]
+                    prog [--data=<data>]
 
-    Options:
-      -d --data=<arg>    Input data [default: foo, bar]
+             Options:
+                    -d --data=<arg>    Input data [default: foo, bar]
 
-    """
+          """
     a = docopt(doc, '')
     assert a == {'--data': ['foo','bar']}
     
+    # one default value
+    doc = """Usage: prog 
+                    prog [--data=<data>]
+
+             Options:
+                    -d --data=<arg>    Input data [default: foo]
+
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': 'foo'}
 
