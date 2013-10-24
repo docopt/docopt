@@ -490,16 +490,21 @@ def test_any_options_parameter():
 
 
 def test_default_value_for_positional_arguments():
-    # disabled right now
-    assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
-            {'<p>': None}
-    #       {'<p>': 'x'}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
-            {'<p>': []}
-    #       {'<p>': ['x', 'y']}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
-            {'<p>': ['this']}
-    #       {'<p>': ['this']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x y]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x', 'y']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x y]
+          """
+    a = docopt(doc, '--data=this')
+    assert a == {'--data': ['this']}
 
 
 #def test_parse_defaults():
