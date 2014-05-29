@@ -1,6 +1,22 @@
+import sys
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
 from docopt import __version__
+
+
+class PyTestCommand(TestCommand):
+    """ Command to run unit py.test unit tests
+    """
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run(self):
+        import pytest
+        rcode = pytest.main(self.test_args)
+        sys.exit(rcode)
 
 
 setup(
@@ -24,4 +40,10 @@ setup(
         'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: MIT License',
     ],
+    tests_require=[
+            'pytest',
+        ],
+    cmdclass={
+            'test': PyTestCommand,
+        }
 )

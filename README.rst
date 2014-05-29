@@ -94,6 +94,13 @@ project--it is self-contained.
 
 **docopt** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3 and PyPy.
 
+Testing
+======================================================================
+
+You can run unit tests using the command:
+
+    python setup.py test
+
 API
 ======================================================================
 
