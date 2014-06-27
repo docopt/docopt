@@ -487,7 +487,8 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False,
+           only_passed=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -577,5 +578,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
+        if isinstance(only_passed, dict):
+            only_passed.update(Dict((a.name, a.value) for a in collected))
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
