@@ -614,3 +614,10 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_issue_133_obscure_message_on_doc_as_None():
+    # previously the error was reported from "parse_section"
+    # as "TypeError: expected string or buffer"
+    with raises(DocoptLanguageError):
+        docopt(None)
