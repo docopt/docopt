@@ -279,7 +279,6 @@ class Either(BranchPattern):
         return False, left, collected
 
     def fix_identities(self, uniq=None):
-
         for child in self.children:
             child.fix_identities()
 

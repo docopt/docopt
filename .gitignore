@@ -35,3 +35,4 @@ docs/_*
 
 # jython
 *$py.class
+.ropeproject*

@@ -610,13 +610,18 @@ def test_parse_section():
             'usage: pit stop',
     ]
 
-def test_parse_args():
+def test_issue_226_overriding_args_by_name():
     """ test that fix_identities does not hit arguments from different commands """
+    args = '''usage: prog func1 <arg1> [--a]
+                     prog func2 <arg1>...'''
+
     import sys
     sys.argv = 'prog func1 value'.split()
-    args = docopt('''usage: prog func1 <arg1> [--a]
-                     prog func2 <arg1>...''')
-    assert args['<arg1>'] == 'value'
+    assert docopt(args)['<arg1>'] == 'value'
+
+    sys.argv = 'prog func2 value'.split()
+    assert docopt(args)['<arg1>'] == ['value']
+
 
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
