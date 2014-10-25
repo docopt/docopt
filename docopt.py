@@ -17,6 +17,7 @@ __version__ = '0.6.1'
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
+    pass
 
 
 class DocoptExit(SystemExit):
@@ -241,6 +242,7 @@ class Optional(BranchPattern):
 class OptionsShortcut(Optional):
 
     """Marker/placeholder for [options] shortcut."""
+    pass
 
 
 class OneOrMore(BranchPattern):
