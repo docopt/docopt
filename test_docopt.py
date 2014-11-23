@@ -1,4 +1,6 @@
 from __future__ import with_statement
+import os
+
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
@@ -505,6 +507,23 @@ def test_default_value_for_positional_arguments():
           """
     a = docopt(doc, '--data=this')
     assert a == {'--data': ['this']}
+
+
+def test_environment_variable_for_positional_arguments():
+    os.environ['DOCOPT_DATA'] = 'x'
+
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [envvar: DOCOPT_DATA]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x']}
+
+    # Environment variables should have priority over defaults.
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: y] [envvar: DOCOPT_DATA]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x']}
 
 
 #def test_parse_defaults():
