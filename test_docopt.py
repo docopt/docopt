@@ -414,6 +414,9 @@ def test_docopt():
     assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
                  'FILE': None, 'INPUT': None, 'OUTPUT': None}
 
+    a = docopt(doc, '-v', only_passed=True)
+    assert a == {'-v': True}
+
     with raises(DocoptExit):  # does not match
         docopt(doc, '-v input.py output.py')
 
