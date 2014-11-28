@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_section,
-                    formal_usage, Tokens, transform
+                    parse_defaults, formal_usage, Tokens, transform
                    )
 from pytest import raises
 
@@ -345,7 +345,7 @@ def test_long_options_error_handling():
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(DocoptExit):
-        docopt('Usage: prog [--version --verbose]\n',
+        docopt('Usage: prog [--version --verbose]\n'
                'Options: --version\n --verbose', '--ver')
     with raises(DocoptLanguageError):
         docopt('Usage: prog --long\nOptions: --long ARG')
@@ -490,16 +490,21 @@ def test_any_options_parameter():
 
 
 def test_default_value_for_positional_arguments():
-    # disabled right now
-    assert docopt('usage: prog [<p>]\n\n<p>  [default: x]', '') == \
-            {'<p>': None}
-    #       {'<p>': 'x'}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', '') == \
-            {'<p>': []}
-    #       {'<p>': ['x', 'y']}
-    assert docopt('usage: prog [<p>]...\n\n<p>  [default: x y]', 'this') == \
-            {'<p>': ['this']}
-    #       {'<p>': ['this']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x y]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['x', 'y']}
+    doc = """Usage: prog [--data=<data>...]\n
+             Options:\n\t-d --data=<arg>    Input data [default: x y]
+          """
+    a = docopt(doc, '--data=this')
+    assert a == {'--data': ['this']}
 
 
 #def test_parse_defaults():
@@ -567,7 +572,7 @@ def test_issue_71_double_dash_is_not_a_valid_option_argument():
         docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
     with raises(DocoptExit):
         docopt('''usage: prog [-l LEVEL] [--] <args>...
-                  options: -l LEVEL', '-l -- 1 2''')
+                  options: -l LEVEL''', '-l -- 1 2')
 
 
 usage = '''usage: this
@@ -604,3 +609,8 @@ def test_parse_section():
             'Usage: eggs spam',
             'usage: pit stop',
     ]
+
+
+def test_issue_126_defaults_not_parsed_correctly_when_tabs():
+    section = 'Options:\n\t--foo=<arg>  [default: bar]'
+    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]

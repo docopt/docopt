@@ -94,6 +94,13 @@ project--it is self-contained.
 
 **docopt** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3 and PyPy.
 
+Testing
+======================================================================
+
+You can run unit tests using the command:
+
+    python setup.py test
+
 API
 ======================================================================
 
@@ -230,7 +237,7 @@ Each pattern can consist of the following elements:
   options can have arguments, e.g.  ``--input=FILE`` or ``-i FILE`` or
   even ``-iFILE``. However it is important that you specify option
   descriptions if you want your option to have an argument, a default
-  value, or specify synonymous short/long versions of the option (see 
+  value, or specify synonymous short/long versions of the option (see
   next section on option descriptions).
 - **commands** are words that do *not* follow the described above
   conventions of ``--options`` or ``<arguments>`` or ``ARGUMENTS``,
@@ -385,6 +392,17 @@ breeze.  Take a look at `validation_example.py
 <https://github.com/docopt/docopt/tree/master/examples/validation_example.py>`_
 which uses **schema** to validate data and report an error to the
 user.
+
+Using docopt with config-files
+----------------------------------------------------------------------
+
+Often configuration files are used to provide default values which
+could be overriden by command-line arguments.  Since **docopt**
+returns a simple dictionary it is very easy to integrate with
+config-files written in JSON, YAML or INI formats.
+`config_file_example.py <examples/config_file_example.py>`_ provides
+and example of how to use **docopt** with JSON or INI config-file.
+
 
 Development
 ======================================================================

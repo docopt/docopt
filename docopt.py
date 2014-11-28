@@ -454,7 +454,7 @@ def parse_defaults(doc):
     for s in parse_section('options:', doc):
         # FIXME corner case "bla: options: --foo"
         _, _, s = s.partition(':')  # get rid of "options:"
-        split = re.split('\n *(-\S+?)', '\n' + s)[1:]
+        split = re.split('\n[ \t]*(-\S+?)', '\n' + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
         options = [Option.parse(s) for s in split if s.startswith('-')]
         defaults += options
