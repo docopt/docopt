@@ -4,6 +4,20 @@
 Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
 command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
 
+    New in version 0.6.2:
+
+    - `Wheel <http://pythonwheels.com>`_ support.
+
+    - Make options sections indentation sensitive (see
+      `#102 <https://github.com/docopt/docopt/issue/102>`_).
+
+    - Fix issue `#71 <https://github.com/docopt/docopt/issues/71>`_
+      to prevent ``--`` from acting as an option argument.
+
+    - Fix issue `#126 <https://github.com/docopt/docopt/issues/126>`_
+      which prevented defaults from being parsed correctly if tabs
+      were being used for indentation.
+
     New in version 0.6.1:
 
     - Fix issue `#85 <https://github.com/docopt/docopt/issues/85>`_
@@ -445,6 +459,7 @@ tools, e.g.::
 
     pip install docopt==0.6.2
 
+- 0.6.2 Bugfixes and wheel support.
 - 0.6.1 Bugfix release.
 - 0.6.0 ``options_first`` parameter.
   **Breaking changes**: Corrected ``[options]`` meaning.
