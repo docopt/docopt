@@ -94,7 +94,7 @@ that. The basic idea is that *a good help message has all necessary
 information in it to make a parser*.
 
 Also, `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ recommends
-putting help message in the module docstrings.
+putting a help message in the module docstring.
 
 Installation
 ======================================================================
@@ -415,7 +415,7 @@ could be overriden by command-line arguments.  Since **docopt**
 returns a simple dictionary it is very easy to integrate with
 config-files written in JSON, YAML or INI formats.
 `config_file_example.py <examples/config_file_example.py>`_ provides
-and example of how to use **docopt** with JSON or INI config-file.
+an example of how to use **docopt** with JSON or INI config-file.
 
 
 Development
@@ -443,7 +443,7 @@ The following ports are available:
 
 But you can always create a port for your favorite language!  You are
 encouraged to use the Python version as a reference implementation.  A
-Language-agnostic test suite is bundled with `Python implementation
+language-agnostic test suite is bundled with `Python implementation
 <http://github.com/docopt/docopt>`_.
 
 Porting discussion is on `issues page
