@@ -418,19 +418,14 @@ Porting ``docopt`` to other languages
 ======================================================================
 
 We think **docopt** is so good, we want to share it beyond the Python
-community!
+community! All official docopt ports to other languages can be found
+under the `docopt organization page <http://github.com/docopt>`_
+on GitHub.
 
-The following ports are available:
-
-- `Ruby port <http://github.com/docopt/docopt.rb>`_
-- `CoffeeScript port <http://github.com/docopt/docopt.coffee>`_
-- `Lua port <http://github.com/docopt/docopt.lua>`_
-- `PHP port <http://github.com/docopt/docopt.php>`_
-
-But you can always create a port for your favorite language!  You are
-encouraged to use the Python version as a reference implementation.  A
-Language-agnostic test suite is bundled with `Python implementation
-<http://github.com/docopt/docopt>`_.
+If your favourite language isn't among then, you can always create a
+port for it! You are encouraged to use the Python version as a
+reference implementation.  A Language-agnostic test suite is bundled
+with `Python implementation <http://github.com/docopt/docopt>`_.
 
 Porting discussion is on `issues page
 <http://github.com/docopt/docopt/issues>`_.
