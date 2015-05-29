@@ -13,7 +13,6 @@ import re
 __all__ = ['docopt']
 __version__ = '0.6.1'
 
-
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
@@ -486,6 +485,7 @@ class Dict(dict):
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
+Opts = Dict()
 
 def docopt(doc, argv=None, help=True, version=None, options_first=False):
     """Parse `argv` based on command-line interface described in `doc`.
@@ -551,7 +551,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
 
     """
     argv = sys.argv[1:] if argv is None else argv
-
+    opts = Opts if argv is None else Dict()
     usage_sections = parse_section('usage:', doc)
     if len(usage_sections) == 0:
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
@@ -577,5 +577,9 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        opts = Opts if argv is None else Dict()
+        opts.clear()
+        for a in (pattern.flat() + collected):
+            opts[a.name] = a.value
+        return opts
     raise DocoptExit()
