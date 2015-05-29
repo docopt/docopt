@@ -552,7 +552,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
 
     """
     argv = sys.argv[1:] if argv is None else argv
-    opts = Opts if argv is None else Dict()
+
     usage_sections = parse_section('usage:', doc)
     if len(usage_sections) == 0:
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
