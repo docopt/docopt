@@ -66,6 +66,7 @@ class MyInteractive (cmd.Cmd):
     @docopt_cmd
     def do_serial(self, arg):
         """Usage: serial <port> [--baud=<n>] [--timeout=<seconds>]
+
 Options:
     --baud=<n>  Baudrate [default: 9600]
         """
