@@ -19,6 +19,12 @@ class PyTestCommand(TestCommand):
         sys.exit(rcode)
 
 
+with open('README.rst') as f:
+    readme = f.read()
+with open('CHANGELOG.rst') as f:
+    history = f.read()
+
+
 setup(
     name='docopt',
     version=__version__,
@@ -29,7 +35,7 @@ setup(
     keywords='option arguments parsing optparse argparse getopt',
     url='http://docopt.org',
     py_modules=['docopt'],
-    long_description=open('README.rst').read(),
+    long_description=readme + '\n\n' + history,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Topic :: Utilities',

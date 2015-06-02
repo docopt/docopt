@@ -2,36 +2,7 @@
 ======================================================================
 
 Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
-command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
-
-    New in version 0.6.1:
-
-    - Fix issue `#85 <https://github.com/docopt/docopt/issues/85>`_
-      which caused improper handling of ``[options]`` shortcut
-      if it was present several times.
-
-    New in version 0.6.0:
-
-    - New argument ``options_first``, disallows interspersing options
-      and arguments.  If you supply ``options_first=True`` to
-      ``docopt``, it will interpret all arguments as positional
-      arguments after first positional argument.
-
-    - If option with argument could be repeated, its default value
-      will be interpreted as space-separated list. E.g. with
-      ``[default: ./here ./there]`` will be interpreted as
-      ``['./here', './there']``.
-
-    Breaking changes:
-
-    - Meaning of ``[options]`` shortcut slightly changed. Previously
-      it meant *"any known option"*. Now it means *"any option not in
-      usage-pattern"*.  This avoids the situation when an option is
-      allowed to be repeated unintentionally.
-
-    - ``argv`` is ``None`` by default, not ``sys.argv[1:]``.
-      This allows ``docopt`` to always use the *latest* ``sys.argv``,
-      not ``sys.argv`` during import time.
+command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`
 
 Isn't it awesome how ``optparse`` and ``argparse`` generate help
 messages based on your code?!
@@ -92,14 +63,15 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively, you can just drop ``docopt.py`` file into your
 project--it is self-contained.
 
-**docopt** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3 and PyPy.
+**docopt** is tested with Python 2.6, 2.7, 3.2, 3.3, 3.4 and PyPy.
 
 Testing
 ======================================================================
 
-You can run unit tests using the command:
+You can run unit tests using the command::
 
     python setup.py test
+
 
 API
 ======================================================================
@@ -107,9 +79,6 @@ API
 .. code:: python
 
     from docopt import docopt
-
-.. code:: python
-
     docopt(doc, argv=None, help=True, version=None, options_first=False)
 
 ``docopt`` takes 1 required and 4 optional arguments:
@@ -122,7 +91,8 @@ API
 
 .. code:: python
 
-    """Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+    """
+    Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
     -h --help    show this
     -s --sorted  sorted output
@@ -151,10 +121,11 @@ API
   version and terminate.  ``version`` could be any printable object,
   but most likely a string, e.g. ``"2.1.0rc1"``.
 
-    Note, when ``docopt`` is set to automatically handle ``-h``,
-    ``--help`` and ``--version`` options, you still need to mention
-    them in usage pattern for this to work. Also, for your users to
-    know about them.
+  Note: 
+        When ``docopt`` is set to automatically handle ``-h``,
+        ``--help`` and ``--version`` options, you still need to mention
+        them in usage pattern for this to work. Also, for your users to
+        know about them.
 
 - ``options_first``, by default ``False``.  If set to ``True`` will
   disallow mixing options and positional argument.  I.e. after first
@@ -174,14 +145,16 @@ the return dictionary will be:
 
 .. code:: python
 
-    {'--drifting': False,    'mine': False,
+    {
+     '--drifting': False,    'mine': False,
      '--help': False,        'move': True,
      '--moored': False,      'new': False,
      '--speed': '15',        'remove': False,
      '--version': False,     'set': False,
      '<name>': ['Guardian'], 'ship': True,
      '<x>': '100',           'shoot': False,
-     '<y>': '150'}
+     '<y>': '150'
+    }
 
 Help message format
 ======================================================================
@@ -211,8 +184,8 @@ Minimum example:
 
 .. code:: python
 
-    """Usage: my_program.py
-
+    """
+    Usage: my_program.py
     """
 
 The first word after ``usage:`` is interpreted as your program's name.
@@ -221,9 +194,9 @@ exclusive patterns:
 
 .. code:: python
 
-    """Usage: my_program.py FILE
-              my_program.py COUNT FILE
-
+    """
+    Usage: my_program.py FILE
+           my_program.py COUNT FILE
     """
 
 Each pattern can consist of the following elements:
@@ -429,32 +402,3 @@ with `Python implementation <http://github.com/docopt/docopt>`_.
 
 Porting discussion is on `issues page
 <http://github.com/docopt/docopt/issues>`_.
-
-Changelog
-======================================================================
-
-**docopt** follows `semantic versioning <http://semver.org>`_.  The
-first release with stable API will be 1.0.0 (soon).  Until then, you
-are encouraged to specify explicitly the version in your dependency
-tools, e.g.::
-
-    pip install docopt==0.6.1
-
-- 0.6.1 Bugfix release.
-- 0.6.0 ``options_first`` parameter.
-  **Breaking changes**: Corrected ``[options]`` meaning.
-  ``argv`` defaults to ``None``.
-- 0.5.0 Repeated options/commands are counted or accumulated into a
-  list.
-- 0.4.2 Bugfix release.
-- 0.4.0 Option descriptions become optional,
-  support for "``--``" and "``-``" commands.
-- 0.3.0 Support for (sub)commands like `git remote add`.
-  Introduce ``[options]`` shortcut for any options.
-  **Breaking changes**: ``docopt`` returns dictionary.
-- 0.2.0 Usage pattern matching. Positional arguments parsing based on
-  usage patterns.
-  **Breaking changes**: ``docopt`` returns namespace (for arguments),
-  not list. Usage pattern is formalized.
-- 0.1.0 Initial release. Options-parsing only (based on options
-  description).
