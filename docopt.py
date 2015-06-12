@@ -25,7 +25,9 @@ class DocoptExit(SystemExit):
 
     usage = ''
 
-    def __init__(self, message=''):
+    def __init__(self, message='', collected=None, left=None):
+        self.collected = collected if collected is not None else []
+        self.left = left if left is not None else []
         SystemExit.__init__(self, (message + '\n' + self.usage).strip())
 
 
@@ -578,4 +580,4 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
-    raise DocoptExit()
+    raise DocoptExit(collected=collected, left=left)
