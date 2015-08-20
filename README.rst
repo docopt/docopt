@@ -71,12 +71,15 @@ and instead can write only the help message--*the way you want it*.
         arguments = docopt(__doc__, version='Naval Fate 2.0')
         print(arguments)
 
-Beat that! The option parser is generated based on the docstring above
-that is passed to ``docopt`` function.  ``docopt`` parses the usage
-pattern (``"Usage: ..."``) and option descriptions (lines starting
-with dash "``-``") and ensures that the program invocation matches the
-usage pattern; it parses options, arguments and commands based on
-that. The basic idea is that *a good help message has all necessary
+Beat that! 
+
+The option parser is generated from the docstring passed to the
+``docopt`` function.  ``docopt`` parses the usage
+pattern (``"Usage: ..."``) and options (lines starting
+with dash "``-``"), and ensures that the program invocation matches.
+By this method, it parses options, arguments, and commands. 
+
+The basic idea is that *a good help message has all necessary
 information in it to make a parser*.
 
 Also, `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ recommends
@@ -85,14 +88,14 @@ putting help message in the module docstrings.
 Installation
 ======================================================================
 
-Use `pip <http://pip-installer.org>`_ or easy_install::
+Use `pip <http://pip-installer.org>`_ or ``easy_install``::
 
     pip install docopt==0.6.1
 
-Alternatively, you can just drop ``docopt.py`` file into your
-project--it is self-contained.
+Alternatively, just drop ``docopt.py`` file into your
+project. It's self-contained.
 
-**docopt** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3 and PyPy.
+**docopt** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3, and PyPy.
 
 Testing
 ======================================================================
@@ -132,45 +135,46 @@ API
 
     """
 
-- ``argv`` is an optional argument vector; by default ``docopt`` uses
+- ``argv`` is an optional argument vector. By default, ``docopt`` uses
   the argument vector passed to your program (``sys.argv[1:]``).
-  Alternatively you can supply a list of strings like ``['--verbose',
+  Alternatively, you can supply a list of strings, like this: ``['--verbose',
   '-o', 'hai.txt']``.
 
-- ``help``, by default ``True``, specifies whether the parser should
+- ``help`` (default: ``True``) specifies whether the parser should
   automatically print the help message (supplied as ``doc``) and
-  terminate, in case ``-h`` or ``--help`` option is encountered
-  (options should exist in usage pattern, more on that below). If you
-  want to handle ``-h`` or ``--help`` options manually (as other
-  options), set ``help=False``.
+  terminate, in case ``-h`` or ``--help`` option is encountered.
+  (These options should exist in usage pattern; more on this below.)
+  If you want to handle ``-h`` or ``--help`` options manually (like 
+  any other option), set ``help=False``.
 
-- ``version``, by default ``None``, is an optional argument that
+- ``version`` (default: ``None``) is an optional argument that
   specifies the version of your program. If supplied, then, (assuming
   ``--version`` option is mentioned in usage pattern) when parser
   encounters the ``--version`` option, it will print the supplied
   version and terminate.  ``version`` could be any printable object,
   but most likely a string, e.g. ``"2.1.0rc1"``.
 
-    Note, when ``docopt`` is set to automatically handle ``-h``,
-    ``--help`` and ``--version`` options, you still need to mention
-    them in usage pattern for this to work. Also, for your users to
-    know about them.
+    Note: when ``docopt`` is set to automatically handle ``-h``,
+    ``--help``, and ``--version`` options, you still need to mention
+    them in usage pattern for this to work. (Also, for your users to
+    know about them!)
 
-- ``options_first``, by default ``False``.  If set to ``True`` will
-  disallow mixing options and positional argument.  I.e. after first
-  positional argument, all arguments will be interpreted as positional
-  even if the look like options.  This can be used for strict
-  compatibility with POSIX, or if you want to dispatch your arguments
-  to other programs.
+- ``options_first`` (default: ``False``)  If ``True``, this will
+  disallow mixing options and positional argument.  In other words, 
+  after first positional argument, all subsequent arguments will be 
+  interpreted as positional, even if the look like options.  This can 
+  be used for strict compatibility with POSIX, or if you want to 
+  dispatch your arguments to other programs.
 
-The **return** value is a simple dictionary with options, arguments
-and commands as keys, spelled exactly like in your help message.  Long
-versions of options are given priority. For example, if you invoke the
-top example as::
+The **return** value is a simple dictionary with options, arguments,
+and commands as keys. Keys are spelled exactly as in your help message.  
+Long versions of options are given priority. 
+
+Let's demonstrate! If you invoke the top example as::
 
     naval_fate.py ship Guardian move 100 150 --speed=15
 
-the return dictionary will be:
+The return dictionary will be:
 
 .. code:: python
 
@@ -275,23 +279,23 @@ Use the following constructs to specify patterns:
   ``stdin`` is used instead of a file. To support this add "``[-]``"
   to your usage patterns. "``-``" acts as a normal command.
 
-If your pattern allows to match argument-less option (a flag) several
+If your pattern allows matching an argument-less option (i.e. a “flag”) several
 times::
 
     Usage: my_program.py [-v | -vv | -vvv]
 
-then number of occurrences of the option will be counted. I.e.
+...then number of occurrences of the option will be counted. So, 
 ``args['-v']`` will be ``2`` if program was invoked as ``my_program
 -vv``. Same works for commands.
 
-If your usage patterns allows to match same-named option with argument
+If your usage patterns allows matching same-named option with argument
 or positional argument several times, the matched arguments will be
 collected into a list::
 
     Usage: my_program.py <file> <file> --path=<path>...
 
-I.e. invoked with ``my_program.py file1 file2 --path=./here
---path=./there`` the returned dict will contain ``args['<file>'] ==
+Thus, invoked with ``my_program.py file1 file2 --path=./here
+--path=./there``, the returned dict will contain ``args['<file>'] ==
 ['file1', 'file2']`` and ``args['--path'] == ['./here', './there']``.
 
 
@@ -301,7 +305,7 @@ Option descriptions format
 **Option descriptions** consist of a list of options that you put
 below your usage patterns.
 
-It is necessary to list option descriptions in order to specify:
+It's necessary to list option descriptions in order to specify:
 
 - synonymous short and long options,
 - if an option has an argument,
@@ -310,24 +314,25 @@ It is necessary to list option descriptions in order to specify:
 The rules are as follows:
 
 - Every line in ``doc`` that starts with ``-`` or ``--`` (not counting
-  spaces) is treated as an option description, e.g.::
+  spaces) is treated as an option description::
 
     Options:
       --verbose   # GOOD
       -o FILE     # GOOD
-    Other: --bad  # BAD, line does not start with dash "-"
+    Other: --bad  # BAD; line does not start with dash "-"
 
-- To specify that option has an argument, put a word describing that
-  argument after space (or equals "``=``" sign) as shown below. Follow
-  either <angular-brackets> or UPPER-CASE convention for options'
-  arguments.  You can use comma if you want to separate options. In
-  the example below, both lines are valid, however you are recommended
-  to stick to a single style.::
+- To specify an option with an argument, put a word describing the
+  argument after either a space, or an equals sign "``=``" (as shown below). 
+  
+  Follow either the ``<angular-brackets>`` or ``UPPER-CASE`` convention for 
+  options' arguments.  You can use a comma to separate options, if desired. 
+  In this example below, both lines are valid (but we recommended that you stick 
+  to a single style)::
 
     -o FILE --output=FILE       # without comma, with "=" sign
     -i <file>, --input <file>   # with comma, without "=" sing
 
-- Use two spaces to separate options with their informal description::
+- Use two spaces (or more) to separate options with their informal description::
 
     --verbose More text.   # BAD, will be treated as if verbose option had
                            # an argument "More", so use 2 spaces instead
@@ -335,8 +340,8 @@ The rules are as follows:
     -o FILE   Output file. # GOOD
     --stdout  Use stdout.  # GOOD, 2 spaces
 
-- If you want to set a default value for an option with an argument,
-  put it into the option-description, in form ``[default:
+- To set a default value for an option with an argument,
+  put it into the option-description, like so: ``[default:
   <my-default-value>]``::
 
     --coefficient=K  The K coefficient [default: 2.95]
@@ -344,8 +349,8 @@ The rules are as follows:
     --directory=DIR  Some directory [default: ./]
 
 - If the option is not repeatable, the value inside ``[default: ...]``
-  will be interpreted as string.  If it *is* repeatable, it will be
-  splited into a list on whitespace::
+  will be interpreted as a string.  If it *is* repeatable, it will interpreted
+  as a whitespace-separated list::
 
     Usage: my_program.py [--repeatable=<arg> --repeatable=<arg>]
                          [--another-repeatable=<arg>]...
@@ -365,18 +370,21 @@ Examples
 
 We have an extensive list of `examples
 <https://github.com/docopt/docopt/tree/master/examples>`_ which cover
-every aspect of functionality of **docopt**.  Try them out, read the
+every aspect of functionality of **docopt**.  Try them out! Read the
 source if in doubt.
 
-Subparsers, multi-level help and *huge* applications (like git)
+Subparsers, multi-level help, and *huge* applications (like ``git``)
 ----------------------------------------------------------------------
 
-If you want to split your usage-pattern into several, implement
-multi-level help (with separate help-screen for each subcommand),
-want to interface with existing scripts that don't use **docopt**, or
-you're building the next "git", you will need the new ``options_first``
-parameter (described in API section above). To get you started quickly
-we implemented a subset of git command-line interface as an example:
+If you want to split your usage-pattern into several pieces, implement
+multi-level help (with a separate help-string for each subcommand).
+
+Want to interface with existing scripts that don't use **docopt**, or
+you're building the next "git"? You'll need the ``options_first``
+parameter (see “API”, above). 
+
+To get you started quickly, we implemented a subset of git's 
+command-line interface as an example:
 `examples/git
 <https://github.com/docopt/docopt/tree/master/examples/git>`_
 
@@ -385,20 +393,21 @@ Data validation
 ----------------------------------------------------------------------
 
 **docopt** does one thing and does it well: it implements your
-command-line interface.  However it does not validate the input data.
-On the other hand there are libraries like `python schema
-<https://github.com/halst/schema>`_ which make validating data a
-breeze.  Take a look at `validation_example.py
+command-line interface.  However, it does not validate the input data.
+
+On the other hand, libraries like `python schema
+<https://github.com/halst/schema>`_ make validating data a breeze.  
+Check out `validation_example.py
 <https://github.com/docopt/docopt/tree/master/examples/validation_example.py>`_
-which uses **schema** to validate data and report an error to the
+, which uses **schema** to validate data and report errors to the
 user.
 
 Using docopt with config-files
 ----------------------------------------------------------------------
 
-Often configuration files are used to provide default values which
+Often, configuration files are used to provide default values which
 could be overriden by command-line arguments.  Since **docopt**
-returns a simple dictionary it is very easy to integrate with
+returns a simple dictionary, it's super easy to integrate with
 config-files written in JSON, YAML or INI formats.
 `config_file_example.py <examples/config_file_example.py>`_ provides
 and example of how to use **docopt** with JSON or INI config-file.
@@ -407,12 +416,11 @@ and example of how to use **docopt** with JSON or INI config-file.
 Development
 ======================================================================
 
-We would *love* to hear what you think about **docopt** on our `issues
-page <http://github.com/docopt/docopt/issues>`_
+We would *love* to hear what you think about **docopt**! Tell us on our 
+`issues page <http://github.com/docopt/docopt/issues>`_
 
-Make pull requests, report bugs, suggest ideas and discuss
-**docopt**. You can also drop a line directly to
-<vladimir@keleshev.com>.
+Make pull requests, report bugs, suggest ideas, and discuss
+**docopt**. You can also drop a line directly to <vladimir@keleshev.com>.
 
 Porting ``docopt`` to other languages
 ======================================================================
@@ -434,11 +442,10 @@ Changelog
 ======================================================================
 
 **docopt** follows `semantic versioning <http://semver.org>`_.  The
-first release with stable API will be 1.0.0 (soon).  Until then, you
-are encouraged to specify explicitly the version in your dependency
-tools, e.g.::
+first release with stable API will be 1.0.0.  Until then, you
+are encouraged to **explicitly** specify the version in your dependency
+tools (e.g., ``pip install docopt==0.6.1``).
 
-    pip install docopt==0.6.1
 
 - 0.6.1 Bugfix release.
 - 0.6.0 ``options_first`` parameter.
