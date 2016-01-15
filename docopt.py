@@ -557,6 +557,11 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
     if len(usage_sections) > 1:
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
+    options_pattern = re.compile(r'\n\s*?options:', re.IGNORECASE)
+    if options_pattern.search(usage_sections[0]):
+        print('Warning: options (case-insensitive) was found in usage. '
+              'Use a blank line between each section otherwise '
+              'it behaves badly.')
     DocoptExit.usage = usage_sections[0]
 
     options = parse_defaults(doc)
