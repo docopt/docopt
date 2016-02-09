@@ -13,7 +13,7 @@ class PyTestCommand(TestCommand):
         self.test_args = []
         self.test_suite = True
 
-    def run(self):
+    def run_tests(self):
         import pytest
         rcode = pytest.main(self.test_args)
         sys.exit(rcode)
