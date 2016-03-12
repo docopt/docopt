@@ -559,8 +559,22 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
     DocoptExit.usage = usage_sections[0]
 
+    usage = usage_sections[0]
+    placeholder_re = re.compile(r'(?=[\s\t]-([a-zA-Z0-9_]+)-([\s]|$))')
+    matches = placeholder_re.finditer(doc)
+    for match in matches:
+        group_name = match.group(1)
+        group_pattern = ' '.join(
+            line.strip()
+            for line in parse_section('%s:' % group_name, doc)[0].strip().partition(":")[2].split('\n')
+            if line.strip()
+        )
+        usage = usage.replace('-%s-' % group_name, '(%s)' % group_pattern)
+
+    doc = doc.replace(usage_sections[0], usage)
+
     options = parse_defaults(doc)
-    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    pattern = parse_pattern(formal_usage(usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
     #    same_name = [d for d in arguments if d.name == a.name]

@@ -614,3 +614,26 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_pattern_groups_1():
+    doc = """Usage: prog -group1-
+
+             Group1:
+               --foo
+          """
+    a = docopt(doc, '--foo')
+    assert a == {'--foo': True}
+
+
+def test_pattern_groups_2():
+    doc = """Usage: prog -group1- -group2-
+
+             Group1:
+               --foo
+
+             Group2:
+                baz | (--bar | --bap)
+          """
+    a = docopt(doc, '--foo baz')
+    assert a == {'--foo': True, 'baz': True, '--bar': False, '--bap': False}

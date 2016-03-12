@@ -956,12 +956,17 @@ other options:
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
 
-r"""Usage: prog -group1- (-group_2-)
+r"""Usage: prog (((--foo))) ((((baz | (--bar | --bap)))))
+"""
+$ prog --foo baz
+{"--bar": false, "--bap": false, "baz": true, "--foo": true}
 
-Groups:
-  group1: --foo
-  group_2:
-    --bar | --baz
+r"""Usage: prog -group1- -group_2-
+
+Group1: --foo
+
+Group_2:
+  --bar | --baz
 """
 $ prog --foo --baz
 {"--foo": true, "--baz": true, "--bar": false}
