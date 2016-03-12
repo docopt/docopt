@@ -955,3 +955,13 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+r"""Usage: prog -group1- (-group_2-)
+
+Groups:
+  group1: --foo
+  group_2:
+    --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
