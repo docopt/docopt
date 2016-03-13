@@ -380,10 +380,12 @@ humans. Under the hood, docopt will replace group elements (e.g.
 **Group description** has to define a pattern of argument, option, and
 command elements. Group elements withing groups are not allowed.
 
+::
+
     My Group: --an_option | (--another_option | command) [-o <arg>]
 
 Case for group names is irrelevant. Underscores (``_``) in group elements
-are translated to spaces (`` ``) when looking for group description.
+are translated to spaces when looking for group description.
 
 It is possible to span pattern definitions on multiple lines. This
 definition is equivalent to the previous example::
