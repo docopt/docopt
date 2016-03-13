@@ -654,20 +654,3 @@ def test_pattern_groups_dont_recurse():
     except RuntimeError as e:
         assert False, '{}'.format(e)
     assert a['bar'] == True and '-group1-' not in a
-
-
-def test_pattern_groups_tmp():
-    doc = """Usage: prog -group1- -common_options- [options]
-
-  Group1: --foo
-
-  Options:
-    -a
-    -b
-    -c
-
-  Common Options:
-    --bar | --baz
-"""
-    a = docopt(doc, '--foo --bar -ab')
-    assert a['--bar'] == True
