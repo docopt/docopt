@@ -243,6 +243,9 @@ Each pattern can consist of the following elements:
   conventions of ``--options`` or ``<arguments>`` or ``ARGUMENTS``,
   plus two special commands: dash "``-``" and double dash "``--``"
   (see below).
+- **-groups-**. Groups are words that start and end with a dash (``-``), e.g.
+  ``-my_group-``. Every group defined in usage patterns has to be
+  described in its own section. See "Group description format" below.
 
 Use the following constructs to specify patterns:
 
@@ -359,6 +362,41 @@ The rules are as follows:
 
     # will be './here ./there', because it is not repeatable
     --not-repeatable=<arg>      [default: ./here ./there]
+
+Group descriptions format
+----------------------------------------------------------------------
+
+The only function of groups is to make usage patterns more readable to
+humans. Under the hood, docopt will replace group elements with their
+respective patterns.
+
+**Group description** has to define a pattern of non-group elements
+(i.e. arguments, options, commands)::
+
+    My Group: --an_option | (--another_option | command) [-o <arg>]
+
+It is possible to span pattern definitions on multiple lines. This is
+equivalent to previous example::
+
+    My Group:
+      --an_option |
+      (--another_option | command)
+      [-o <arg>]
+
+Since groups are just readability replacements for other patterns,
+they can be enclosed in optional or required parenthesis, etc.
+These are all valid usage patterns using groups::
+
+    Usage: prog [-v] -input- [-out_file- | (-out_db- [--create])]
+
+    Input: ...
+
+    Out File: ...
+
+    Out DB:
+      ....
+
+Every group that is defined in usage patterns must also be described.
 
 Examples
 ----------------------------------------------------------------------
