@@ -627,12 +627,12 @@ def test_pattern_groups_1():
 
 
 def test_pattern_groups_2():
-    doc = """Usage: prog -group_1- -group_2-
+    doc = """Usage: prog -group_1- -group-2-
 
              Group 1:
                --foo
 
-             Group 2:
+             Group-2:
                 baz | (--bar | --bap)
           """
     a = docopt(doc, '--foo baz')

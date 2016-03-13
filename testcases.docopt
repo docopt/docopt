@@ -993,11 +993,11 @@ r"""Usage: prog -group1- -group_2-
 $ prog --foo --baz
 {"--foo": true, "--baz": true, "--bar": false}
 
-r"""Usage: prog -group1- -group_2-
+r"""Usage: prog -group1- -group-2-
 
   Group1: --foo
 
-  Group 2:
+  Group-2:
     --bar | --baz
 """
 $ prog --foo --baz

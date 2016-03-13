@@ -451,8 +451,8 @@ def parse_argv(tokens, options, options_first=False):
 
 def parse_groups(usage, doc):
     # original_usage = usage
-    placeholder_re = re.compile(r'(?=[\s\t[(]-([a-zA-Z0-9_]+)-([\s\t\])]|$))')
-    matches = placeholder_re.finditer(doc)
+    placeholder_re = re.compile(r'(?=[\s\t[(]-([a-zA-Z0-9\-_]+)-([\s\t\])]|$))')
+    matches = placeholder_re.finditer(usage)
     for match in matches:
         group_name = match.group(1)
         group_lines = parse_section('%s:' % group_name.replace('_', ' '), doc)
