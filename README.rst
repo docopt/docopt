@@ -186,7 +186,7 @@ the return dictionary will be:
 Help message format
 ======================================================================
 
-Help message consists of 2 parts:
+Help message consists of 3 parts:
 
 - Usage pattern, e.g.::
 
@@ -199,6 +199,13 @@ Help message consists of 2 parts:
     -o FILE      specify output file [default: ./test.txt]
     --quiet      print less text
     --verbose    print more text
+
+- Group descriptions (optional), e.g.::
+
+    Group 1:
+      <arg1> --opt1 [--opt2=ARG2]
+
+    Group2: command2 | command3
 
 Their format is described below; other text is ignored.
 
@@ -367,16 +374,19 @@ Group descriptions format
 ----------------------------------------------------------------------
 
 The only function of groups is to make usage patterns more readable to
-humans. Under the hood, docopt will replace group elements with their
-respective patterns.
+humans. Under the hood, docopt will replace group elements (e.g.
+``-my_group-``) with their respective patterns.
 
-**Group description** has to define a pattern of non-group elements
-(i.e. arguments, options, commands)::
+**Group description** has to define a pattern of argument, option, and
+command elements. Group elements withing groups are not allowed.
 
     My Group: --an_option | (--another_option | command) [-o <arg>]
 
-It is possible to span pattern definitions on multiple lines. This is
-equivalent to previous example::
+Case for group names is irrelevant. Underscores (``_``) in group elements
+are translated to spaces (`` ``) when looking for group description.
+
+It is possible to span pattern definitions on multiple lines. This
+definition is equivalent to the previous example::
 
     My Group:
       --an_option |
@@ -389,14 +399,41 @@ These are all valid usage patterns using groups::
 
     Usage: prog [-v] -input- [-out_file- | (-out_db- [--create])]
 
-    Input: ...
+      Input: <in_file>
 
-    Out File: ...
+      Out File: <out_file>
 
-    Out DB:
-      ....
+      Out DB:
+        <db_name>
+        [-u USERNAME [-p PASSWORD]]
+        [<host>]
 
-Every group that is defined in usage patterns must also be described.
+    Options:
+      ...
+
+The indentation is completely optional, at all levels, and has no relevance
+to finding definitions. However, it does make the usage instructions more
+readable, and is therefore encouraged.
+
+Also, group descriptions can be placed below or above "Options" section, the
+order bears has relevance to parsing.
+
+Similarly to Options, group patterns can have descriptions on every line,
+separated by at least two spaces. Unlike with Options, having comments on a
+separate line is not supported::
+
+      Out DB:
+        <db_name>  database name  # GOOD, 2 spaces
+        [-u USERNAME [-p PASSWORD]]
+          database credentials  # BAD, will be mistaken for a pattern!
+        [<host>] local or remote host name  # BAD, has only 1 space!
+
+
+Every group that is defined in usage patterns (e.g. ``-my_group-``) must
+also be described.
+
+Avoid naming your groups "Options" or "Usage", because that will collide
+with other Docopt features.
 
 Examples
 ----------------------------------------------------------------------
