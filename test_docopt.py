@@ -622,12 +622,12 @@ def test_pattern_groups_1():
              Group1:
                --foo
           """
-    a = docopt(doc, '--foo')
-    assert a == {'--foo': True}
+    with raises(DocoptExit):
+        docopt(doc, '')
 
 
-def test_pattern_groups_2():
-    doc = """Usage: prog -group_1- -group-2-
+def test_pattern_groups_one_missing():
+    doc = """Usage: prog -group_1- -group33-
 
              Group 1:
                --foo
@@ -635,5 +635,8 @@ def test_pattern_groups_2():
              Group-2:
                 baz | (--bar | --bap)
           """
-    a = docopt(doc, '--foo baz')
-    assert a == {'--foo': True, 'baz': True, '--bar': False, '--bap': False}
+    try:
+        docopt(doc)
+    except DocoptLanguageError as e:
+        assert 'group "group33:"' in e.message
+        assert 'not found.' in e.message
