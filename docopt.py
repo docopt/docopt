@@ -450,7 +450,7 @@ def parse_argv(tokens, options, options_first=False):
 
 
 def parse_groups(usage, doc):
-    # original_usage = usage
+    original_usage = usage
     placeholder_re = re.compile(r'(?=[\s\t[(]-([a-zA-Z0-9\-_]+)-([\s\t\])]|$))')
     matches = placeholder_re.finditer(usage)
     for match in matches:
@@ -466,7 +466,8 @@ def parse_groups(usage, doc):
             for line in group_lines if line.strip())
         usage = usage.replace('-%s-' % group_name,
                               '(%s)' % group_pattern)
-    return usage
+        doc = doc.replace('\n'.join(group_lines), '')
+    return usage, doc
 
 
 def parse_defaults(doc):
@@ -578,7 +579,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     if len(usage_sections) > 1:
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
     DocoptExit.usage = usage_sections[0]
-    usage = parse_groups(usage_sections[0], doc)
+    usage, doc = parse_groups(usage_sections[0], doc)
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(usage), options)
     # [default] syntax for argument is disabled
