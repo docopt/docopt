@@ -970,3 +970,35 @@ Group_2:
 """
 $ prog --foo --baz
 {"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group_2-
+
+Group1: --foo  descriotion of foo
+
+Group_2:
+  --bar | --baz  description of baz and bar
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group_2-
+
+  Groups:
+
+    Group1: --foo
+
+    Group_2:
+      --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group_2-
+
+  Group1: --foo
+
+  Group_2:
+    --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
