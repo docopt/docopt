@@ -965,7 +965,7 @@ r"""Usage: prog -group1- -group_2-
 
 Group1: --foo
 
-Group_2:
+Group 2:
   --bar | --baz
 """
 $ prog --foo --baz
@@ -975,7 +975,7 @@ r"""Usage: prog -group1- -group_2-
 
 Group1: --foo  descriotion of foo
 
-Group_2:
+Group 2:
   --bar | --baz  description of baz and bar
 """
 $ prog --foo --baz
@@ -987,7 +987,7 @@ r"""Usage: prog -group1- -group_2-
 
     Group1: --foo
 
-    Group_2:
+    Group 2:
       --bar | --baz
 """
 $ prog --foo --baz
@@ -997,7 +997,7 @@ r"""Usage: prog -group1- -group_2-
 
   Group1: --foo
 
-  Group_2:
+  Group 2:
     --bar | --baz
 """
 $ prog --foo --baz

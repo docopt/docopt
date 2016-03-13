@@ -455,7 +455,7 @@ def parse_groups(usage, doc):
     matches = placeholder_re.finditer(doc)
     for match in matches:
         group_name = match.group(1)
-        group_lines = parse_section('%s:' % group_name, doc)
+        group_lines = parse_section('%s:' % group_name.replace('_', ' '), doc)
         try:
             group_lines = group_lines[0].strip().partition(":")[2].split('\n')
         except IndexError:
