@@ -1,6 +1,12 @@
 ``docopt`` creates *beautiful* command-line interfaces
 ======================================================================
 
+.. image:: https://travis-ci.org/docopt/docopt.svg?branch=master
+    :target: https://travis-ci.org/docopt/docopt
+
+.. image:: https://img.shields.io/pypi/v/docopt.svg
+    :target: https://pypi.python.org/pypi/docopt
+
 Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
 command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
 
