@@ -312,6 +312,7 @@ It is necessary to list option descriptions in order to specify:
 - synonymous short and long options,
 - if an option has an argument,
 - if option's argument has a default value.
+- if option's argument can be set from environment variable.
 
 The rules are as follows:
 
@@ -348,6 +349,13 @@ The rules are as follows:
     --coefficient=K  The K coefficient [default: 2.95]
     --output=FILE    Output file [default: test.txt]
     --directory=DIR  Some directory [default: ./]
+
+- If you want to set the option's value from environment variable, put
+  it into the option-description, in form ``[envvar:
+  <environment-variabale-name>]``::
+
+    -q                Quit [envvar: DOCOPT_QUIET]
+    --output=FILE     Output file [envvar: DOCOPT_OUTPUT]
 
 - If the option is not repeatable, the value inside ``[default: ...]``
   will be interpreted as string.  If it *is* repeatable, it will be

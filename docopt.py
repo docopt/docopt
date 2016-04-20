@@ -6,6 +6,7 @@
  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
 
 """
+import os
 import sys
 import re
 
@@ -196,9 +197,13 @@ class Option(LeafPattern):
                 short = s
             else:
                 argcount = 1
-        if argcount:
-            matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-            value = matched[0] if matched else None
+        envvar = re.findall('\[envvar: (.*?)\]', description, flags=re.I)
+        if envvar:
+            value = os.environ.get(envvar[0])
+        if argcount and not value:
+            if not value:
+                matched = re.findall('\[default: (.*?)\]', description, flags=re.I)
+                value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
     def single_match(self, left):
