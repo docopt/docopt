@@ -483,6 +483,11 @@ def extras(help, version, options, doc):
 
 
 class Dict(dict):
+    def __init__(self, *args, **kwargs):
+        defaults = dict(kwargs.pop('defaults', {}))
+        dict.__init__(self, *args, **kwargs)
+        self.defaults = defaults
+
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
@@ -577,5 +582,6 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        return Dict(((a.name, a.value) for a in (pattern.flat() + collected)),
+                    defaults=((o.name, o.value) for o in options))
     raise DocoptExit()
