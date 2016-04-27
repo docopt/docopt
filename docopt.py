@@ -438,6 +438,18 @@ def parse_argv(tokens, options, options_first=False):
     while tokens.current() is not None:
         if tokens.current() == '--':
             return parsed + [Argument(None, v) for v in tokens]
+        elif tokens.current().startswith('"'):
+            p = ""
+            i = 0
+            tokenLen = len(tokens)
+            while i < tokenLen:
+                v = tokens[i]
+                tokens.move()
+                p += ' ' + v
+                if v.endswith('"'):
+                    p = p.replace('"', '').strip()
+                    parsed.append(Argument(None, p))
+                    break
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
         elif tokens.current().startswith('-') and tokens.current() != '-':
