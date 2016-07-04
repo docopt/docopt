@@ -2,18 +2,39 @@
 
 from typing import (
     Any,
-    # Don't shadow docopt's Dict class.
-    Dict as TDict,
     List,
-    # Don't shadow docopt's Optional class.
-    Optional as TOptional,
     Tuple,
     Union,
+    # These docopt classes must not be clobbered.
+    Dict as TDict,
+    Optional as TOptional,
 )
 
-TMatch = Tuple[bool, Pattern, List[Pattern]]
-TSingleMatch = Tuple[Union[int, None], Union[Argument, Command, None]]
 
+# Acceptable values in a Docopt Dict.
+TDocoptValue = Union[bool, int, str, List[str]]
+
+# A map of flags/options to their acceptable values.
+TDocoptDict = TDict[str, TDocoptValue]
+
+# Argument or Option
+TArgumentOption = Union[Argument, Option]
+
+# Acceptable source types for parsing.
+TSource = Union[str, List[str]]
+
+# match() result.
+TMatch = Tuple[
+    bool,
+    TArgumentOption,
+    List[TArgumentOption]
+]
+
+# single_match() result, with optional values.
+TSingleMatch = Tuple[
+    Union[int, None],
+    Union[Argument, Command, None]
+]
 
 class DocoptLanguageError(Exception): ...
 
@@ -77,13 +98,13 @@ class Option(LeafPattern):
 class Required(BranchPattern):
     def match(
         self,
-        left: List[Union[BranchPattern, LeafPattern]],
+        left: List[TArgumentOption],
         collected: TOptional[List[BranchPattern]]=None) -> TMatch: ...
 
 class Optional(BranchPattern):
     def match(
         self,
-        left: List[Union[BranchPattern, LeafPattern]],
+        left: List[TArgumentOption],
         collected: TOptional[List[BranchPattern]]=None) -> TMatch: ...
 
 class OptionsShortcut(Optional): ...
@@ -91,20 +112,20 @@ class OptionsShortcut(Optional): ...
 class OneOrMore(BranchPattern):
     def match(
         self,
-        left: List[Union[BranchPattern, LeafPattern]],
+        left: List[TArgumentOption],
         collected: TOptional[List[BranchPattern]]=None) -> TMatch: ...
 
 class Either(BranchPattern):
     def match(
         self,
-        left: List[Union[BranchPattern, LeafPattern]],
+        left: List[TArgumentOption],
         collected: TOptional[List[BranchPattern]]=None) -> TMatch: ...
 
 class Tokens(list):
     error = ...  # type: type
     def __init__(
         self,
-        source: Union[str, List[str]],
+        source: TSource,
         error: type=...) -> None: ...
     @staticmethod
     def from_pattern(source: str) -> Tokens: ...
@@ -132,7 +153,7 @@ def parse_atom(
 def parse_argv(
     tokens: Tokens,
     options: List[Option],
-    options_first: bool=False) -> List[Union[Option, Argument]]: ...
+    options_first: bool=False) -> List[TArgumentOption]: ...
 def parse_defaults(doc: str) -> List[Option]: ...
 def parse_section(name: str, source: str) -> List[str]: ...
 def formal_usage(section: str) -> str: ...
@@ -146,9 +167,9 @@ class Dict(dict): ...
 
 def docopt(
     doc: str,
-    argv: TOptional[Union[str, List[str]]]=None,
+    argv: TOptional[TSource]=None,
     help: TOptional[bool]=True,
     version: TOptional[str]=None,
-    options_first: TOptional[bool]=False) -> TDict: ...
+    options_first: TOptional[bool]=False) -> TDocoptDict: ...
 
 x = ...  # type: str
