@@ -2,8 +2,10 @@
 
 from typing import (
     Any,
+    # Don't shadow docopt's Dict class.
     Dict as TDict,
     List,
+    # Don't shadow docopt's Optional class.
     Optional as TOptional,
     Tuple,
     Union,
@@ -20,7 +22,7 @@ class DocoptExit(SystemExit):
     def __init__(self, message: TOptional[str]='') -> None: ...
 
 class Pattern:
-    def __eq__(self, other: Any): ...
+    def __eq__(self, other: Any) -> bool: ...
     def __hash__(self) -> int: ...
     def fix(self) -> Pattern: ...
     def fix_identities(
@@ -39,7 +41,7 @@ class LeafPattern(Pattern):
     def match(
         self,
         left: Pattern,
-        collected: TOptional[List[Pattern]]=None) -> TMatch: ...
+        collected: TOptional[List[Pattern]]=None) -> Tuple[bool, Pattern, List[Pattern]]: ...
 
 class BranchPattern(Pattern):
     children = ...  # type: List[Pattern]
@@ -68,7 +70,7 @@ class Option(LeafPattern):
         value: TOptional[bool]=False) -> None: ...
     @classmethod
     def parse(class_, option_description: str) -> Option: ...
-    def single_match(self, left) -> TSingleMatch: ...
+    def single_match(self, left: List[LeafPattern]) -> TSingleMatch: ...
     @property
     def name(self) -> str: ...
 
@@ -87,10 +89,16 @@ class Optional(BranchPattern):
 class OptionsShortcut(Optional): ...
 
 class OneOrMore(BranchPattern):
-    def match(self, left, collected=None) -> TMatch: ...
+    def match(
+        self,
+        left: List[BranchPattern],
+        collected: TOptional[List[Pattern]]=None) -> TMatch: ...
 
 class Either(BranchPattern):
-    def match(self, left, collected=None) -> TMatch: ...
+    def match(
+        self,
+        left: List[BranchPattern],
+        collected: TOptional[List[Pattern]]=None) -> TMatch: ...
 
 class Tokens(list):
     error = ...  # type: type
