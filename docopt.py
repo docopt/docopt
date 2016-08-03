@@ -462,8 +462,15 @@ def parse_defaults(doc):
 
 
 def parse_section(name, source):
-    pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?(?:\n|$))*)',
-                         re.IGNORECASE | re.MULTILINE)
+    pattern = re.compile(r'''
+                         ^(               # A section begins at start of a line and consists of:
+                           .*{}.*         # - a line that contains the section's name; and
+                           (?:            # - several
+                              \n+[ \t].*  #   indented lines possibly separated by empty lines.
+                           )*
+                         )$               # The section ends at the end of a line.
+                         '''.format(name),
+                         re.IGNORECASE | re.MULTILINE | re.VERBOSE)
     return [s.strip() for s in pattern.findall(source)]
 
 
