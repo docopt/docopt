@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -rf build
+
+override_dh_auto_build:
+	python3 setup.py build
+
+override_dh_auto_install:
+	python3 setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
+	rm -rf `find $(CURDIR)/debian/tmp -name "__pycache__" -type d`

@@ -1,0 +1,5 @@
+docopt (0.6.1) unstable; urgency=low
+
+  * debianized docopt
+
+ -- devbliss GmbH <info@devbliss.com>  Tue, 09 Apr 2013 09:39:56 +0200
