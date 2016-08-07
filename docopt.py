@@ -9,6 +9,16 @@
 import sys
 import re
 
+try:
+    # The python standard library contains OrderedDict in version >= 2.7
+    from collections import OrderedDict
+except ImportError:
+    # Try substitution package for python 2.4-2.6 (https://pypi.python.org/pypi/ordereddict).
+    try:
+        from ordereddict import OrderedDict
+    except ImportError:
+        # Otherwise use unsorted dict
+        OrderedDict = dict
 
 __all__ = ['docopt']
 __version__ = '0.6.2'
@@ -482,7 +492,7 @@ def extras(help, version, options, doc):
         sys.exit()
 
 
-class Dict(dict):
+class Dict(OrderedDict):
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
