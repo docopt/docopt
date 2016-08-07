@@ -278,6 +278,11 @@ class Either(BranchPattern):
             return min(outcomes, key=lambda outcome: len(outcome[1]))
         return False, left, collected
 
+    def fix_identities(self, uniq=None):
+        for child in self.children:
+            child.fix_identities()
+
+
 
 class Tokens(list):
 

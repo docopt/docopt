@@ -313,7 +313,7 @@ def test_pattern_fix_repeating_arguments():
             Required(Argument('N', []), Argument('N', []))
     assert Either(Argument('N'),
                         OneOrMore(Argument('N'))).fix() == \
-            Either(Argument('N', []), OneOrMore(Argument('N', [])))
+            Either(Argument('N', None), OneOrMore(Argument('N', [])))
 
 
 def test_set():
@@ -609,6 +609,18 @@ def test_parse_section():
             'Usage: eggs spam',
             'usage: pit stop',
     ]
+
+def test_issue_226_overriding_args_by_name():
+    """ test that fix_identities does not hit arguments from different commands """
+    args = '''usage: prog func1 <arg1> [--a]
+                     prog func2 <arg1>...'''
+
+    import sys
+    sys.argv = 'prog func1 value'.split()
+    assert docopt(args)['<arg1>'] == 'value'
+
+    sys.argv = 'prog func2 value'.split()
+    assert docopt(args)['<arg1>'] == ['value']
 
 
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
