@@ -469,6 +469,10 @@ def parse_section(name, source):
 
 def formal_usage(section):
     _, _, section = section.partition(':')  # drop "usage:"
+
+    #Remove comments from usage section.
+    section, _num_comments = re.subn('#.+?(?=(\\n|$))', '', section)
+
     pu = section.split()
     return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
 
