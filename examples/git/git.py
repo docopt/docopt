@@ -37,6 +37,7 @@ if __name__ == '__main__':
     print(args)
     print('command arguments:')
 
+    git_option = ['checkout', 'clone', 'commit', 'push', 'remote']
     argv = [args['<command>']] + args['<args>']
     if args['<command>'] == 'add':
         # In case subcommand is implemented as python module:
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     elif args['<command>'] == 'branch':
         # In case subcommand is a script in some other programming language:
         exit(call(['python', 'git_branch.py'] + argv))
-    elif args['<command>'] in 'checkout clone commit push remote'.split():
+    elif args['<command>'] in git_option:
         # For the rest we'll just keep DRY:
         exit(call(['python', 'git_%s.py' % args['<command>']] + argv))
     elif args['<command>'] in ['help', None]:
