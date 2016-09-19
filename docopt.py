@@ -179,27 +179,30 @@ class Command(Argument):
 
 class Option(LeafPattern):
 
-    def __init__(self, short=None, long=None, argcount=0, value=False):
+    def __init__(self, short=None, long=None, argcount=0, value=False, atype=None):
         assert argcount in (0, 1)
         self.short, self.long, self.argcount = short, long, argcount
         self.value = None if value is False and argcount else value
 
     @classmethod
     def parse(class_, option_description):
-        short, long, argcount, value = None, None, 0, False
+        short, long, argcount, value, atype = None, None, 0, False, None
         options, _, description = option_description.strip().partition('  ')
-        options = options.replace(',', ' ').replace('=', ' ')
+        options = options.replace(',', ' ').replace('=', ' =')
         for s in options.split():
             if s.startswith('--'):
                 long = s
             elif s.startswith('-'):
                 short = s
+            elif s.startswith('='):
+                atype = s[1:]
+                arcount = 1
             else:
                 argcount = 1
         if argcount:
             matched = re.findall('\[default: (.*)\]', description, flags=re.I)
             value = matched[0] if matched else None
-        return class_(short, long, argcount, value)
+        return class_(short, long, argcount, value, atype)
 
     def single_match(self, left):
         for n, pattern in enumerate(left):
@@ -212,8 +215,8 @@ class Option(LeafPattern):
         return self.long or self.short
 
     def __repr__(self):
-        return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
-                                           self.argcount, self.value)
+        return 'Option(%r, %r, %r, %r, %r)' % (self.short, self.long,
+                                self.argcount, self.value, self.atype)
 
 
 class Required(BranchPattern):
