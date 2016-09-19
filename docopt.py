@@ -183,6 +183,7 @@ class Option(LeafPattern):
         assert argcount in (0, 1)
         self.short, self.long, self.argcount = short, long, argcount
         self.value = None if value is False and argcount else value
+        self.atype = atype
 
     @classmethod
     def parse(class_, option_description):
@@ -196,7 +197,7 @@ class Option(LeafPattern):
                 short = s
             elif s.startswith('='):
                 atype = s[1:]
-                arcount = 1
+                argcount = 1
             else:
                 argcount = 1
         if argcount:
@@ -486,6 +487,10 @@ def extras(help, version, options, doc):
 
 
 class Dict(dict):
+    def __init__(self, options, *args):
+        self.options = options
+        dict.__init__(self, *args)
+
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
@@ -580,5 +585,5 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        return Dict(options, ((a.name, a.value) for a in (pattern.flat() + collected)))
     raise DocoptExit()
