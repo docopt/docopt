@@ -402,7 +402,7 @@ Porting ``docopt`` to other languages
 We think **docopt** is so good, we want to share it beyond the Python
 community!
 
-The follosing ports are available:
+The following ports are available:
 
 - `Ruby port <http://github.com/docopt/docopt.rb>`_
 - `CoffeeScript port <http://github.com/docopt/docopt.coffee>`_
