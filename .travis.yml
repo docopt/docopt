@@ -1,13 +1,9 @@
-sudo: false
 language: python
-python: 3.5
-env:
-  - TOX_ENV=py27
-  - TOX_ENV=py34
-  - TOX_ENV=py35
-matrix:
-  include:
-    - env: TOX_ENV=py36
-      python: "3.6"
-install: pip install tox
-script: tox -e $TOX_ENV
+cache: pip
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install: pip install tox tox-travis
+script: tox
