@@ -440,7 +440,7 @@ def parse_argv(tokens, options, options_first=False):
             return parsed + [Argument(None, v) for v in tokens]
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
-        elif tokens.current().startswith('-') and tokens.current() != '-':
+        elif tokens.current().startswith('-') and tokens.current() != '-' and not tokens.current().isdigit():
             parsed += parse_shorts(tokens, options)
         elif options_first:
             return parsed + [Argument(None, v) for v in tokens]
