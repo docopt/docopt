@@ -337,6 +337,15 @@ $ prog 10
 $ prog 10 20
 "user-error"
 
+$ prog -1
+{"<arg>": "-1"}
+
+$ prog -10
+{"<arg>": "-10"}
+
+$ prog -3.14159265
+{"<arg>": "-3.14159265"}
+
 $ prog
 "user-error"
 
