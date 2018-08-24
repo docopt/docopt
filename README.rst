@@ -331,7 +331,7 @@ The rules are as follows:
   to stick to a single style.::
 
     -o FILE --output=FILE       # without comma, with "=" sign
-    -i <file>, --input <file>   # with comma, without "=" sing
+    -i <file>, --input <file>   # with comma, without "=" sign
 
 - Use two spaces to separate options with their informal description::
 
