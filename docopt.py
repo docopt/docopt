@@ -579,3 +579,48 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     if matched and left == []:  # better error message if left?
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
+
+
+def list_args(doc):
+    """Parse the description of the command-line interface to extract all
+    arguments and options
+
+    Parameters
+    ----------
+    doc : str
+        Description of your command-line interface.
+
+    Returns
+    -------
+    args : list
+        A list of all the arguments and options available
+
+    Example
+    -------
+    >>> from docopt import list_args
+    >>> doc = '''
+    ... Usage:
+    ...     my_program tcp <host> <port> [--timeout=<seconds>]
+    ...     my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
+    ...     my_program (-h | --help | --version)
+    ...
+    ... Options:
+    ...     -h, --help  Show this screen and exit.
+    ...     --baud=<n>  Baudrate [default: 9600]
+    ... '''
+    >>> sorted(list_args(doc))
+    ['--baud', '--help', '--timeout', '--version', '<host>', '<port>', 'serial', 'tcp']
+    """
+
+    usage_sections = parse_section('usage:', doc)
+    if len(usage_sections) == 0:
+        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
+    if len(usage_sections) > 1:
+        raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
+
+    options = parse_defaults(doc)
+    pattern = parse_pattern(formal_usage(usage_sections[0]), options)
+
+    matched, left, collected = pattern.fix().match([])
+    args = set([a.name for a in (pattern.flat() + collected)])
+    return list(args.union([a for a in left]))

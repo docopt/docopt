@@ -3,7 +3,7 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, parse_section,
-                    parse_defaults, formal_usage, Tokens, transform
+                    parse_defaults, formal_usage, Tokens, transform, list_args
                    )
 from pytest import raises
 
@@ -614,3 +614,34 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_list_args():
+
+    doc = """Handle stuff
+
+Usage:
+  cmd insert [-h] [<file>]
+  cmd get [<file>]
+  cmd find <text> ...
+  cmd --list
+
+Options:
+  get         Retrieve stuff from web
+  find        Search through stuff
+  insert      Insert stuff
+  <file>      File to retrieve/insert
+  <text>      Search text in stuff
+  -l, --list  List stuff
+"""
+
+    args = list_args(doc)
+    assert "-h" in args
+    assert "get" in args
+    assert "find" in args
+    assert "insert" in args
+    assert "<file>" in args
+    assert "<text>" in args
+    assert "--list" in args
+
+    assert len(args) == 7
