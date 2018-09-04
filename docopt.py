@@ -434,13 +434,19 @@ def parse_argv(tokens, options, options_first=False):
         argv ::= [ long | shorts | argument ]* [ '--' [ argument ]* ] ;
 
     """
+    def isanumber(x):
+        try:
+            float(x)
+            return True
+        except ValueError:
+            return False
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
             return parsed + [Argument(None, v) for v in tokens]
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
-        elif tokens.current().startswith('-') and tokens.current() != '-':
+        elif tokens.current().startswith('-') and tokens.current() != '-' and not isanumber(tokens.current()):
             parsed += parse_shorts(tokens, options)
         elif options_first:
             return parsed + [Argument(None, v) for v in tokens]
