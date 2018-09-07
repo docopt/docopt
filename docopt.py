@@ -449,6 +449,27 @@ def parse_argv(tokens, options, options_first=False):
     return parsed
 
 
+def parse_groups(usage, doc):
+    original_usage = usage
+    placeholder_re = re.compile(r'(?=[\s\t[(]-([a-zA-Z0-9\-_]+)-([\s\t\])]|$))')
+    matches = placeholder_re.finditer(usage)
+    for match in matches:
+        group_name = match.group(1)
+        group_lines = parse_section('%s:' % group_name.replace('_', ' '), doc)
+        try:
+            group_lines = group_lines[0].strip().partition(":")[2].split('\n')
+        except IndexError:
+            raise DocoptLanguageError(
+                'group "%s:" (case-insensitive) not found.' % group_name)
+        group_pattern = '  '.join(
+            line.strip().partition('  ')[0]
+            for line in group_lines if line.strip())
+        usage = usage.replace('-%s-' % group_name,
+                              '(%s)' % group_pattern)
+        doc = doc.replace('\n'.join(group_lines), '')
+    return usage, doc
+
+
 def parse_defaults(doc):
     defaults = []
     for s in parse_section('options:', doc):
@@ -558,9 +579,9 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     if len(usage_sections) > 1:
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
     DocoptExit.usage = usage_sections[0]
-
+    usage, doc = parse_groups(usage_sections[0], doc)
     options = parse_defaults(doc)
-    pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    pattern = parse_pattern(formal_usage(usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
     #    same_name = [d for d in arguments if d.name == a.name]
