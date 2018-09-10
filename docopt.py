@@ -487,7 +487,7 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False, strip_chars=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -511,13 +511,17 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
+    strip_chars : bool (default: False)
+        Remove the characters '-', '<', and '>' from the output dictionary
+        keys
 
     Returns
     -------
     args : dict
         A dictionary, where keys are names of command-line elements
-        such as e.g. "--verbose" and "<path>", and values are the
-        parsed values of those elements.
+        such as e.g. "--verbose" and "<path>" (or "verbose" and "path"
+        if strip_chars is True), and values are the parsed values of those
+        elements.
 
     Example
     -------
@@ -533,7 +537,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     ...     --baud=<n>  Baudrate [default: 9600]
     ... '''
     >>> argv = ['tcp', '127.0.0.1', '80', '--timeout', '30']
-    >>> docopt(doc, argv)
+    >>> docopt(doc, argv)  # doctest: +NORMALIZE_WHITESPACE
     {'--baud': '9600',
      '--help': False,
      '--timeout': '30',
@@ -542,6 +546,15 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
      '<port>': '80',
      'serial': False,
      'tcp': True}
+    >>> docopt(doc, argv, strip_chars=True)  # doctest: +NORMALIZE_WHITESPACE
+    {'baud': '9600',
+     'help': False,
+     'host': '127.0.0.1',
+     'port': '80',
+     'serial': False,
+     'tcp': True,
+     'timeout': '30',
+     'version': False}
 
     See also
     --------
@@ -577,5 +590,12 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        retdict = Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        if strip_chars:
+            retdict = Dict((key.translate(None, '-<>'), value) for key, value in retdict.items())
+        return retdict
     raise DocoptExit()
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
