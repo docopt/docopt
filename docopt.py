@@ -13,6 +13,11 @@ import re
 __all__ = ['docopt']
 __version__ = '0.6.2'
 
+PY3 = sys.version_info[0] == 3
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring,
 
 class DocoptLanguageError(Exception):
 
@@ -120,7 +125,7 @@ class LeafPattern(Pattern):
             if type(self.value) is int:
                 increment = 1
             else:
-                increment = ([match.value] if type(match.value) is str
+                increment = ([match.value] if isinstance(match.value, string_types)
                              else match.value)
             if not same_name:
                 match.value = increment
