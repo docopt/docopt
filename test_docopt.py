@@ -372,7 +372,7 @@ def test_short_options_error_handling():
         docopt('Usage: prog -o ARG\nOptions: -o ARG', '-o')
 
 
-def test_matching_paren():
+def test_matching_parent():
     with raises(DocoptLanguageError):
         docopt('Usage: prog [a [b]')
     with raises(DocoptLanguageError):
@@ -614,3 +614,27 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+    
+def test_multiple__default_values():
+    # two default values
+    doc = """Usage: prog 
+                    prog [--data=<data>]
+
+             Options:
+                    -d --data=<arg>    Input data [default: foo, bar]
+
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': ['foo','bar']}
+    
+    # one default value
+    doc = """Usage: prog 
+                    prog [--data=<data>]
+
+             Options:
+                    -d --data=<arg>    Input data [default: foo]
+
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': 'foo'}
+

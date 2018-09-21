@@ -198,7 +198,11 @@ class Option(LeafPattern):
                 argcount = 1
         if argcount:
             matched = re.findall('\[default: (.*)\]', description, flags=re.I)
-            value = matched[0] if matched else None
+            value = None
+            if matched:
+                value = [item.strip() for item in matched[0].split(',')]
+                if len(value) == 1:
+                    value = value[0]
         return class_(short, long, argcount, value)
 
     def single_match(self, left):
