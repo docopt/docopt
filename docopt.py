@@ -157,8 +157,8 @@ class Argument(LeafPattern):
 
     @classmethod
     def parse(class_, source):
-        name = re.findall('(<\S*?>)', source)[0]
-        value = re.findall('\[default: (.*)\]', source, flags=re.I)
+        name = re.findall(r'(<\S*?>)', source)[0]
+        value = re.findall(r'\[default: (.*)\]', source, flags=re.I)
         return class_(name, value[0] if value else None)
 
 
@@ -197,7 +197,7 @@ class Option(LeafPattern):
             else:
                 argcount = 1
         if argcount:
-            matched = re.findall('\[default: (.*)\]', description, flags=re.I)
+            matched = re.findall(r'\[default: (.*)\]', description, flags=re.I)
             value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
@@ -220,13 +220,13 @@ class Required(BranchPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        l = left
-        c = collected
+        original_collected = collected
+        original_left = left
         for pattern in self.children:
-            matched, l, c = pattern.match(l, c)
+            matched, left, collected = pattern.match(left, collected)
             if not matched:
-                return False, left, collected
-        return True, l, c
+                return False, original_left, original_collected
+        return True, left, collected
 
 
 class Optional(BranchPattern):
@@ -248,21 +248,22 @@ class OneOrMore(BranchPattern):
     def match(self, left, collected=None):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
-        l = left
-        c = collected
-        l_ = None
+        original_collected = collected
+        original_left = left
+        last_left = None
         matched = True
         times = 0
         while matched:
-            # could it be that something didn't match but changed l or c?
-            matched, l, c = self.children[0].match(l, c)
+            # could it be that something didn't match but changed left or
+            # collected?
+            matched, left, collected = self.children[0].match(left, collected)
             times += 1 if matched else 0
-            if l_ == l:
+            if last_left == left:
                 break
-            l_ = l
+            last_left = left
         if times >= 1:
-            return True, l, c
-        return False, left, collected
+            return True, left, collected
+        return False, original_left, original_collected
 
 
 class Either(BranchPattern):
@@ -288,7 +289,7 @@ class Tokens(list):
     @staticmethod
     def from_pattern(source):
         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
-        source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
+        source = [s for s in re.split(r'\s+|(\S*<.*?>)', source) if s]
         return Tokens(source, error=DocoptLanguageError)
 
     def move(self):
@@ -454,9 +455,9 @@ def parse_defaults(doc):
     for s in parse_section('options:', doc):
         # FIXME corner case "bla: options: --foo"
         _, _, s = s.partition(':')  # get rid of "options:"
-        split = re.split('\n[ \t]*(-\S+?)', '\n' + s)[1:]
+        split = re.split(r'\n[ \t]*(-\S+?)', '\n' + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
-        options = [Option.parse(s) for s in split if s.startswith('-')]
+        options = [Option.parse(s_) for s_ in split if s_.startswith('-')]
         defaults += options
     return defaults
 
@@ -562,18 +563,18 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     # [default] syntax for argument is disabled
-    #for a in pattern.flat(Argument):
-    #    same_name = [d for d in arguments if d.name == a.name]
-    #    if same_name:
-    #        a.value = same_name[0].value
+    # for a in pattern.flat(Argument):
+    #     same_name = [d for d in arguments if d.name == a.name]
+    #     if same_name:
+    #         a.value = same_name[0].value
     argv = parse_argv(Tokens(argv), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(doc)
         options_shortcut.children = list(set(doc_options) - pattern_options)
-        #if any_options:
-        #    options_shortcut.children += [Option(o.short, o.long, o.argcount)
-        #                    for o in argv if type(o) is Option]
+        # if any_options:
+        #     options_shortcut.children += [Option(o.short, o.long, o.argcount)
+        #                     for o in argv if type(o) is Option]
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
