@@ -17,6 +17,7 @@ __version__ = '0.6.2'
 class DocoptLanguageError(Exception):
 
     """Error in construction of usage-message by developer."""
+    pass
 
 
 class DocoptExit(SystemExit):
