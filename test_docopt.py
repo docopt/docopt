@@ -65,13 +65,11 @@ def test_commands():
 
 
 def test_formal_usage():
-    doc = """
-    Usage: prog [-hv] ARG
-           prog N M
-
-    prog is a program."""
+    doc = '\n'.join(('Usage: prog [-hv] ARG',
+                     '       prog N M',
+                     'prog is a program.'))
     usage, = parse_section('usage:', doc)
-    assert usage == "Usage: prog [-hv] ARG\n           prog N M"
+    assert usage == "Usage: prog [-hv] ARG\n       prog N M"
     assert formal_usage(usage) == "( [-hv] ARG ) | ( N M )"
 
 
@@ -389,23 +387,22 @@ def test_allow_double_dash():
 
 
 def test_docopt():
-    doc = '''Usage: prog [-v] A
-
-             Options: -v  Be verbose.'''
+    doc = '\n'.join(('Usage: prog [-v] A',
+                     '',
+                     'Options: -v  Be verbose.'))
     assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
     assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
 
-    doc = """Usage: prog [-vqr] [FILE]
-              prog INPUT OUTPUT
-              prog --help
+    doc = '\n'.join(('Usage: prog [-vqr] [FILE]',
+                     '       prog INPUT OUTPUT',
+                     '       prog --help',
+                     '',
+                     'Options:',
+                     '  -v  print status messages',
+                     '  -q  report only file names',
+                     '  -r  show all occurrences of the same error',
+                     '  --help'))
 
-    Options:
-      -v  print status messages
-      -q  report only file names
-      -r  show all occurrences of the same error
-      --help
-
-    """
     a = docopt(doc, '-v file.py')
     assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
                  'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
@@ -431,7 +428,7 @@ def test_language_errors():
     with raises(DocoptLanguageError):
         docopt('no usage with colon here')
     with raises(DocoptLanguageError):
-        docopt('usage: here \n\n and again usage: here')
+        docopt('first usage: here \n\nsecond usage: here')
 
 
 def test_issue_40():
@@ -490,19 +487,27 @@ def test_any_options_parameter():
 
 
 def test_default_value_for_positional_arguments():
-    doc = """Usage: prog [--data=<data>...]\n
-             Options:\n\t-d --data=<arg>    Input data [default: x]
-          """
+    doc = '\n'.join(('Usage: prog [--data=<data>...]',
+                     '',
+                     'Options:'
+                     '  -d --data=<arg>  Input data [default: x]'))
+
     a = docopt(doc, '')
     assert a == {'--data': ['x']}
-    doc = """Usage: prog [--data=<data>...]\n
-             Options:\n\t-d --data=<arg>    Input data [default: x y]
-          """
+
+    doc = '\n'.join(('Usage: prog [--data=<data>...]',
+                     ''
+                     'Options:',
+                     '  -d --data=<arg>  Input data [default: x y]'))
+
     a = docopt(doc, '')
     assert a == {'--data': ['x', 'y']}
-    doc = """Usage: prog [--data=<data>...]\n
-             Options:\n\t-d --data=<arg>    Input data [default: x y]
-          """
+
+    doc = '\n'.join(('Usage: prog [--data=<data>...]',
+                     '',
+                     'Options:',
+                     '  -d --data=<arg>  Input data [default: x y]'))
+
     a = docopt(doc, '--data=this')
     assert a == {'--data': ['this']}
 

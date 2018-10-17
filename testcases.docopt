@@ -955,3 +955,21 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+
+# An empty line must not break an options section.
+r"""
+Usage: prog [options]
+
+Options:
+  --before-empty-lines  An option before empty lines.
+
+
+  --after-empty-lines   An option after empty lines.
+"""
+
+$ prog --before-empty-lines
+{"--before-empty-lines": true, "--after-empty-lines": false}
+
+$ prog --after-empty-line
+{"--before-empty-lines": false, "--after-empty-lines": true}
