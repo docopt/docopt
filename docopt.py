@@ -487,7 +487,8 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False,
+           only_passed=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -511,6 +512,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
+    only_passed : bool (default: False)
+        Return only the arguments the user actually provided. This
+        can be used to update existing configurations with command
+        line arguments.
 
     Returns
     -------
@@ -577,5 +582,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
+        if only_passed:
+            return Dict((a.name, a.value) for a in collected)
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
