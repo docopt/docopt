@@ -26,7 +26,7 @@ class DocoptExit(SystemExit):
     usage = ''
 
     def __init__(self, message=''):
-        SystemExit.__init__(self, (message + '\n' + self.usage).strip())
+        SystemExit.__init__(self, (unicode(message) + '\n' + unicode(self.usage)).strip())
 
 
 class Pattern(object):
