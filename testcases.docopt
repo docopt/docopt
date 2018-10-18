@@ -955,3 +955,16 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+#
+# JSON-Lists as default values
+#
+
+r"""Usage: prog [-l <JSON list>]
+
+Options:
+  -l, --list <JSON list>  A JSON list [default: []]
+
+"""
+$prog
+{"--list": "[]"}
