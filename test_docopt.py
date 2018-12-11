@@ -389,6 +389,16 @@ def test_allow_double_dash():
 
 
 def test_docopt():
+    with raises(ValueError):
+        docopt()
+
+    global __doc__
+    __doc__ = '''Usage: prog [-v] A
+
+             Options: -v  Be verbose.'''
+    assert docopt(argv='arg') == {'-v': False, 'A': 'arg'}
+    assert docopt(argv='-v arg') == {'-v': True, 'A': 'arg'}
+
     doc = '''Usage: prog [-v] A
 
              Options: -v  Be verbose.'''

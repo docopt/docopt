@@ -116,13 +116,15 @@ API
 
 .. code:: python
 
-    docopt(doc, argv=None, help=True, version=None, options_first=False)
+    docopt(doc=None, argv=None, help=True, version=None, options_first=False)
 
-``docopt`` takes 1 required and 4 optional arguments:
+``docopt`` takes 5 optional arguments:
 
-- ``doc`` could be a module docstring (``__doc__``) or some other
-  string that contains a **help message** that will be parsed to
-  create the option parser.  The simple rules of how to write such a
+- ``doc`` is a string that contains a **help message** that will be
+  parsed to create the option parser.  By default the docstring for the
+  caller's module is used, which is equivalent to ``docopt(__doc__)``.
+  
+  The simple rules of how to write such a
   help message are given in next sections.  Here is a quick example of
   such a string:
 
