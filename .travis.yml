@@ -1,8 +1,9 @@
-# Travis (http://travis-ci.org/) is a continuous integration
-# service for open source projects. This file configures
-# Travis to install and run "tox" test runner, which is
-# configured in tox.ini file.
-
 language: python
-install: pip install tox --use-mirrors
+cache: pip
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install: pip install tox tox-travis
 script: tox

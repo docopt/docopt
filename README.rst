@@ -98,7 +98,7 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively, you can just drop ``docopt.py`` file into your
 project--it is self-contained.
 
-**docopt** is tested with Python 2.6, 2.7, 3.3, 3.4, 3.5 and PyPy.
+**docopt** is tested with Python 2.7, 3.4, 3.5, and 3.6.
 
 Testing
 ======================================================================
@@ -331,7 +331,7 @@ The rules are as follows:
   to stick to a single style.::
 
     -o FILE --output=FILE       # without comma, with "=" sign
-    -i <file>, --input <file>   # with comma, without "=" sing
+    -i <file>, --input <file>   # with comma, without "=" sign
 
 - Use two spaces to separate options with their informal description::
 
