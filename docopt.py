@@ -189,14 +189,14 @@ class Option(LeafPattern):
     def parse(class_, option_description):
         short, long, argcount, value, atype = None, None, 0, False, None
         options, _, description = option_description.strip().partition('  ')
-        options = options.replace(',', ' ').replace('=', ' =')
+        options = options.replace(',', ' ').replace('=', ' ')
         for s in options.split():
             if s.startswith('--'):
                 long = s
             elif s.startswith('-'):
                 short = s
-            elif s.startswith('='):
-                atype = s[1:]
+            elif s:
+                atype = s
                 argcount = 1
             else:
                 argcount = 1

@@ -23,28 +23,28 @@ def test_option():
     assert Option.parse('-h --help') == Option('-h', '--help')
     assert Option.parse('-h, --help') == Option('-h', '--help')
 
-    assert Option.parse('-h TOPIC') == Option('-h', None, 1)
-    assert Option.parse('--help TOPIC') == Option(None, '--help', 1)
-    assert Option.parse('-h TOPIC --help TOPIC') == Option('-h', '--help', 1)
-    assert Option.parse('-h TOPIC, --help TOPIC') == Option('-h', '--help', 1)
-    assert Option.parse('-h TOPIC, --help=TOPIC') == Option('-h', '--help', 1)
+    assert Option.parse('-h TOPIC') == Option('-h', None, 1, False, 'TOPIC')
+    assert Option.parse('--help TOPIC') == Option(None, '--help', 1, False, 'TOPIC')
+    assert Option.parse('-h TOPIC --help TOPIC')  == Option('-h', '--help', 1, False, 'TOPIC')
+    assert Option.parse('-h TOPIC, --help TOPIC') == Option('-h', '--help', 1, False, 'TOPIC')
+    assert Option.parse('-h TOPIC, --help=TOPIC') == Option('-h', '--help', 1, False, 'TOPIC')
 
     assert Option.parse('-h  Description...') == Option('-h', None)
     assert Option.parse('-h --help  Description...') == Option('-h', '--help')
-    assert Option.parse('-h TOPIC  Description...') == Option('-h', None, 1)
+    assert Option.parse('-h TOPIC  Description...') == Option('-h', None, 1, False, 'TOPIC')
 
     assert Option.parse('    -h') == Option('-h', None)
 
     assert Option.parse('-h TOPIC  Descripton... [default: 2]') == \
-               Option('-h', None, 1, '2')
+               Option('-h', None, 1, '2', 'TOPIC')
     assert Option.parse('-h TOPIC  Descripton... [default: topic-1]') == \
-               Option('-h', None, 1, 'topic-1')
+               Option('-h', None, 1, 'topic-1', 'TOPIC')
     assert Option.parse('--help=TOPIC  ... [default: 3.14]') == \
-               Option(None, '--help', 1, '3.14')
+               Option(None, '--help', 1, '3.14', 'TOPIC')
     assert Option.parse('-h, --help=DIR  ... [default: ./]') == \
-               Option('-h', '--help', 1, "./")
+               Option('-h', '--help', 1, "./", 'DIR')
     assert Option.parse('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
-               Option('-h', None, 1, '2')
+               Option('-h', None, 1, '2', 'TOPIC')
 
 
 def test_option_name():
@@ -613,4 +613,4 @@ def test_parse_section():
 
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
-    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar', '<arg>')]
