@@ -201,6 +201,12 @@ class Option(LeafPattern):
             value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
+    @classmethod
+    def combine(class_, *opts):
+        t = opts[0]
+        if len(opts) == 1: return t
+        return class_(t.short, t.long, t.argcount, [o.value for o in opts])
+
     def single_match(self, left):
         for n, pattern in enumerate(left):
             if self.name == pattern.name:
@@ -425,7 +431,7 @@ def parse_atom(tokens, options):
         return [Command(tokens.move())]
 
 
-def parse_argv(tokens, options, options_first=False):
+def parse_argv(tokens, options, options_first=False, options_repeatable=False):
     """Parse command-line argument vector.
 
     If options_first:
@@ -437,15 +443,41 @@ def parse_argv(tokens, options, options_first=False):
     parsed = []
     while tokens.current() is not None:
         if tokens.current() == '--':
-            return parsed + [Argument(None, v) for v in tokens]
+            parsed += [Argument(None, v) for v in tokens]
+            break
         elif tokens.current().startswith('--'):
             parsed += parse_long(tokens, options)
         elif tokens.current().startswith('-') and tokens.current() != '-':
             parsed += parse_shorts(tokens, options)
         elif options_first:
-            return parsed + [Argument(None, v) for v in tokens]
+            parsed += [Argument(None, v) for v in tokens]
+            break
         else:
             parsed.append(Argument(None, tokens.move()))
+
+    if options_repeatable:
+        return normalise_repeatable_options(parsed)
+
+    return parsed
+
+
+def normalise_repeatable_options(options):
+    flat = {}
+    for o in options:
+        if isinstance(o, Option):
+            flat.setdefault(o.long, []).append(o)
+
+    # Ensure options stay in the order they were prescribed.
+    parsed = []
+    for o in options:
+        if isinstance(o, Option):
+            dups = flat.get(o.long)
+            if dups:
+                parsed.append(Option.combine(*tuple(dups)))
+                del flat[o.long]
+        else:
+            parsed.append(o)
+
     return parsed
 
 
@@ -487,7 +519,7 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False, options_repeatable=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -511,6 +543,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
+    options_repeatable : bool (default: False)
+        Set to True to allow options to be repeated on the command line,
+        i.e. --option=1 --option=2.  The value for this option is a list
+        containing the values as they appeared on the command line.
 
     Returns
     -------
@@ -566,7 +602,8 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #    same_name = [d for d in arguments if d.name == a.name]
     #    if same_name:
     #        a.value = same_name[0].value
-    argv = parse_argv(Tokens(argv), list(options), options_first)
+    argv = parse_argv(Tokens(argv), list(options),
+        options_first, options_repeatable)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(doc)
