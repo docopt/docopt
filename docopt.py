@@ -4,14 +4,16 @@
  * Repository and issue-tracker: https://github.com/docopt/docopt
  * Licensed under terms of MIT license (see LICENSE-MIT)
  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
+ * Copyright (c) 2019 itdaniher, itdaniher@gmail.com
 
 """
 import sys
 import re
 
+from levenshtein import levenshtein_norm
 
 __all__ = ['docopt']
-__version__ = '0.6.2'
+__version__ = '0.6.3'
 
 
 class DocoptLanguageError(Exception):
@@ -305,9 +307,12 @@ def parse_long(tokens, options):
     long, eq, value = tokens.move().partition('=')
     assert long.startswith('--')
     value = None if eq == value == '' else value
-    similar = [o for o in options if o.long == long]
+    similar = [o for o in options if o.long and long == o.long]
     if tokens.error is DocoptExit and similar == []:  # if no exact match
-        similar = [o for o in options if o.long and o.long.startswith(long)]
+        corrected = [(long, o) for o in options if o.long and levenshtein_norm(long, o.long) < 0.25]
+        if corrected:
+            print(f'NB: Corrected {corrected[0][0]} to {corrected[0][1].long}')
+        similar = [correct for (original, correct) in corrected]
     if len(similar) > 1:  # might be simply specified ambiguously 2+ times?
         raise tokens.error('%s is not a unique prefix: %s?' %
                            (long, ', '.join(o.long for o in similar)))
@@ -341,7 +346,29 @@ def parse_shorts(tokens, options):
     parsed = []
     while left != '':
         short, left = '-' + left[0], left[1:]
-        similar = [o for o in options if o.short == short]
+        transformations = {None: lambda x: x, 'lowercase': lambda x: x.lower(), 'uppercase': lambda x: x.upper()}
+        # try identity, lowercase, uppercase, iff such resolves uniquely (ie if upper and lowercase are not both defined)
+        similar = []
+        for xform_name, xform in transformations.items():
+            xformed = [xform(o.short) for o in options if o.short]
+            xform_unique = len([o for o in options if o.short and xformed.count(xform(o.short)) == 1]) == 1
+            if xform_unique:
+                similar = [o for o in options if o.short and xform(o.short) == xform(short)]
+                if len(similar):
+                    if xform_name:
+                        print(f'NB: Corrected {short} to {similar[0].short} via {xform_name}')
+                    break
+            # if transformations do not resolve, try abbreviations of 'long' forms iff such resolves uniquely (ie if no two long forms begin with the same letter)
+            if len(similar) == 0:
+                abbreviated = [xform(o.long[1:3]) for o in options if o.long]
+                abbrev_unique = len([o for o in options if o.long and abbreviated.count(xform(o.long[1:3])) == 1]) == len(abbreviated)
+                if abbrev_unique:
+                    for o in options:
+                        if not o.short and o.long:
+                            if xform(short) == xform(o.long[1:3]):
+                                similar = [o]
+                                print(f'NB: Corrected {short} to {similar[0].long} via abbreviation (case change: {xform_name})')
+                                break
         if len(similar) > 1:
             raise tokens.error('%s is specified ambiguously %d times' %
                                (short, len(similar)))
@@ -350,7 +377,7 @@ def parse_shorts(tokens, options):
             options.append(o)
             if tokens.error is DocoptExit:
                 o = Option(short, None, 0, True)
-        else:  # why copying is necessary here?
+        else:
             o = Option(short, similar[0].long,
                        similar[0].argcount, similar[0].value)
             value = None
