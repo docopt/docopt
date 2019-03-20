@@ -1,22 +1,20 @@
-"""Pythonic command-line interface parser that will make you smile.
+"""Docopt is a Pythonic command-line interface parser that will make you smile.
 
- * http://docopt.org
- * Repository and issue-tracker: https://github.com/docopt/docopt
+Now: with levenshtein based spellcheck, flag extension (de-abbreviation), and capitalization fixes.
+(but only when unambiguous)
+
  * Licensed under terms of MIT license (see LICENSE-MIT)
  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
  * Copyright (c) 2017 Oleg Bulkin
  * Copyright (c) 2019 itdaniher, itdaniher@gmail.com
 
 """
+
 import sys
 import re
 
-
-def levenshtein(source, target):
-    """Calculates the Levenshtein distance between two string arguments"""
-
-    # Compute Levenshtein distance using helper function and return result
-    return _levenshtein_compute(source, target, False)
+__all__ = ["docopt"]
+__version__ = "0.6.3"
 
 
 def levenshtein_norm(source, target):
@@ -28,11 +26,11 @@ def levenshtein_norm(source, target):
     # Compute Levenshtein distance using helper function. The max is always
     # just the length of the longer string, so this is used to normalize result
     # before returning it
-    distance = _levenshtein_compute(source, target, False)
+    distance = levenshtein(source, target)
     return float(distance) / max(len(source), len(target))
 
 
-def _levenshtein_compute(source, target, rd_flag):
+def levenshtein(source, target, rd_flag = False):
     """Computes the Levenshtein
     (https://en.wikipedia.org/wiki/Levenshtein_distance)
     and restricted Damerau-Levenshtein
@@ -92,11 +90,6 @@ def _levenshtein_compute(source, target, rd_flag):
     # At this point, the matrix is full, and the biggest prefixes are just the
     # strings themselves, so this is the desired distance
     return matrix[len(source)][len(target)]
-
-
-__all__ = ["docopt"]
-__version__ = "0.6.3"
-
 
 class DocoptLanguageError(Exception):
 
@@ -417,26 +410,25 @@ def parse_shorts(tokens, options):
         transformations = {None: lambda x: x, "lowercase": lambda x: x.lower(), "uppercase": lambda x: x.upper()}
         # try identity, lowercase, uppercase, iff such resolves uniquely (ie if upper and lowercase are not both defined)
         similar = []
-        for xform_name, xform in transformations.items():
-            xformed = [xform(o.short) for o in options if o.short]
-            xform_unique = len([o for o in options if o.short and xformed.count(xform(o.short)) == 1]) == 1
-            if xform_unique:
-                similar = [o for o in options if o.short and xform(o.short) == xform(short)]
+        for transform_name, transform in transformations.items():
+            transformed = list(set([transform(o.short) for o in options if o.short]))
+            transform_unique = len([o for o in options if o.short and transformed.count(transform(o.short)) == 1]) == 1
+            if transform_unique:
+                similar = [o for o in options if o.short and transform(o.short) == transform(short)]
                 if len(similar):
-                    if xform_name:
-                        print(f"NB: Corrected {short} to {similar[0].short} via {xform_name}")
+                    if transform_name:
+                        print(f"NB: Corrected {short} to {similar[0].short} via {transform_name}")
                     break
             # if transformations do not resolve, try abbreviations of 'long' forms iff such resolves uniquely (ie if no two long forms begin with the same letter)
             if len(similar) == 0:
-                abbreviated = [xform(o.long[1:3]) for o in options if o.long]
-                abbrev_unique = len([o for o in options if o.long and abbreviated.count(xform(o.long[1:3])) == 1]) == len(abbreviated)
-                if abbrev_unique:
+                abbreviated = [transform(o.long[1:3]) for o in options if o.long]
+                abbreviated_unique = len([o for o in options if o.long and abbreviated.count(transform(o.long[1:3])) == 1]) == len(abbreviated)
+                if abbreviated_unique:
                     for o in options:
-                        if not o.short and o.long:
-                            if xform(short) == xform(o.long[1:3]):
-                                similar = [o]
-                                print(f"NB: Corrected {short} to {similar[0].long} via abbreviation (case change: {xform_name})")
-                                break
+                        if not o.short and o.long and transform(short) == transform(o.long[1:3]):
+                            similar = [o]
+                            print(f"NB: Corrected {short} to {similar[0].long} via abbreviation (case change: {transform_name})")
+                            break
         if len(similar) > 1:
             raise tokens.error("%s is specified ambiguously %d times" % (short, len(similar)))
         elif len(similar) < 1:
