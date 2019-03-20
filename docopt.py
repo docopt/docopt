@@ -376,7 +376,7 @@ def parse_long(tokens, options):
         if corrected:
             print(f"NB: Corrected {corrected[0][0]} to {corrected[0][1].long}")
         similar = [correct for (original, correct) in corrected]
-    if len(similar) > 1:  # might be simply specified ambiguously 2+ times?
+    if len(similar) > 1:
         raise tokens.error("%s is not a unique prefix: %s?" % (long, ", ".join(o.long for o in similar)))
     elif len(similar) < 1:
         argcount = 1 if eq == "=" else 0
@@ -521,7 +521,6 @@ def parse_argv(tokens, options, options_first=False):
         argv ::= [ long | shorts | argument ]* [ '--' [ argument ]* ] ;
 
     """
-
     def isanumber(x):
         try:
             float(x)
@@ -544,21 +543,28 @@ def parse_argv(tokens, options, options_first=False):
     return parsed
 
 
-def parse_defaults(doc):
+def parse_defaults(doc, with_args=False):
     defaults = []
     for s in parse_section("options:", doc):
-        # FIXME corner case "bla: options: --foo"
-        _, _, s = s.partition(":")  # get rid of "options:"
+        options_literal, _, s = s.partition(":")
+        assert options_literal.lower() == 'options'
         split = re.split("\n[ \t]*(-\S+?)", "\n" + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
-        options = [Option.parse(s) for s in split if s.startswith("-")]
-        defaults += options
+        for s in split:
+            if s.startswith("-"):
+                arg, _, description = s.partition('  ')
+                flag, _, var = arg.replace('=', ' ').partition(' ')
+                option = Option.parse(arg)
+                if with_args and option.argcount and var:
+                    defaults.append(Optional(option, Argument(var)))
+                else:
+                    defaults.append(option)
     return defaults
 
 
 def parse_section(name, source):
     pattern = re.compile("^([^\n]*" + name + "[^\n]*\n?(?:[ \t].*?(?:\n|$))*)", re.IGNORECASE | re.MULTILINE)
-    return [s.strip() for s in pattern.findall(source)]
+    return [s.strip() for s in pattern.findall(source) if s.strip().lower() != name.lower()]
 
 
 def formal_usage(section):
@@ -648,31 +654,25 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
 
     usage_sections = parse_section("usage:", doc)
     if len(usage_sections) == 0:
-        raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
+        raise DocoptLanguageError('"usage:" section (case-insensitive) not found. Perhaps missing indentation?')
     if len(usage_sections) > 1:
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
     options_pattern = re.compile(r"\n\s*?options:", re.IGNORECASE)
     if options_pattern.search(usage_sections[0]):
-        print("Warning: options (case-insensitive) was found in usage. " "Use a blank line between each section otherwise " "it behaves badly.")
+        raise DocoptLanguageError("Warning: options (case-insensitive) was found in usage." \
+            "Use a blank line between each section otherwise it behaves badly.")
     DocoptExit.usage = usage_sections[0]
-
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    # [default] syntax for argument is disabled
-    # for a in pattern.flat(Argument):
-    #    same_name = [d for d in arguments if d.name == a.name]
-    #    if same_name:
-    #        a.value = same_name[0].value
-    argv = parse_argv(Tokens(argv), list(options), options_first)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
-        doc_options = parse_defaults(doc)
-        options_shortcut.children = list(set(doc_options) - pattern_options)
-        # if any_options:
-        #    options_shortcut.children += [Option(o.short, o.long, o.argcount)
-        #                    for o in argv if type(o) is Option]
+        doc_options = parse_defaults(doc, True)
+        options_shortcut.children = [opt for opt in doc_options if opt not in pattern_options]
+    argv = parse_argv(Tokens(argv), list(options), options_first)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
-    if matched and left == []:  # better error message if left?
+    if matched and left == []:
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+    if left:
+        raise DocoptLanguageError(f"Warning: found unmatched (duplicate?) arguments {left}")
     raise DocoptExit(collected=collected, left=left)
