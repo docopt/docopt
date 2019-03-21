@@ -365,13 +365,16 @@ class Tokens(list):
         return self[0] if len(self) else None
 
 
-def parse_long(tokens, options):
+def parse_long(tokens, options, argv=False):
     """long ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
     long, eq, value = tokens.move().partition("=")
     assert long.startswith("--")
     value = None if eq == value == "" else value
     similar = [o for o in options if o.long and long == o.long]
-    if tokens.error is DocoptExit and similar == []:  # if no exact match
+    start_collision = len([o for o in options if o.long and long in o.long and o.long.startswith(long)]) > 1
+    if argv and not len(similar) and not start_collision:
+        similar = [o for o in options if o.long and long in o.long and o.long.startswith(long)]
+    if similar == []:  # if no exact match
         corrected = [(long, o) for o in options if o.long and levenshtein_norm(long, o.long) < 0.25]
         if corrected:
             print(f"NB: Corrected {corrected[0][0]} to {corrected[0][1].long}")
@@ -412,7 +415,7 @@ def parse_shorts(tokens, options):
         similar = []
         for transform_name, transform in transformations.items():
             transformed = list(set([transform(o.short) for o in options if o.short]))
-            transform_unique = len([o for o in options if o.short and transformed.count(transform(o.short)) == 1]) == 1
+            transform_unique = len([o for o in options if o.short and transformed.count(transform(o.short)) == 1]) == len(transformed)
             if transform_unique:
                 similar = [o for o in options if o.short and transform(o.short) == transform(short)]
                 if len(similar):
@@ -421,14 +424,16 @@ def parse_shorts(tokens, options):
                     break
             # if transformations do not resolve, try abbreviations of 'long' forms iff such resolves uniquely (ie if no two long forms begin with the same letter)
             if len(similar) == 0:
-                abbreviated = [transform(o.long[1:3]) for o in options if o.long]
-                abbreviated_unique = len([o for o in options if o.long and abbreviated.count(transform(o.long[1:3])) == 1]) == len(abbreviated)
+                abbreviated = [transform(o.long[1:3]) for o in options if o.long] + [transform(o.short) for o in options if o.short]
+                abbreviated_unique = len([o for o in options if o.long and abbreviated.count(transform(o.long[1:3])) == 1])
                 if abbreviated_unique:
                     for o in options:
                         if not o.short and o.long and transform(short) == transform(o.long[1:3]):
                             similar = [o]
                             print(f"NB: Corrected {short} to {similar[0].long} via abbreviation (case change: {transform_name})")
                             break
+                if len(similar):
+                    break
         if len(similar) > 1:
             raise tokens.error("%s is specified ambiguously %d times" % (short, len(similar)))
         elif len(similar) < 1:
@@ -447,6 +452,8 @@ def parse_shorts(tokens, options):
                 else:
                     value = left
                     left = ""
+                if '=' in value:
+                    value = value.lstrip('=')
             if tokens.error is DocoptExit:
                 o.value = value if value is not None else True
         parsed.append(o)
@@ -533,7 +540,7 @@ def parse_argv(tokens, options, options_first=False):
         if tokens.current() == "--":
             return parsed + [Argument(None, v) for v in tokens]
         elif tokens.current().startswith("--"):
-            parsed += parse_long(tokens, options)
+            parsed += parse_long(tokens, options, argv=True)
         elif tokens.current().startswith("-") and tokens.current() != "-" and not isanumber(tokens.current()):
             parsed += parse_shorts(tokens, options)
         elif options_first:
@@ -547,24 +554,24 @@ def parse_defaults(doc, with_args=False):
     defaults = []
     for s in parse_section("options:", doc):
         options_literal, _, s = s.partition(":")
-        assert options_literal.lower() == 'options'
+        if ' ' in options_literal:
+            _, _, options_literal = options_literal.partition(' ')
+        assert options_literal.lower().strip() == 'options'
         split = re.split("\n[ \t]*(-\S+?)", "\n" + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
         for s in split:
             if s.startswith("-"):
                 arg, _, description = s.partition('  ')
                 flag, _, var = arg.replace('=', ' ').partition(' ')
-                option = Option.parse(arg)
-                if with_args and option.argcount and var:
-                    defaults.append(Optional(option, Argument(var)))
-                else:
-                    defaults.append(option)
+                option = Option.parse(s)
+                defaults.append(option)
     return defaults
 
 
 def parse_section(name, source):
     pattern = re.compile("^([^\n]*" + name + "[^\n]*\n?(?:[ \t].*?(?:\n|$))*)", re.IGNORECASE | re.MULTILINE)
-    return [s.strip() for s in pattern.findall(source) if s.strip().lower() != name.lower()]
+    r = [s.strip() for s in pattern.findall(source) if s.strip().lower() != name.lower()]
+    return r
 
 
 def formal_usage(section):
@@ -659,20 +666,25 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
     options_pattern = re.compile(r"\n\s*?options:", re.IGNORECASE)
     if options_pattern.search(usage_sections[0]):
-        raise DocoptLanguageError("Warning: options (case-insensitive) was found in usage." \
+        raise DocoptExit("Warning: options (case-insensitive) was found in usage." \
             "Use a blank line between each section otherwise it behaves badly.")
     DocoptExit.usage = usage_sections[0]
     options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
-        doc_options = parse_defaults(doc, True)
+        doc_options = parse_defaults(doc)
         options_shortcut.children = [opt for opt in doc_options if opt not in pattern_options]
+    names = [n.long or n.short for n in options]
+    duplicated = [n for n in names if names.count(n) > 1]
+    if any([duplicated]):
+        raise DocoptLanguageError(f'duplicated token(s): {duplicated}')
+
     argv = parse_argv(Tokens(argv), list(options), options_first)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:
         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     if left:
-        raise DocoptLanguageError(f"Warning: found unmatched (duplicate?) arguments {left}")
+        raise DocoptExit(f"Warning: found unmatched (duplicate?) arguments {left}")
     raise DocoptExit(collected=collected, left=left)
