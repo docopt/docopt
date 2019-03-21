@@ -4,8 +4,20 @@ Now: with levenshtein based spellcheck, flag extension (de-abbreviation), and ca
 (but only when unambiguous)
 
  * Licensed under terms of MIT license (see LICENSE-MIT)
- * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
- * Copyright (c) 2017 Oleg Bulkin
+
+Contributors (roughly in chronological order):
+
+ * Copyright (c) 2012 Andrew Kassen <atkassen@ucdavis.edu>
+ * Copyright (c) 2012 jeffrimko <jeffrimko@gmail.com>
+ * COpyright (c) 2012 Andrew Sutton <met48@met48.com>
+ * COpyright (c) 2012 Andrew Sutton <met48@met48.com>
+ * Copyright (c) 2012 Nima Johari <nimajohari@gmail.com>
+ * Copyright (c) 2012-2013 Vladimir Keleshev, vladimir@keleshev.com
+ * Copyright (c) 2014-2018 Matt Boersma <matt@sprout.org>
+ * Copyright (c) 2016 amir <ladsgroup@gmail.com>
+ * Copyright (c) 2015 Benjamin Bach <benjaoming@gmail.com>
+ * Copyright (c) 2017 Oleg Bulkin <o.bulkin@gmail.com>
+ * Copyright (c) 2018 Iain Barnett <iainspeed@gmail.com>
  * Copyright (c) 2019 itdaniher, itdaniher@gmail.com
 
 """
