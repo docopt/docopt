@@ -369,7 +369,7 @@ class Tokens(list):
     @staticmethod
     def from_pattern(source):
         source = re.sub(r"([\[\]\(\)\|]|\.\.\.)", r" \1 ", source)
-        source = [s for s in re.split("\s+|(\S*<.*?>)", source) if s]
+        source = [s for s in re.split(r"\s+|(\S*<.*?>)", source) if s]
         return Tokens(source, error=DocoptLanguageError)
 
     def move(self):
@@ -572,7 +572,7 @@ def parse_defaults(doc, with_args=False):
         if " " in options_literal:
             _, _, options_literal = options_literal.partition(" ")
         assert options_literal.lower().strip() == "options"
-        split = re.split("\n[ \t]*(-\S+?)", "\n" + s)[1:]
+        split = re.split(r"\n[ \t]*(-\S+?)", "\n" + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
         for s in split:
             if s.startswith("-"):
