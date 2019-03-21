@@ -205,7 +205,7 @@ class LeafPattern(Pattern):
         pos, match = self.single_match(left)
         if match is None:
             return False, left, collected
-        left_ = left[:pos] + left[pos + 1 :]
+        left_ = left[:pos] + left[(pos + 1) :]
         same_name = [a for a in collected if a.name == self.name]
         if type(self.value) in (int, list):
             if type(self.value) is int:
@@ -245,8 +245,8 @@ class Argument(LeafPattern):
 
     @classmethod
     def parse(class_, source):
-        name = re.findall("(<\S*?>)", source)[0]
-        value = re.findall("\[default: (.*)\]", source, flags=re.I)
+        name = re.findall(r"(<\S*?>)", source)[0]
+        value = re.findall(r"\[default: (.*)\]", source, flags=re.I)
         return class_(name, value[0] if value else None)
 
 
@@ -283,7 +283,7 @@ class Option(LeafPattern):
             else:
                 argcount = 1
         if argcount:
-            matched = re.findall("\[default: (.*)\]", description, flags=re.I)
+            matched = re.findall(r"\[default: (.*)\]", description, flags=re.I)
             value = matched[0] if matched else None
         return class_(short, long, argcount, value)
 
@@ -304,13 +304,13 @@ class Option(LeafPattern):
 class Required(BranchPattern):
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        l = left
-        c = collected
+        original_collected = collected
+        original_left = left
         for pattern in self.children:
-            matched, l, c = pattern.match(l, c)
+            matched, left, collected = pattern.match(left, collected)
             if not matched:
-                return False, left, collected
-        return True, l, c
+                return False, original_left, original_collected
+        return True, left, collected
 
 
 class Optional(BranchPattern):
@@ -330,21 +330,22 @@ class OneOrMore(BranchPattern):
     def match(self, left, collected=None):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
-        l = left
-        c = collected
-        l_ = None
+        original_collected = collected
+        original_left = left
+        last_left = None
         matched = True
         times = 0
         while matched:
-            # could it be that something didn't match but changed l or c?
-            matched, l, c = self.children[0].match(l, c)
+            # could it be that something didn't match but changed left or
+            # collected?
+            matched, left, collected = self.children[0].match(left, collected)
             times += 1 if matched else 0
-            if l_ == l:
+            if last_left == left:
                 break
-            l_ = l
+            last_left = left
         if times >= 1:
-            return True, l, c
-        return False, left, collected
+            return True, left, collected
+        return False, original_left, original_collected
 
 
 class Either(BranchPattern):
@@ -692,7 +693,6 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     duplicated = [n for n in names if names.count(n) > 1]
     if any([duplicated]):
         raise DocoptLanguageError(f"duplicated token(s): {duplicated}")
-
     argv = parse_argv(Tokens(argv), list(options), options_first)
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
