@@ -13,10 +13,10 @@ CHANGELOG
     New in version 0.6.3:
 
     - Catch up on ~two years of pull requests.
-    - Fork `docopt <https://github.com/docopt/docopt>` to `docopt-ng <https://github.com/bazaar-projects/docopt-ng>`.
-    - Add levenshtein based autocorrect from `string-dist <https://github.com/obulkin/string-dist>`.
+    - Fork `docopt <https://github.com/docopt/docopt>`_ to `docopt-ng <https://github.com/bazaar-projects/docopt-ng>`_.
+    - Add levenshtein based autocorrect from `string-dist <https://github.com/obulkin/string-dist>`_.
     - Add better debug / error messages.
-    - Linting (via `black <https://github.com/ambv/black>` and `flake8 <https://gitlab.com/pycqa/flake8>`).
+    - Linting (via `black <https://github.com/ambv/black>`_ and `flake8 <https://gitlab.com/pycqa/flake8>`_).
 
     New in version 0.6.2:
 
@@ -422,35 +422,3 @@ page <https://github.com/bazaar-projects/docopt-ng/issues>`_
 
 Make pull requests, report bugs, suggest ideas and discuss
 **docopt**.
-
-
-Changelog
-======================================================================
-
-**docopt** follows `semantic versioning <http://semver.org>`_.  The
-first release with stable API will be 1.0.0 (soon).  Until then, you
-are encouraged to specify explicitly the version in your dependency
-tools, e.g.::
-
-    pip install docopt-ng==0.6.3
-
-- 0.6.3 Fork to docopt-ng etc.
-- 0.6.2 Bugfix release.
-- 0.6.1 Bugfix release.
-- 0.6.0 ``options_first`` parameter.
-  **Breaking changes**: Corrected ``[options]`` meaning.
-  ``argv`` defaults to ``None``.
-- 0.5.0 Repeated options/commands are counted or accumulated into a
-  list.
-- 0.4.2 Bugfix release.
-- 0.4.0 Option descriptions become optional,
-  support for "``--``" and "``-``" commands.
-- 0.3.0 Support for (sub)commands like `git remote add`.
-  Introduce ``[options]`` shortcut for any options.
-  **Breaking changes**: ``docopt`` returns dictionary.
-- 0.2.0 Usage pattern matching. Positional arguments parsing based on
-  usage patterns.
-  **Breaking changes**: ``docopt`` returns namespace (for arguments),
-  not list. Usage pattern is formalized.
-- 0.1.0 Initial release. Options-parsing only (based on options
-  description).
