@@ -1,14 +1,26 @@
-``docopt`` creates *beautiful* command-line interfaces
+``docopt-ng`` creates *magic* command-line interfaces
 ======================================================================
 
-.. image:: https://travis-ci.org/docopt/docopt.svg?branch=master
-    :target: https://travis-ci.org/docopt/docopt
+.. image:: https://travis-ci.org/bazaar-projects/docopt-ng.svg?branch=master
+    :target: https://travis-ci.org/bazaar-projects/docopt-ng
 
-.. image:: https://img.shields.io/pypi/v/docopt.svg
-    :target: https://pypi.python.org/pypi/docopt
+.. image:: https://img.shields.io/pypi/v/docopt-ng.svg
+    :target: https://pypi.python.org/pypi/docopt-ng
 
-Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
-command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
+CHANGELOG
+----------------------------------------------------------------------
+
+    New in version 0.6.3:
+
+    - Catch up on ~two years of pull requests.
+    - Fork `docopt <https://github.com/docopt/docopt>` to `docopt-ng <https://github.com/bazaar-projects/docopt-ng>`.
+    - Add levenshtein based autocorrect from `string-dist <https://github.com/obulkin/string-dist>`.
+    - Add better debug / error messages.
+    - Linting (via `black <https://github.com/ambv/black>` and `flake8 <https://gitlab.com/pycqa/flake8>`).
+
+    New in version 0.6.2:
+
+    - Bugfixes
 
     New in version 0.6.1:
 
@@ -38,14 +50,6 @@ command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
     - ``argv`` is ``None`` by default, not ``sys.argv[1:]``.
       This allows ``docopt`` to always use the *latest* ``sys.argv``,
       not ``sys.argv`` during import time.
-
-Isn't it awesome how ``optparse`` and ``argparse`` generate help
-messages based on your code?!
-
-*Hell no!*  You know what's awesome?  It's when the option parser *is*
-generated based on the beautiful help message that you write yourself!
-This way you don't need to write this stupid repeatable parser-code,
-and instead can write only the help message--*the way you want it*.
 
 **docopt** helps you create most beautiful command-line interfaces
 *easily*:
@@ -93,12 +97,12 @@ Installation
 
 Use `pip <http://pip-installer.org>`_ or easy_install::
 
-    pip install docopt==0.6.2
+    pip install docopt-ng==0.6.3
 
 Alternatively, you can just drop ``docopt.py`` file into your
 project--it is self-contained.
 
-**docopt** is tested with Python 2.7, 3.4, 3.5, and 3.6.
+**docopt** is tested with Python 3.6 and 3.7.
 
 Testing
 ======================================================================
@@ -414,27 +418,11 @@ Development
 ======================================================================
 
 We would *love* to hear what you think about **docopt** on our `issues
-page <http://github.com/docopt/docopt/issues>`_
+page <https://github.com/bazaar-projects/docopt-ng/issues>`_
 
 Make pull requests, report bugs, suggest ideas and discuss
-**docopt**. You can also drop a line directly to
-<vladimir@keleshev.com>.
+**docopt**.
 
-Porting ``docopt`` to other languages
-======================================================================
-
-We think **docopt** is so good, we want to share it beyond the Python
-community! All official docopt ports to other languages can be found
-under the `docopt organization page <http://github.com/docopt>`_
-on GitHub.
-
-If your favourite language isn't among then, you can always create a
-port for it! You are encouraged to use the Python version as a
-reference implementation.  A Language-agnostic test suite is bundled
-with `Python implementation <http://github.com/docopt/docopt>`_.
-
-Porting discussion is on `issues page
-<http://github.com/docopt/docopt/issues>`_.
 
 Changelog
 ======================================================================
@@ -444,8 +432,9 @@ first release with stable API will be 1.0.0 (soon).  Until then, you
 are encouraged to specify explicitly the version in your dependency
 tools, e.g.::
 
-    pip install docopt==0.6.2
+    pip install docopt-ng==0.6.3
 
+- 0.6.3 Fork to docopt-ng etc.
 - 0.6.2 Bugfix release.
 - 0.6.1 Bugfix release.
 - 0.6.0 ``options_first`` parameter.
