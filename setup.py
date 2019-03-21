@@ -31,7 +31,7 @@ setup(
     keywords="option arguments parsing optparse argparse getopt docopt docopt-ng",
     url="https://github.com/bazaar-projects/docopt-ng",
     py_modules=["docopt"],
-    long_description=open("README.rst").read(),
+    long_description=open("README.md").read(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Utilities",
