@@ -18,6 +18,6 @@ usage: git remote [-v | --verbose]
 from docopt import docopt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     arguments = docopt(__doc__)
     print(arguments)

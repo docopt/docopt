@@ -1,0 +1,6 @@
+#!/bin/bash
+set -exu
+
+find . -name '*.py' -exec dos2unix {} \;
+
+find . -name '*.py' -exec black -l 160 {} \;

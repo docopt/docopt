@@ -7,6 +7,6 @@
 from docopt import docopt
 
 
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version='0.1.1rc')
+if __name__ == "__main__":
+    arguments = docopt(__doc__, version="0.1.1rc")
     print(arguments)

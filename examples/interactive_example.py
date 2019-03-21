@@ -25,6 +25,7 @@ def docopt_cmd(func):
     This decorator is used to simplify the try/except block and pass the result
     of the docopt parsing to the called action.
     """
+
     def fn(self, arg):
         try:
             opt = docopt(fn.__doc__, arg)
@@ -33,7 +34,7 @@ def docopt_cmd(func):
             # The DocoptExit is thrown when the args do not match.
             # We print a message to the user and the usage block.
 
-            print('Invalid Command!')
+            print("Invalid Command!")
             print(e)
             return
 
@@ -51,10 +52,9 @@ def docopt_cmd(func):
     return fn
 
 
-class MyInteractive (cmd.Cmd):
-    intro = 'Welcome to my interactive program!' \
-        + ' (type help for a list of commands.)'
-    prompt = '(my_program) '
+class MyInteractive(cmd.Cmd):
+    intro = "Welcome to my interactive program!" + " (type help for a list of commands.)"
+    prompt = "(my_program) "
     file = None
 
     @docopt_cmd
@@ -76,12 +76,13 @@ Options:
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
 
-        print('Good Bye!')
+        print("Good Bye!")
         exit()
+
 
 opt = docopt(__doc__, sys.argv[1:])
 
-if opt['--interactive']:
+if opt["--interactive"]:
     MyInteractive().cmdloop()
 
 print(opt)
