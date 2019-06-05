@@ -165,7 +165,7 @@ API
 - ``options_first``, by default ``False``.  If set to ``True`` will
   disallow mixing options and positional argument.  I.e. after first
   positional argument, all arguments will be interpreted as positional
-  even if the look like options.  This can be used for strict
+  even if they look like options.  This can be used for strict
   compatibility with POSIX, or if you want to dispatch your arguments
   to other programs.
 
