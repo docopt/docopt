@@ -620,12 +620,12 @@ def test_issue_126_defaults_not_parsed_correctly_when_tabs():
 
 
 def test_types():
-    doc = """Usage: prog --data=<data>\n
+    doc = """Usage: prog [--data=<data>]\n
                  Options:\n\t-d --data=<data>    Input data [type: float]
               """
     a = docopt(doc, '--data=0.1')
     assert a == {'--data': 0.1}
-    doc = """Usage: prog --data=<data>\n
+    doc = """Usage: prog [--data=<data>]\n
              Options:\n\t-d --data=<data>    Input data [default: 10] [type: int]
           """
     a = docopt(doc, '')
