@@ -649,12 +649,12 @@ def test_user_defined_types():
 
 
 def test_choices():
-    doc = """Usage: prog --data=<data>\n
+    doc = """Usage: prog [--data=<data>]\n
                  Options:\n\t-d --data=<data>    Input data [choices: A B C]
               """
     a = docopt(doc, '--data=A')
     assert a == {'--data': 'A'}
-    doc = """Usage: prog --data=<data>\n
+    doc = """Usage: prog [--data=<data>]\n
                      Options:\n\t-d --data=<data>    Input data [choices: A B C] [default: C]
                   """
     a = docopt(doc, '')
