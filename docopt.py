@@ -13,6 +13,13 @@ import re
 __all__ = ['docopt']
 __version__ = '0.6.2'
 
+TYPE_MAP = {
+    'int': int,
+    'float': float,
+    'complex': complex,
+    'str': str,
+}
+
 
 class DocoptLanguageError(Exception):
 
@@ -184,9 +191,8 @@ class Option(LeafPattern):
         self.short, self.long, self.argcount = short, long, argcount
 
         if type_value is not None:
-            type_dict = {'int': int, 'float': float, }
-            assert type_value in type_dict or type_value == 'str'
-            self.type_class = type_dict[type_value] if type_value in type_dict else str
+            assert type_value in TYPE_MAP or type_value == 'str'
+            self.type_class = TYPE_MAP[type_value]
         else:
             self.type_class = None
         if choices_value is not None:
