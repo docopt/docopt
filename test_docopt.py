@@ -1,4 +1,7 @@
 from __future__ import with_statement
+
+import pytest
+
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
@@ -614,3 +617,51 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_types():
+    doc = """Usage: prog --data=<data>\n
+                 Options:\n\t-d --data=<data>    Input data [type: float]
+              """
+    a = docopt(doc, '--data=0.1')
+    assert a == {'--data': 0.1}
+    doc = """Usage: prog --data=<data>\n
+             Options:\n\t-d --data=<data>    Input data [default: 10] [type: int]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': 10}
+
+
+def test_user_defined_types():
+    doc = """Usage: prog --data=<data>\n
+                     Options:\n\t-d --data=<data>    Input data [type: Foo]
+                  """
+    class Foo:
+        def __init__(self, number):
+            self.number = int(number)
+            assert self.number < 10
+
+    a = docopt(doc, '--data=1', types={'Foo': Foo})
+    assert a == {'--data': Foo('1')}
+
+    with pytest.raises(AssertionError):
+        docopt(doc, '--data=20', types={'Foo': Foo})
+
+
+def test_choices():
+    doc = """Usage: prog --data=<data>\n
+                 Options:\n\t-d --data=<data>    Input data [choices: A B C]
+              """
+    a = docopt(doc, '--data=A')
+    assert a == {'--data': 'A'}
+    doc = """Usage: prog --data=<data>\n
+                     Options:\n\t-d --data=<data>    Input data [choices: A B C] [default: C]
+                  """
+    a = docopt(doc, '')
+    assert a == {'--data': 'C'}
+
+    doc = """Usage: prog --data=<data>\n
+             Options:\n\t-d --data=<data>    Input data [choices: A B C]
+          """
+    with pytest.raises(AssertionError):
+        docopt(doc, '--data=D')
