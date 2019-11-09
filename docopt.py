@@ -179,10 +179,26 @@ class Command(Argument):
 
 class Option(LeafPattern):
 
-    def __init__(self, short=None, long=None, argcount=0, value=False):
+    def __init__(self, short=None, long=None, argcount=0, value=False, type_value=None, choices_value=None):
         assert argcount in (0, 1)
         self.short, self.long, self.argcount = short, long, argcount
+
+        if type_value is not None:
+            type_dict = {'int': int, 'float': float, }
+            assert type_value in type_dict or type_value == 'str'
+            self.type_class = type_dict[type_value] if type_value in type_dict else str
+        else:
+            self.type_class = None
+        if choices_value is not None:
+            self.choices = [choice.strip() for choice in choices_value.split(' ')]
+        else:
+            self.choices = None
+
+        value = self.update_value(value)
         self.value = None if value is False and argcount else value
+
+        self.type_value = type_value
+        self.choices_value = choices_value
 
     @classmethod
     def parse(class_, option_description):
@@ -197,15 +213,31 @@ class Option(LeafPattern):
             else:
                 argcount = 1
         if argcount:
-            matched = re.findall('\[default: (.*)\]', description, flags=re.I)
+            matched = re.findall('\[default: (.*?)\]', description, flags=re.I)
             value = matched[0] if matched else None
-        return class_(short, long, argcount, value)
+
+        type_matched = re.findall('\[type: (.*?)\]', description, flags=re.I)
+        type_value = type_matched[0] if type_matched else None
+
+        choices_matched = re.findall('\[choices: (.*?)\]', description, flags=re.I)
+        choices_value = choices_matched[0] if choices_matched else None
+
+        return class_(short, long, argcount, value, type_value, choices_value)
 
     def single_match(self, left):
         for n, pattern in enumerate(left):
             if self.name == pattern.name:
                 return n, pattern
         return None, None
+
+    def update_value(self, value):
+        if value is not None and not isinstance(value, bool) and self.choices is not None:
+            assert value in self.choices
+
+        if value is not None and not isinstance(value, bool) and self.type_class is not None:
+            value = self.type_class(value)
+
+        return value
 
     @property
     def name(self):
@@ -317,7 +349,7 @@ def parse_long(tokens, options):
             o = Option(None, long, argcount, value if argcount else True)
     else:
         o = Option(similar[0].short, similar[0].long,
-                   similar[0].argcount, similar[0].value)
+                   similar[0].argcount, similar[0].value, similar[0].type_value, similar[0].choices_value)
         if o.argcount == 0:
             if value is not None:
                 raise tokens.error('%s must not have an argument' % o.long)
@@ -327,7 +359,8 @@ def parse_long(tokens, options):
                     raise tokens.error('%s requires argument' % o.long)
                 value = tokens.move()
         if tokens.error is DocoptExit:
-            o.value = value if value is not None else True
+            o.value = o.update_value(value if value is not None else True)
+
     return [o]
 
 
