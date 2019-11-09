@@ -636,10 +636,14 @@ def test_user_defined_types():
     doc = """Usage: prog --data=<data>\n
                      Options:\n\t-d --data=<data>    Input data [type: Foo]
                   """
+
     class Foo:
         def __init__(self, number):
             self.number = int(number)
             assert self.number < 10
+
+        def __eq__(self, other):
+            return self.number == other.number
 
     a = docopt(doc, '--data=1', types={'Foo': Foo})
     assert a == {'--data': Foo('1')}
