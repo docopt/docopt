@@ -16,4 +16,6 @@ install: pip install tox tox-travis
 
 script: tox
 
-cache: pip
+cache: 
+  pip: true
+  apt: true
