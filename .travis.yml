@@ -1,9 +1,21 @@
 language: python
-cache: pip
+
+os: linux
+
+dist: xenial
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7"
+  - "3.8"
+  
 install: pip install tox tox-travis
+
 script: tox
+
+cache: 
+  pip: true
+  apt: true
