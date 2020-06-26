@@ -487,6 +487,19 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
+def clean_name(name):
+    """ Make name suitable for a class attribute """
+    # Remove starting -/--
+    if name[1] == '-':
+        name = name[2:]
+    elif name[0] == '-':
+        name = name[1:]
+    # Convert - to _
+    name = name.replace('-', '_')
+    # Finally make it lower case
+    return name.lower()
+
+
 def docopt(doc, argv=None, help=True, version=None, options_first=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
@@ -577,5 +590,8 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        d = Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        for a in (pattern.flat() + collected):
+            setattr(d, clean_name(a.name), a.value)
+        return d
     raise DocoptExit()
