@@ -35,15 +35,15 @@ def test_option():
 
     assert Option.parse('    -h') == Option('-h', None)
 
-    assert Option.parse('-h TOPIC  Descripton... [default: 2]') == \
+    assert Option.parse('-h TOPIC  Description... [default: 2]') == \
                Option('-h', None, 1, '2')
-    assert Option.parse('-h TOPIC  Descripton... [default: topic-1]') == \
+    assert Option.parse('-h TOPIC  Description... [default: topic-1]') == \
                Option('-h', None, 1, 'topic-1')
     assert Option.parse('--help=TOPIC  ... [default: 3.14]') == \
                Option(None, '--help', 1, '3.14')
     assert Option.parse('-h, --help=DIR  ... [default: ./]') == \
                Option('-h', '--help', 1, "./")
-    assert Option.parse('-h TOPIC  Descripton... [dEfAuLt: 2]') == \
+    assert Option.parse('-h TOPIC  Description... [dEfAuLt: 2]') == \
                Option('-h', None, 1, '2')
 
 
