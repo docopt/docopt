@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 try:
     import json
@@ -11,7 +12,7 @@ import docopt
 
 def pytest_collect_file(path, parent):
     if path.ext == ".docopt" and path.basename.startswith("test"):
-        return DocoptTestFile(path, parent)
+        return DocoptTestFile.from_parent(parent, path=Path(path))
 
 
 def parse_test(raw):
