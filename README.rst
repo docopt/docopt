@@ -1,3 +1,10 @@
+See docopt-ng
+=============
+
+Please see `docopt-ng <http://github.com/jazzband/docopt-ng>`_  for a compatible, updated fork of the original Python docopt.
+
+This project is no longer maintained.
+
 ``docopt`` creates *beautiful* command-line interfaces
 ======================================================================
 
