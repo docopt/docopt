@@ -955,3 +955,79 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+r"""Usage: prog (((--foo))) ((((baz | (--bar | --bap)))))
+"""
+$ prog --foo baz
+{"--bar": false, "--bap": false, "baz": true, "--foo": true}
+
+r"""Usage: prog -group1- -group_2-
+
+Group1: --foo
+
+Group 2:
+  --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group_2-
+
+Group1: --foo  descriotion of foo
+
+Group 2:
+  --bar | --baz  description of baz and bar
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group_2-
+
+  Groups:
+
+    Group1: --foo
+
+    Group 2:
+      --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -group-2-
+
+  Group1: --foo
+
+  Group-2:
+    --bar | --baz
+"""
+$ prog --foo --baz
+{"--foo": true, "--baz": true, "--bar": false}
+
+r"""Usage: prog -group1- -common_options- [options]
+
+  Group1: --foo
+
+  Common Options:
+    --bar | --baz
+
+  Options:
+    -a
+    -b
+"""
+$ prog --foo --baz -a
+{"--foo": true, "--baz": true, "--bar": false, "-a": true, "-b": false}
+
+r"""Usage: prog -group1- -common_options- [options]
+
+  Group1: --foo
+
+  Options:
+    -a
+    -b
+    
+  Common Options:
+    --bar | --baz
+
+"""
+$ prog --foo --baz -a
+{"--foo": true, "--baz": true, "--bar": false, "-a": true, "-b": false}
