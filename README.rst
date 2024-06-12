@@ -351,7 +351,7 @@ The rules are as follows:
 
 - If the option is not repeatable, the value inside ``[default: ...]``
   will be interpreted as string.  If it *is* repeatable, it will be
-  splited into a list on whitespace::
+  split into a list on whitespace::
 
     Usage: my_program.py [--repeatable=<arg> --repeatable=<arg>]
                          [--another-repeatable=<arg>]...
