@@ -222,13 +222,13 @@ class Required(BranchPattern):
 
     def match(self, left, collected=None):
         collected = [] if collected is None else collected
-        l = left
-        c = collected
+        left_ = left
+        collected_ = collected
         for pattern in self.children:
-            matched, l, c = pattern.match(l, c)
+            matched, left_, collected_ = pattern.match(left_, collected_)
             if not matched:
                 return False, left, collected
-        return True, l, c
+        return True, left_, collected_
 
 
 class Optional(BranchPattern):
@@ -249,20 +249,20 @@ class OneOrMore(BranchPattern):
     def match(self, left, collected=None):
         assert len(self.children) == 1
         collected = [] if collected is None else collected
-        l = left
+        left_ = left
         c = collected
         l_ = None
         matched = True
         times = 0
         while matched:
             # could it be that something didn't match but changed l or c?
-            matched, l, c = self.children[0].match(l, c)
+            matched, left_, c = self.children[0].match(left_, c)
             times += 1 if matched else 0
-            if l_ == l:
+            if l_ == left_:
                 break
-            l_ = l
+            l_ = left_
         if times >= 1:
-            return True, l, c
+            return True, left_, c
         return False, left, collected
 
 

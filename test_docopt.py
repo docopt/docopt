@@ -98,29 +98,32 @@ def test_formal_usage():
 
 def test_parse_argv():
     o = [Option("-h"), Option("-v", "--verbose"), Option("-f", "--file", 1)]
-    TS = lambda s: Tokens(s, error=DocoptExit)
-    assert parse_argv(TS(""), options=o) == []
-    assert parse_argv(TS("-h"), options=o) == [Option("-h", None, 0, True)]
-    assert parse_argv(TS("-h --verbose"), options=o) == [
+
+    def tokens(s):
+        return Tokens(s, error=DocoptExit)
+
+    assert parse_argv(tokens(""), options=o) == []
+    assert parse_argv(tokens("-h"), options=o) == [Option("-h", None, 0, True)]
+    assert parse_argv(tokens("-h --verbose"), options=o) == [
         Option("-h", None, 0, True),
         Option("-v", "--verbose", 0, True),
     ]
-    assert parse_argv(TS("-h --file f.txt"), options=o) == [
+    assert parse_argv(tokens("-h --file f.txt"), options=o) == [
         Option("-h", None, 0, True),
         Option("-f", "--file", 1, "f.txt"),
     ]
-    assert parse_argv(TS("-h --file f.txt arg"), options=o) == [
+    assert parse_argv(tokens("-h --file f.txt arg"), options=o) == [
         Option("-h", None, 0, True),
         Option("-f", "--file", 1, "f.txt"),
         Argument(None, "arg"),
     ]
-    assert parse_argv(TS("-h --file f.txt arg arg2"), options=o) == [
+    assert parse_argv(tokens("-h --file f.txt arg arg2"), options=o) == [
         Option("-h", None, 0, True),
         Option("-f", "--file", 1, "f.txt"),
         Argument(None, "arg"),
         Argument(None, "arg2"),
     ]
-    assert parse_argv(TS("-h arg -- -v"), options=o) == [
+    assert parse_argv(tokens("-h arg -- -v"), options=o) == [
         Option("-h", None, 0, True),
         Argument(None, "arg"),
         Argument(None, "--"),
