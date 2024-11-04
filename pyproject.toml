@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docopt"
+dynamic = ["version"]
+description = "Pythonic argument parser, that will make you smile"
+readme = "README.rst"
+authors = [
+    { name = "Vladimir Keleshev", email = "vladimir@keleshev.com" },
+]
+keywords = [
+    "argparse",
+    "arguments",
+    "getopt",
+    "option",
+    "optparse",
+    "parsing",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "http://docopt.org"
+
+[tool.setuptools.dynamic]
+version = {attr = "docopt.__version__"}
+
+[tool.setuptools.packages.find]
+exclude = ["test_docopt"]
+
+[project.optional-dependencies]
+testing = [
+    "pytest",
+    "pytest-cov",
+]
+dev = [
+    "black",
+    "flake8",
+    "flake8-pyproject",
+    "tox",
+]
+all = [
+    "docopt[dev,testing]",
+]
+
+[tool.flake8]
+# flake8 and black disagree on E203, E701, and W503
+ignore = ["E203", "E701", "W503"]
+max-line-length = 119
