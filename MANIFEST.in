@@ -1,2 +1,0 @@
-include README.rst LICENSE-MIT
-recursive-include examples *.py
