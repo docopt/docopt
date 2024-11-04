@@ -10,6 +10,10 @@
 Video introduction to **docopt**: `PyCon UK 2012: Create *beautiful*
 command-line interfaces with Python <http://youtu.be/pXhcPJK5cMc>`_
 
+    New in version 0.7.0:
+
+    - Drop support for Python 3.4. Add support for Python 3.7-3.13.
+
     New in version 0.6.1:
 
     - Fix issue `#85 <https://github.com/docopt/docopt/issues/85>`_
@@ -91,21 +95,34 @@ putting help message in the module docstrings.
 Installation
 ======================================================================
 
-Use `pip <http://pip-installer.org>`_ or easy_install::
+Use `pip <http://pip-installer.org>`_::
 
-    pip install docopt==0.6.2
+    pip install docopt==0.7.0
 
 Alternatively, you can just drop ``docopt.py`` file into your
 project--it is self-contained.
 
-**docopt** is tested with Python 2.7, 3.4, 3.5, and 3.6.
+**docopt** is tested with Python 2.7 and 3.5 through 3.13.
+
+To install for development, from the root of the checked out repository::
+
+    pip install -e ".[all]"
 
 Testing
 ======================================================================
 
-You can run unit tests using the command:
+You can run unit tests using the command::
 
-    python setup.py test
+    pytest
+
+Doctests can be run with::
+
+    pytest --doctest-modules docopt.py
+
+The full suite of acceptance tests for supported Python versions can
+be run using `tox`:
+
+    tox
 
 API
 ======================================================================
