@@ -10,7 +10,10 @@ import docopt
 
 
 def pytest_collect_file(path, parent):
+    """Collect custom .docopt files compatible with multiple pytest versions."""
     if path.ext == ".docopt" and path.basename.startswith("test"):
+        if hasattr(DocoptTestFile, "from_parent"):
+            return DocoptTestFile.from_parent(parent, fspath=path)
         return DocoptTestFile(path, parent)
 
 
@@ -41,7 +44,13 @@ class DocoptTestFile(pytest.File):
         for name, doc, cases in parse_test(raw):
             name = self.fspath.purebasename
             for case in cases:
-                yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
+                item_name = "%s(%d)" % (name, index)
+                if hasattr(DocoptTestItem, "from_parent"):
+                    yield DocoptTestItem.from_parent(
+                        self, name=item_name, doc=doc, case=case
+                    )
+                else:
+                    yield DocoptTestItem(item_name, self, doc, case)
                 index += 1
 
 
