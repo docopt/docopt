@@ -103,9 +103,13 @@ project--it is self-contained.
 Testing
 ======================================================================
 
-You can run unit tests using the command:
+You can run the unit tests directly with ``pytest``::
 
-    python setup.py test
+    pytest
+
+To exercise all supported Python versions use ``tox``::
+
+    tox
 
 API
 ======================================================================
