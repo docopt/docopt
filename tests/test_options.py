@@ -49,3 +49,14 @@ def test_count_multiple_flags():
     assert run_docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
     assert run_docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
 
+
+def test_option_defaults_and_repeats():
+    doc = """Usage: prog [--path=<p>...]
+Options:
+    --path=<p>  Path [default: a b]
+"""
+    result = run_docopt(doc, '')
+    assert result == {'--path': ['a', 'b']}
+    result = run_docopt(doc, '--path=c --path=d')
+    assert result == {'--path': ['c', 'd']}
+
