@@ -57,9 +57,13 @@ class DocoptTestFile(pytest.File):
 class DocoptTestItem(pytest.Item):
 
     def __init__(self, name, parent, doc, case):
-        super(DocoptTestItem, self).__init__(name, parent)
+        super().__init__(name, parent)
         self.doc = doc
         self.prog, self.argv, self.expect = case
+
+    @classmethod
+    def from_parent(cls, parent, *, name, doc, case):
+        return super().from_parent(parent, name=name, doc=doc, case=case)
 
     def runtest(self):
         try:
