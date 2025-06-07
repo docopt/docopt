@@ -17,3 +17,10 @@ def test_commands_multi():
     with pytest.raises(SystemExit):
         run_docopt('Usage: prog a b', 'b a')
 
+
+def test_repeated_commands():
+    usage = 'Usage: prog go...'
+    assert run_docopt(usage, 'go go go') == {'go': 3}
+    with pytest.raises(SystemExit):
+        run_docopt(usage, '')
+
