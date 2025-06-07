@@ -25,7 +25,7 @@ def test_nested_either_chain():
     depth = 10
     expr = 'cmd0'
     for i in range(1, depth):
-        expr = f'cmd{i} | ({expr})'
+        expr = 'cmd{0} | ({1})'.format(i, expr)
     doc = 'Usage: prog ' + expr
     argv = 'cmd{}'.format(depth - 1)
     result = run_docopt(doc, argv)
