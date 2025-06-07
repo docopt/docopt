@@ -9,10 +9,12 @@ import pytest
 import docopt
 
 
-def pytest_collect_file(file_path, parent):
-    """Collect custom .docopt files with modern pytest API."""
-    if file_path.suffix == ".docopt" and file_path.name.startswith("test"):
-        return DocoptTestFile.from_parent(parent, path=file_path)
+def pytest_collect_file(path, parent):
+    """Collect custom .docopt files compatible with multiple pytest versions."""
+    if path.ext == ".docopt" and path.basename.startswith("test"):
+        if hasattr(DocoptTestFile, "from_parent"):
+            return DocoptTestFile.from_parent(parent, fspath=path)
+        return DocoptTestFile(path, parent)
 
 
 def parse_test(raw):
@@ -42,12 +44,13 @@ class DocoptTestFile(pytest.File):
         for name, doc, cases in parse_test(raw):
             name = self.fspath.purebasename
             for case in cases:
-                yield DocoptTestItem.from_parent(
-                    self,
-                    name="%s(%d)" % (name, index),
-                    doc=doc,
-                    case=case,
-                )
+                item_name = "%s(%d)" % (name, index)
+                if hasattr(DocoptTestItem, "from_parent"):
+                    yield DocoptTestItem.from_parent(
+                        self, name=item_name, doc=doc, case=case
+                    )
+                else:
+                    yield DocoptTestItem(item_name, self, doc, case)
                 index += 1
 
 
