@@ -98,14 +98,18 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively, you can just drop ``docopt.py`` file into your
 project--it is self-contained.
 
-**docopt** is tested with Python 2.7, 3.4, 3.5, and 3.6.
+**docopt** is tested with Python 2.7, 3.2, 3.4, 3.5, and 3.6.
 
 Testing
 ======================================================================
 
-You can run unit tests using the command:
+You can run the unit tests directly with ``pytest``::
 
-    python setup.py test
+    pytest
+
+To exercise all supported Python versions use ``tox``::
+
+    tox
 
 API
 ======================================================================
