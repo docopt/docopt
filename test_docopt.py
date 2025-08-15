@@ -614,3 +614,43 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_pattern_groups():
+    doc = """Usage: prog -group1-
+
+             Group1:
+               --foo
+          """
+    with raises(DocoptExit):
+        docopt(doc, '')
+
+
+def test_pattern_groups_one_missing():
+    doc = """Usage: prog -group_1- -group33-
+
+             Group 1:
+               --foo
+
+             Group-2:
+                baz | (--bar | --bap)
+          """
+    try:
+        docopt(doc)
+    except DocoptLanguageError as e:
+        assert 'group "group33:"' in e.message
+        assert 'not found.' in e.message
+
+
+def test_pattern_groups_dont_recurse():
+    doc = """Usage: prog -group1-
+
+             Group1:
+               --foo | -group1- | bar
+
+          """
+    try:
+        a = docopt(doc, 'bar')
+    except RuntimeError as e:
+        assert False, '{}'.format(e)
+    assert a['bar'] == True and '-group1-' not in a
