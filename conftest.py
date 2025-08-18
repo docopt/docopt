@@ -11,7 +11,10 @@ import docopt
 
 def pytest_collect_file(path, parent):
     if path.ext == ".docopt" and path.basename.startswith("test"):
-        return DocoptTestFile(path, parent)
+        if hasattr(DocoptTestFile, "from_parent"):
+            return DocoptTestFile.from_parent(parent, fspath=path)
+        else:
+            return DocoptTestFile(path, parent)
 
 
 def parse_test(raw):
@@ -41,7 +44,13 @@ class DocoptTestFile(pytest.File):
         for name, doc, cases in parse_test(raw):
             name = self.fspath.purebasename
             for case in cases:
-                yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
+                if hasattr(DocoptTestItem, "from_parent"):
+                    yield DocoptTestItem.from_parent(parent=self,
+                                                     name="%s(%d)" % (name, index),
+                                                     doc=doc,
+                                                     case=case)
+                else:
+                    yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
                 index += 1
 
 
