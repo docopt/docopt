@@ -52,7 +52,7 @@ and instead can write only the help message--*the way you want it*.
 
 .. code:: python
 
-    """Naval Fate.
+    DOC = """Naval Fate.
 
     Usage:
       naval_fate.py ship new <name>...
@@ -70,11 +70,15 @@ and instead can write only the help message--*the way you want it*.
       --drifting    Drifting mine.
 
     """
+    # Used a var instead of docstring syntax to survive `python -OO` stripping them.
+    # Assigning to __doc__ is optional but good for `pydoc` and `help()`.
+    __doc__ = DOC
+
     from docopt import docopt
 
 
     if __name__ == '__main__':
-        arguments = docopt(__doc__, version='Naval Fate 2.0')
+        arguments = docopt(DOC, version='Naval Fate 2.0')
         print(arguments)
 
 Beat that! The option parser is generated based on the docstring above
@@ -87,6 +91,9 @@ information in it to make a parser*.
 
 Also, `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ recommends
 putting help message in the module docstrings.
+However, docstring syntax gets stripped in `python -OO` mode;
+the recipe above uses a regular variable which works either way
+(and still assigns `__doc__` at run time so pydoc will find it).
 
 Installation
 ======================================================================
