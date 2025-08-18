@@ -403,7 +403,7 @@ Using docopt with config-files
 ----------------------------------------------------------------------
 
 Often configuration files are used to provide default values which
-could be overriden by command-line arguments.  Since **docopt**
+could be overridden by command-line arguments.  Since **docopt**
 returns a simple dictionary it is very easy to integrate with
 config-files written in JSON, YAML or INI formats.
 `config_file_example.py <examples/config_file_example.py>`_ provides
