@@ -487,7 +487,7 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc=None, argv=None, help=True, version=None, options_first=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -498,7 +498,8 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     Parameters
     ----------
     doc : str
-        Description of your command-line interface.
+        Description of your command-line interface.  The docstring
+        for the caller's module is used if not provided.
     argv : list of str, optional
         Argument vector to be parsed. sys.argv[1:] is used if not
         provided.
@@ -550,6 +551,13 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
       at https://github.com/docopt/docopt#readme
 
     """
+    if doc is None:
+        import inspect
+        frame = inspect.stack()[1][0]
+        doc = frame.f_globals['__doc__']
+        if doc is None:
+            raise ValueError("No module-level docstring found.  Either write one or provide a 'doc' argument.")
+
     argv = sys.argv[1:] if argv is None else argv
 
     usage_sections = parse_section('usage:', doc)
