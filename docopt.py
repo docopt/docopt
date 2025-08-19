@@ -487,7 +487,8 @@ class Dict(dict):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
 
 
-def docopt(doc, argv=None, help=True, version=None, options_first=False):
+def docopt(doc, argv=None, help=True, version=None, options_first=False,
+           hide_unset=False):
     """Parse `argv` based on command-line interface described in `doc`.
 
     `docopt` creates your command-line interface based on its
@@ -511,6 +512,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
+    hide_unset : bool (default: False)
+        Set to True to hide the unused optional arguments, i.e.
+        to put in the returned dict only the arguments explicitely
+        given by user.
 
     Returns
     -------
@@ -567,6 +572,8 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     #    if same_name:
     #        a.value = same_name[0].value
     argv = parse_argv(Tokens(argv), list(options), options_first)
+    if hide_unset:
+        used_argv_names = set(arg.name for arg in argv)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(doc)
@@ -577,5 +584,10 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        if hide_unset:
+            return Dict((a.name, a.value)
+                        for a in (pattern.flat() + collected)
+                        if a.name in used_argv_names)
+        else:
+            return Dict((a.name, a.value) for a in (pattern.flat() + collected))
     raise DocoptExit()
