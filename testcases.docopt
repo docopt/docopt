@@ -955,3 +955,23 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+
+# An option description can be located after a new line.
+r"""usage: prog [options]
+
+options:
+  --foo, -f
+      Description on a new line.
+  --bar, -b
+      Description on a new line.
+"""
+
+$ prog --foo
+{"--foo": true, "--bar": false}
+$ prog --f
+{"--foo": true, "--bar": false}
+$ prog --bar
+{"--foo": false, "--bar": true}
+$ prog -b
+{"--foo": false, "--bar": true}
