@@ -1,23 +1,11 @@
-import sys
+from pathlib import Path
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
 
 from docopt import __version__
 
-
-class PyTestCommand(TestCommand):
-    """ Command to run unit py.test unit tests
-    """
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run(self):
-        import pytest
-        rcode = pytest.main(self.test_args)
-        sys.exit(rcode)
-
+# Read the README file
+readme_file = Path(__file__).parent / 'README.rst'
+long_description = readme_file.read_text(encoding='utf-8')
 
 setup(
     name='docopt',
@@ -29,22 +17,19 @@ setup(
     keywords='option arguments parsing optparse argparse getopt',
     url='http://docopt.org',
     py_modules=['docopt'],
-    long_description=open('README.rst').read(),
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
+    python_requires='>=3.10',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Topic :: Utilities',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'License :: OSI Approved :: MIT License',
+        'Intended Audience :: Developers',
+        'Operating System :: OS Independent',
     ],
-    tests_require=[
-            'pytest',
-        ],
-    cmdclass={
-            'test': PyTestCommand,
-        }
 )
