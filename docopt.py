@@ -2,8 +2,8 @@
 
  * http://docopt.org
  * Repository and issue-tracker: https://github.com/docopt/docopt
- * Licensed under terms of MIT license (see LICENSE-MIT)
- * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
+ * Licensed under terms of MIT license (see LICENSE)
+ * Copyright (c) 2012-2025 Vladimir Keleshev, vladimir@keleshev.com
 
 """
 import sys

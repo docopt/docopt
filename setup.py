@@ -4,7 +4,7 @@ from setuptools import setup
 from docopt import __version__
 
 # Read the README file
-readme_file = Path(__file__).parent / 'README.rst'
+readme_file = Path(__file__).parent / 'README.md'
 long_description = readme_file.read_text(encoding='utf-8')
 
 setup(
@@ -18,7 +18,7 @@ setup(
     url='http://docopt.org',
     py_modules=['docopt'],
     long_description=long_description,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     python_requires='>=3.10',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

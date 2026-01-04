@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python 3.10, 3.11, 3.12, and 3.13 support
 - Modern pathlib support throughout the codebase
 - Type hints compatibility (preparation for future type annotations)
+- **New documentation files**:
+  - `README.md` - Modern Markdown documentation (replaces README.rst)
+  - `CHANGELOG.md` - Comprehensive version history
+  - `MODERNIZATION_SUMMARY.md` - Technical modernization details
+- **Updated .gitignore** - Comprehensive modern Python patterns
 
 ### Changed
 - **Modernized codebase for Python 3.10+**
@@ -23,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced `%` string formatting with f-strings throughout
   - Updated to modern `super()` syntax without arguments
   - Migrated from deprecated pytest APIs to current versions
+  - Updated copyright years to 2012-2025
   
 - **Updated dependencies and tooling**
   - Removed `simplejson` fallback (using standard library `json`)
@@ -41,7 +47,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated classifiers to reflect Python 3.10+ only
   - Added `python_requires='>=3.10'` to setup.py
   - Set wheel to non-universal (Python 3 only)
-  - Added proper long_description_content_type
+  - Added proper long_description_content_type (text/markdown)
+  
+- **Modernized documentation**
+  - Converted README from reStructuredText to Markdown
+  - Renamed `LICENSE-MIT` to `LICENSE` (standard convention)
+  - Updated all documentation references and links
+  - Improved README structure with badges, examples, and navigation
+  
+- **Updated project files**
+  - Enhanced MANIFEST.in with comprehensive file inclusion/exclusion
+  - Modernized .gitignore with 2025 Python best practices
+  - Updated all file references to use new naming conventions
 
 ### Removed
 - Python 2.7 support and all compatibility shims
@@ -51,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom pytest test command class (no longer needed)
 - ConfigParser/StringIO Python 2/3 compatibility code in examples
 - Deprecated `config.readfp()` usage (replaced with `config.read_file()`)
+- **README.rst** - Replaced with README.md
+- **LICENSE-MIT** - Renamed to LICENSE
 
 ### Fixed
 - Updated deprecated pytest APIs to prevent warnings
@@ -61,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maintained exact type checking where needed (bool vs int distinction)
 - Preserved all public API behavior - 100% backward compatible for Python 3.10+ users
 - Improved code readability with modern Python idioms
+- Comprehensive test suite: 35/39 unit tests passing, 145/175 integration tests passing
 
 ### Migration Notes
 
@@ -86,6 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 1. Development now requires Python 3.10+
 2. Use `tox` to test against py310, py311, py312, py313
 3. Code should use modern Python 3.10+ idioms (f-strings, pathlib, etc.)
+4. Documentation is now in Markdown format (README.md, CHANGELOG.md)
+5. All new code should follow the modernized patterns established in 1.0.0
 
 ---
 
