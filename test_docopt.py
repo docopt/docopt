@@ -1,4 +1,3 @@
-from __future__ import with_statement
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, OptionsShortcut,
                     Required, Optional, Either, OneOrMore,
@@ -338,10 +337,6 @@ def test_pattern_fix_identities_2():
 
 
 def test_long_options_error_handling():
-#    with raises(DocoptLanguageError):
-#        docopt('Usage: prog --non-existent', '--non-existent')
-#    with raises(DocoptLanguageError):
-#        docopt('Usage: prog --non-existent')
     with raises(DocoptExit):
         docopt('Usage: prog', '--non-existent')
     with raises(DocoptExit):
@@ -361,8 +356,6 @@ def test_short_options_error_handling():
     with raises(DocoptLanguageError):
         docopt('Usage: prog -x\nOptions: -x  this\n -x  that')
 
-#    with raises(DocoptLanguageError):
-#        docopt('Usage: prog -x')
     with raises(DocoptExit):
         docopt('Usage: prog', '-x')
 
@@ -384,7 +377,7 @@ def test_allow_double_dash():
                   '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
     assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
                   '-o 1') == {'-o': True, '<arg>': '1', '--': False}
-    with raises(DocoptExit):  # "--" is not allowed; FIXME?
+    with raises(DocoptExit):
         docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
 
 
@@ -423,9 +416,6 @@ def test_docopt():
     with raises(SystemExit):
         docopt(doc, '--hel')
 
-    #with raises(SystemExit):
-    #    docopt(doc, 'help')  XXX Maybe help command?
-
 
 def test_language_errors():
     with raises(DocoptLanguageError):
@@ -442,11 +432,8 @@ def test_issue_40():
 
 
 def test_issue34_unicode_strings():
-    try:
-        assert docopt(eval("u'usage: prog [-o <a>]'"), '') == \
-                {'-o': False, '<a>': None}
-    except SyntaxError:
-        pass  # Python 3
+    # In Python 3.10+, all strings are Unicode by default
+    assert docopt('usage: prog [-o <a>]', '') == {'-o': False, '<a>': None}
 
 
 def test_count_multiple_flags():
@@ -464,29 +451,12 @@ def test_count_multiple_flags():
 def test_any_options_parameter():
     with raises(DocoptExit):
         docopt('usage: prog [options]', '-foo --bar --spam=eggs')
-#    assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
-#                  any_options=True) == {'-f': True, '-o': 2,
-#                                         '--bar': True, '--spam': 'eggs'}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--foo --bar --bar')
-#    assert docopt('usage: prog [options]', '--foo --bar --bar',
-#                  any_options=True) == {'--foo': True, '--bar': 2}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--bar --bar --bar -ffff')
-#    assert docopt('usage: prog [options]', '--bar --bar --bar -ffff',
-#                  any_options=True) == {'--bar': 3, '-f': 4}
     with raises(DocoptExit):
         docopt('usage: prog [options]', '--long=arg --long=another')
-#    assert docopt('usage: prog [options]', '--long=arg --long=another',
-#                  any_options=True) == {'--long': ['arg', 'another']}
-
-
-#def test_options_shortcut_multiple_commands():
-#    # any_options is disabled
-#    assert docopt('usage: prog c1 [options] prog c2 [options]',
-#        'c2 -o', any_options=True) == {'-o': True, 'c1': False, 'c2': True}
-#    assert docopt('usage: prog c1 [options] prog c2 [options]',
-#        'c1 -o', any_options=True) == {'-o': True, 'c1': True, 'c2': False}
 
 
 def test_default_value_for_positional_arguments():
@@ -505,28 +475,6 @@ def test_default_value_for_positional_arguments():
           """
     a = docopt(doc, '--data=this')
     assert a == {'--data': ['this']}
-
-
-#def test_parse_defaults():
-#    assert parse_defaults("""usage: prog
-#                          options:
-#                          -o, --option <o>
-#                          --another <a>  description
-#                                         [default: x]
-#                          <a>
-#                          <another>  description [default: y]""") == \
-#           ([Option('-o', '--option', 1, None),
-#             Option(None, '--another', 1, 'x')],
-#            [Argument('<a>', None),
-#             Argument('<another>', 'y')])
-#
-#    doc = '''
-#    -h, --help  Print help message.
-#    -o FILE     Output file.
-#    --verbose   Verbose mode.'''
-#    assert parse_defaults(doc)[0] == [Option('-h', '--help'),
-#                                      Option('-o', None, 1),
-#                                      Option(None, '--verbose')]
 
 
 def test_issue_59():

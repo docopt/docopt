@@ -19,12 +19,8 @@ def load_json_config():
 
 
 def load_ini_config():
-    try:  # Python 2
-        from ConfigParser import ConfigParser
-        from StringIO import StringIO
-    except ImportError:  # Python 3
-        from configparser import ConfigParser
-        from io import StringIO
+    from configparser import ConfigParser
+    from io import StringIO
 
     # By using `allow_no_value=True` we are allowed to
     # write `--force` instead of `--force=true` below.
@@ -41,13 +37,13 @@ def load_ini_config():
     # ConfigParser requires a file-like object and
     # no leading whitespace.
     config_file = StringIO('\n'.join(source.split()))
-    config.readfp(config_file)
+    config.read_file(config_file)
 
     # ConfigParsers sets keys which have no value
     # (like `--force` above) to `None`. Thus we
     # need to substitute all `None` with `True`.
-    return dict((key, True if value is None else value)
-                for key, value in config.items('default-arguments'))
+    return {key: True if value is None else value
+            for key, value in config.items('default-arguments')}
 
 
 def merge(dict_1, dict_2):
@@ -57,8 +53,8 @@ def merge(dict_1, dict_2):
     `dict_1` takes priority over `dict_2`.
 
     """
-    return dict((str(key), dict_1.get(key) or dict_2.get(key))
-                for key in set(dict_2) | set(dict_1))
+    return {str(key): dict_1.get(key) or dict_2.get(key)
+            for key in set(dict_2) | set(dict_1)}
 
 
 if __name__ == '__main__':

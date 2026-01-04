@@ -1,2 +1,23 @@
-include README.rst LICENSE-MIT
+# Include documentation
+include README.md
+include CHANGELOG.md
+include LICENSE
+
+# Include configuration files
+include setup.cfg
+include tox.ini
+include pytest.ini
+
+# Include test files
+include conftest.py
+include test_docopt.py
+include testcases.docopt
+
+# Include examples
 recursive-include examples *.py
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude .DS_Store
