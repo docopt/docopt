@@ -1,4 +1,6 @@
 import re
+from pathlib import Path
+
 try:
     import json
 except ImportError:
@@ -9,9 +11,9 @@ import pytest
 import docopt
 
 
-def pytest_collect_file(path, parent):
-    if path.ext == ".docopt" and path.basename.startswith("test"):
-        return DocoptTestFile(path, parent)
+def pytest_collect_file(file_path, parent):
+    if file_path.suffix == ".docopt" and file_path.stem.startswith("test"):
+        return DocoptTestFile.from_parent(parent, path=file_path)
 
 
 def parse_test(raw):
@@ -35,19 +37,21 @@ def parse_test(raw):
 class DocoptTestFile(pytest.File):
 
     def collect(self):
-        raw = self.fspath.open().read()
+        raw = self.path.open().read()
         index = 1
 
         for name, doc, cases in parse_test(raw):
-            name = self.fspath.purebasename
+            name = self.path.stem
             for case in cases:
-                yield DocoptTestItem("%s(%d)" % (name, index), self, doc, case)
+                yield DocoptTestItem.from_parent(
+                    self, name="%s(%d)" % (name, index), doc=doc, case=case
+                )
                 index += 1
 
 
 class DocoptTestItem(pytest.Item):
 
-    def __init__(self, name, parent, doc, case):
+    def __init__(self, name, parent, doc=None, case=None):
         super(DocoptTestItem, self).__init__(name, parent)
         self.doc = doc
         self.prog, self.argv, self.expect = case
@@ -73,7 +77,7 @@ class DocoptTestItem(pytest.Item):
             ))
 
     def reportinfo(self):
-        return self.fspath, 0, "usecase: %s" % self.name
+        return self.path, 0, "usecase: %s" % self.name
 
 
 class DocoptTestException(Exception):
