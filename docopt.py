@@ -490,10 +490,10 @@ class Dict(dict):
 def clean_name(name):
     """ Make name suitable for a class attribute """
     # Remove starting -/--
-    if name[1] == '-':
-        name = name[2:]
-    elif name[0] == '-':
-        name = name[1:]
+    if name.startswith("--"):
+       name = name[2:]
+    elif name.startswith("-"):
+       name = name[1:]
     # Convert - to _
     name = name.replace('-', '_')
     # Finally make it lower case
