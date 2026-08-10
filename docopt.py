@@ -591,7 +591,11 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False):
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
         d = Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        skipped = dir(Dict)
         for a in (pattern.flat() + collected):
-            setattr(d, clean_name(a.name), a.value)
+            attr_name = clean_name(a.name)
+            if attr_name in skipped:
+                attr_name += '_'
+            setattr(d, attr_name, a.value)
         return d
     raise DocoptExit()
