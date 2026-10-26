@@ -187,7 +187,9 @@ class Option(LeafPattern):
     @classmethod
     def parse(class_, option_description):
         short, long, argcount, value = None, None, 0, False
-        options, _, description = option_description.strip().partition('  ')
+        parts = re.split(r' {2,}|\t', option_description.strip(), maxsplit=1)
+        options = parts[0]
+        description = parts[1] if len(parts) > 1 else ''
         options = options.replace(',', ' ').replace('=', ' ')
         for s in options.split():
             if s.startswith('--'):

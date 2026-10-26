@@ -614,3 +614,21 @@ def test_parse_section():
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = 'Options:\n\t--foo=<arg>  [default: bar]'
     assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_tab_separated_option_description_defaults():
+    for separator in ('\t', ' \t', '\t ', '\t\t'):
+        doc = ('Usage: test [--username=<user>]\n\nOptions:\n'
+               '\t--username=<user>' + separator +
+               'Description [default: pancakes].')
+        assert docopt(doc, []) == {'--username': 'pancakes'}
+        assert docopt(doc, ['--username=waffles']) == {'--username': 'waffles'}
+
+
+def test_tab_separated_flag_description():
+    assert Option.parse('-h, --help\tShow help.') == Option('-h', '--help')
+
+
+def test_tabs_inside_default_are_preserved():
+    assert Option.parse('--text=TEXT\tText [default: one\ttwo]') == \
+        Option(None, '--text', 1, 'one\ttwo')
