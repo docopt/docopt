@@ -388,6 +388,22 @@ def test_allow_double_dash():
         docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
 
 
+def test_parse_defaults_on_options_header_line():
+    for separator in (' ', '\t', '\n  '):
+        section = 'Options:' + separator + '--number=NUM  [default: 3]'
+        assert parse_defaults(section) == [Option(None, '--number', 1, '3')]
+
+
+def test_inline_option_definition_keeps_arguments_and_defaults():
+    doc = ('Usage: prog [options]\n\n'
+           'Options: -n --number=NUM  [default: 3]\n'
+           '  -q --quiet  Suppress output.\n')
+    assert docopt(doc, []) == {'--number': '3', '--quiet': False}
+    assert docopt(doc, ['-n', '5', '--quiet']) == {
+        '--number': '5', '--quiet': True}
+    assert docopt(doc, ['--number=7']) == {'--number': '7', '--quiet': False}
+
+
 def test_docopt():
     doc = '''Usage: prog [-v] A
 
