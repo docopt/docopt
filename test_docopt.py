@@ -75,6 +75,29 @@ def test_formal_usage():
     assert formal_usage(usage) == "( [-hv] ARG ) | ( N M )"
 
 
+def test_same_name_subcommand():
+    assert docopt('Usage: prog prog', 'prog') == {'prog': True}
+    assert docopt('Usage: prog prog prog', 'prog prog') == {'prog': 2}
+    assert docopt('Usage: prog (prog)', 'prog') == {'prog': True}
+    assert docopt('Usage: prog [prog]', '') == {'prog': False}
+    with raises(DocoptExit):
+        docopt('Usage: prog prog', '')
+
+
+def test_same_name_subcommand_in_multiple_patterns():
+    doc = 'Usage: prog prog\n       prog add <file>'
+    assert docopt(doc, 'prog') == {
+        'prog': True, 'add': False, '<file>': None}
+    assert docopt(doc, 'add example') == {
+        'prog': False, 'add': True, '<file>': 'example'}
+
+
+def test_same_name_subcommand_with_continuation():
+    doc = 'Usage: prog.py+ prog.py+\n                <file>\n          prog.py+ -h'
+    assert docopt(doc, 'prog.py+ example') == {
+        'prog.py+': True, '<file>': 'example', '-h': False}
+
+
 def test_parse_argv():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
     TS = lambda s: Tokens(s, error=DocoptExit)

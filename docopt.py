@@ -469,8 +469,9 @@ def parse_section(name, source):
 
 def formal_usage(section):
     _, _, section = section.partition(':')  # drop "usage:"
-    pu = section.split()
-    return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
+    program = re.escape(section.split()[0])
+    patterns = re.split(r'(?m)^[ \t]*' + program + r'(?=\s|$)', section)[1:]
+    return ' | '.join('( ' + ' '.join(p.split()) + ' )' for p in patterns)
 
 
 def extras(help, version, options, doc):
