@@ -75,6 +75,19 @@ def test_formal_usage():
     assert formal_usage(usage) == "( [-hv] ARG ) | ( N M )"
 
 
+def test_pipe_between_option_aliases_has_a_specific_error():
+    doc = 'Usage: prog -h | --help\n\nOptions:\n  -h | --help  Show help.'
+    with raises(DocoptLanguageError, match="unexpected '\\|' in option description"):
+        docopt(doc, '--help', help=False)
+
+
+def test_pipe_in_option_description_text_is_allowed():
+    doc = 'Usage: prog -h\n\nOptions:\n  -h, --help  Describe a | b.'
+    assert docopt(doc, '-h', help=False) == {'--help': True}
+    assert Option.parse('--mode=<a|b>  Choose a | b.') == Option(
+        None, '--mode', 1)
+
+
 def test_parse_argv():
     o = [Option('-h'), Option('-v', '--verbose'), Option('-f', '--file', 1)]
     TS = lambda s: Tokens(s, error=DocoptExit)

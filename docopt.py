@@ -190,6 +190,10 @@ class Option(LeafPattern):
         options, _, description = option_description.strip().partition('  ')
         options = options.replace(',', ' ').replace('=', ' ')
         for s in options.split():
+            if s == '|':
+                raise DocoptLanguageError(
+                    "unexpected '|' in option description; "
+                    "use a space or comma between aliases")
             if s.startswith('--'):
                 long = s
             elif s.startswith('-'):
