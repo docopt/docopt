@@ -8,6 +8,7 @@
 """
 import sys
 import re
+from copy import copy
 
 
 __all__ = ['docopt']
@@ -123,10 +124,13 @@ class LeafPattern(Pattern):
                 increment = ([match.value] if type(match.value) is str
                              else match.value)
             if not same_name:
+                match = copy(match)
                 match.value = increment
                 return True, left_, collected + [match]
-            same_name[0].value += increment
-            return True, left_, collected
+            updated = copy(same_name[0])
+            updated.value = same_name[0].value + increment
+            return True, left_, [updated if a is same_name[0] else a
+                                 for a in collected]
         return True, left_, collected + [match]
 
 
