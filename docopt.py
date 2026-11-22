@@ -393,6 +393,8 @@ def parse_seq(tokens, options):
     while tokens.current() not in [None, ']', ')', '|']:
         atom = parse_atom(tokens, options)
         if tokens.current() == '...':
+            if len(atom) > 1:
+                atom = [Required(*atom)]
             atom = [OneOrMore(*atom)]
             tokens.move()
         result += atom
