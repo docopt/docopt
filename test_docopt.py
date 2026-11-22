@@ -8,6 +8,28 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
 from pytest import raises
 
 
+def test_repeated_stacked_short_options_pattern():
+    assert parse_pattern('-ab...', []) == Required(
+        OneOrMore(Required(Option('-a'), Option('-b'))))
+
+
+def test_repeated_stacked_short_options():
+    doc = 'Usage: prog -ab...'
+    for argv, count in [('-ab', 1), ('-ab -ab', 2), ('-a -b -a -b', 2)]:
+        assert docopt(doc, argv) == {'-a': count, '-b': count}
+
+
+def test_repeated_stacked_short_options_require_complete_groups():
+    for argv in ['', '-a', '-b', '-ab -a', '-ab -b']:
+        with raises(DocoptExit):
+            docopt('Usage: prog -ab...', argv)
+
+
+def test_optional_repeated_stacked_short_options():
+    assert docopt('Usage: prog [-ab...]', '') == {'-a': 0, '-b': 0}
+    assert docopt('Usage: prog [-ab...]', '-abab') == {'-a': 2, '-b': 2}
+
+
 def test_pattern_flat():
     assert Required(OneOrMore(Argument('N')),
                     Option('-a'), Argument('M')).flat() == \
