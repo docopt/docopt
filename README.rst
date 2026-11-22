@@ -189,6 +189,37 @@ the return dictionary will be:
      '<x>': '100',           'shoot': False,
      '<y>': '150'}
 
+Exit status
+----------------------------------------------------------------------
+
+When automatic help or version handling is enabled, ``docopt`` prints to
+standard output and raises ``SystemExit`` with status 0. A successful parse
+returns the argument dictionary without exiting.
+
+Invalid command-line arguments raise ``DocoptExit``, a subclass of
+``SystemExit``. If it is not caught, Python prints its message (including the
+usage pattern) to standard error and exits with status 1.
+
+To choose a different status for invalid arguments, catch ``DocoptExit`` and
+print its message before exiting. For example, in a script whose module
+docstring contains the help message:
+
+.. code:: python
+
+    from __future__ import print_function
+    import sys
+    from docopt import DocoptExit, docopt
+
+    try:
+        arguments = docopt(__doc__, version='1.0')
+    except DocoptExit as error:
+        print(error, file=sys.stderr)
+        sys.exit(2)
+
+This changes argument errors to status 2 while preserving the successful
+status 0 exits for help and version. Catching ``SystemExit`` instead would
+also intercept those successful exits.
+
 Help message format
 ======================================================================
 
