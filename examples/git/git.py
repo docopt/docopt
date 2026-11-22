@@ -4,7 +4,7 @@ usage: git [--version] [--exec-path=<path>] [--html-path]
            [-p|--paginate|--no-pager] [--no-replace-objects]
            [--bare] [--git-dir=<path>] [--work-tree=<path>]
            [-c <name>=<value>] [--help]
-           <command> [<args>...]
+           [<command> [<args>...]]
 
 options:
    -c <name=value>
@@ -23,6 +23,8 @@ The most commonly used git commands are:
 See 'git help <command>' for more information on a specific command.
 
 """
+import os
+import sys
 from subprocess import call
 
 from docopt import docopt
@@ -33,22 +35,30 @@ if __name__ == '__main__':
     args = docopt(__doc__,
                   version='git version 1.7.4.4',
                   options_first=True)
-    print('global arguments:')
-    print(args)
-    print('command arguments:')
+    command = args['<command>']
+    argv = [command] + args['<args>']
+    if command in ['help', None]:
+        if not args['<args>']:
+            docopt(__doc__, argv=['--help'])
+        command = args['<args>'][0]
+        argv = [command, '--help']
+    else:
+        print('global arguments:')
+        print(args)
+        print('command arguments:')
 
-    argv = [args['<command>']] + args['<args>']
-    if args['<command>'] == 'add':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if command == 'add':
         # In case subcommand is implemented as python module:
         import git_add
         print(docopt(git_add.__doc__, argv=argv))
-    elif args['<command>'] == 'branch':
+    elif command == 'branch':
         # In case subcommand is a script in some other programming language:
-        exit(call(['python', 'git_branch.py'] + argv))
-    elif args['<command>'] in 'checkout clone commit push remote'.split():
+        script = os.path.join(script_dir, 'git_branch.py')
+        sys.exit(call([sys.executable, script] + argv))
+    elif command in 'checkout clone commit push remote'.split():
         # For the rest we'll just keep DRY:
-        exit(call(['python', 'git_%s.py' % args['<command>']] + argv))
-    elif args['<command>'] in ['help', None]:
-        exit(call(['python', 'git.py', '--help']))
+        script = os.path.join(script_dir, 'git_%s.py' % command)
+        sys.exit(call([sys.executable, script] + argv))
     else:
-        exit("%r is not a git.py command. See 'git help'." % args['<command>'])
+        sys.exit("%r is not a git.py command. See 'git help'." % command)
