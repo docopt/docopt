@@ -270,10 +270,24 @@ Use the following constructs to specify patterns:
   more ``FILE``-s are accepted.  If you want to accept zero or more
   elements, use brackets, e.g.: ``my_program.py [FILE ...]``. Ellipsis
   works as a unary operator on the expression to the left.
-- **[options]** (case sensitive) shortcut for any options.  You can
-  use it if you want to specify that the usage pattern could be
-  provided with any options defined below in the option-descriptions
-  and do not want to enumerate them all in usage-pattern.
+- **[options]** (case sensitive) shortcut for the options defined in
+  the option descriptions, excluding every option explicitly mentioned
+  anywhere in the usage section. This exclusion applies across all
+  usage patterns, not just the pattern containing ``[options]``. To
+  allow an excluded option in another pattern, list it there too.
+  This prevents the shortcut from accidentally making an option
+  repeatable. For example::
+
+    Usage:
+      prog inspect [--server=<address>]
+      prog process [--server=<address>] [options] <file>
+
+    Options:
+      --server=<address>  Server address [default: localhost].
+      --verbose           Show progress.
+
+  Here ``[options]`` expands to ``[--verbose]``. ``--server`` must be
+  written explicitly in both patterns to be accepted by both commands.
 - "``[--]``". Double dash "``--``" is used by convention to separate
   positional arguments that can be mistaken for options. In order to
   support this convention add "``[--]``" to your usage patterns.
