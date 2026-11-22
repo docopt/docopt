@@ -88,6 +88,30 @@ information in it to make a parser*.
 Also, `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ recommends
 putting help message in the module docstrings.
 
+When the help message is a class or function docstring, use
+``inspect.getdoc`` to remove the indentation introduced by the Python
+source. Relative indentation within the help message is preserved:
+
+.. code:: python
+
+    import inspect
+    from docopt import docopt
+
+    class Command(object):
+        """Usage: command [--help] <name>
+
+        Options:
+          -h --help  Show this screen.
+        """
+
+    arguments = docopt(inspect.getdoc(Command))
+
+``command --help Alice`` now prints ``Usage:`` and ``Options:`` at the
+left margin, with the option description indented by two spaces. For a
+docstring already stored in a string variable, use
+``inspect.cleandoc(text)``. Without this explicit cleanup, **docopt**
+preserves the indentation of the help message it receives.
+
 Installation
 ======================================================================
 
