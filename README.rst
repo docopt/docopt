@@ -208,6 +208,36 @@ Help message consists of 2 parts:
 
 Their format is described below; other text is ignored.
 
+Environment and input/output documentation
+----------------------------------------------------------------------
+
+You can add sections such as ``Environment:`` and ``Input/Output:`` to
+describe behavior beyond command-line arguments. These headings are a
+documentation convention you can choose for your application, not additional
+docopt syntax. For example::
+
+    Usage: filter [--encoding=<name>] [<file>] [--help]
+
+    Options:
+      --encoding=<name>  Override the input encoding.
+      --help             Show this help message.
+
+    Environment:
+      FILTER_ENCODING  Input encoding when --encoding is omitted.
+                       Defaults to UTF-8 when the variable is unset.
+
+    Input/Output:
+      stdin   Read input here when <file> is omitted.
+      stdout  Write the filtered data.
+      stderr  Write diagnostic messages.
+
+Keep these sections separate from the usage and option descriptions with
+blank lines. They appear in the help message, but do not add keys to the
+returned argument dictionary. Your application must read environment
+variables, choose their defaults and handle the input/output streams itself.
+The same approach can document global configuration, configuration files,
+exit statuses, or other application behavior.
+
 Usage pattern format
 ----------------------------------------------------------------------
 
