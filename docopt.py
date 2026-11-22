@@ -457,7 +457,9 @@ def parse_defaults(doc):
         split = re.split(r'\n[ \t]*(-\S+?)', r'\n' + s)[1:]
         split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
         options = [Option.parse(s) for s in split if s.startswith('-')]
-        defaults += options
+        for option in options:
+            if option not in defaults:
+                defaults.append(option)
     return defaults
 
 

@@ -8,6 +8,49 @@ from docopt import (docopt, DocoptExit, DocoptLanguageError,
 from pytest import raises
 
 
+def test_repeated_option_descriptions():
+    doc = '''Usage: prog [-t <type>]
+
+Options:
+  -t <type>  Limit the first command.
+  -t <type>  Limit the second command.
+'''
+    assert parse_defaults(doc) == [Option('-t', None, 1)]
+    assert docopt(doc, '-t user') == {'-t': 'user'}
+    assert docopt(doc, '') == {'-t': None}
+
+
+def test_repeated_options_across_sections():
+    doc = '''Usage: prog [options]
+
+First options:
+  -t --type=<type>  First description. [default: user]
+  --quiet          Suppress output.
+
+Second options:
+  -t --type=<type>  Second description. [default: user]
+  --quiet          Suppress other output.
+'''
+    assert parse_defaults(doc) == [
+        Option('-t', '--type', 1, 'user'), Option(None, '--quiet')]
+    assert docopt(doc, '') == {'--type': 'user', '--quiet': False}
+    assert docopt(doc, '--type host --quiet') == {
+        '--type': 'host', '--quiet': True}
+
+
+def test_repeated_option_conflicts_remain_ambiguous():
+    for first, second in [
+            ('-t <type>  [default: user]', '-t <type>  [default: host]'),
+            ('-t --type', '-t --target'),
+            ('-t', '-t <type>'),
+            ('--type', '--type=<type>')]:
+        option = '--type' if first.startswith('--') else '-t'
+        doc = 'Usage: prog [%s]\n\nOptions:\n  %s\n  %s\n' % (
+            option, first, second)
+        with raises(DocoptLanguageError):
+            docopt(doc, '')
+
+
 def test_pattern_flat():
     assert Required(OneOrMore(Argument('N')),
                     Option('-a'), Argument('M')).flat() == \
